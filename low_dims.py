@@ -12,8 +12,8 @@ from sklearn.decomposition import PCA
 
 import numpy as np
 
-# similarity_measure = 'cosine_similarity'
-similarity_measure = 'euclidean_distance'
+similarity_measure = 'cosine_similarity'
+# similarity_measure = 'euclidean_distance'
 
 # first try to project texts into lower dimensions
 
@@ -58,12 +58,17 @@ sampled_images = []
 for image_id in sampled_caption_ids:
     for image in data['images']:
         if image['id'] == image_id:
+            # print progress 
+            if len(sampled_images) % 10 == 0:
+                print(len(sampled_images), ' / ', len(sampled_caption_ids))
             image = Image.open(requests.get(image['coco_url'], stream=True).raw)
             sampled_images.append(image)
+            break # break out of inner loop since we found the image we were looking for
+
 
 # in sampled_images, ith image corresponds to ith caption in sampled_captions
 
-
+print('NUM IMAGES SAMPLED ', len(sampled_images))
 print('NUM CAPTIONS SAMPLED ', len(sampled_captions))
 
 clip_model = CLIPWrapper(sampled_captions, sampled_images, similarity_measure)
@@ -92,22 +97,15 @@ text_embeddings_pca = pca.fit_transform(text_embeddings)
 
 # do PCA dimensionality reduction on image embeddings
 
-image_embeddings = clip_model.get_image_embeddings() # shape: (n, 512)
-
-# do PCA dimensionality reduction on image embeddings
-
-pca = PCA(n_components=n)
-
-image_embeddings_pca = pca.fit_transform(image_embeddings)
 
 # in image_embeddings_pca, ith image embedding corresponds to ith caption embedding in text_embeddings_pca, atleast, it should, maybe check LATER
 
 
-pca_clip_model = CLIPWrapper(sampled_captions, sampled_images, similarity_measure, pca_dims=n)
+pca_clip_model = CLIPWrapper(sampled_captions, sampled_images, similarity_measure, pca_dims=2*n)
 
 # average similarity between two texts
 
-print(f'average {similarity_measure} between two texts with pca dims {n}', pca_clip_model.get_average_text_text_similarity())
+print(f'average {similarity_measure} between two texts with pca dims {2*n}', pca_clip_model.get_average_text_text_similarity())
 
 # average similarity between image and their corresponding caption
 
@@ -115,4 +113,4 @@ similarity_matrix = pca_clip_model.get_text_image_similarities()
 
 
 
-print(f'average {similarity_measure} between image and their corresponding caption with pca dims {n}', np.mean(similarity_matrix.diagonal())) # this works since diagonal elements are similarities between image and their corresponding caption, since ith caption corresponds to ith image
+print(f'average {similarity_measure} between image and their corresponding caption with pca dims {2*n}', np.mean(similarity_matrix.diagonal())) # this works since diagonal elements are similarities between image and their corresponding caption, since ith caption corresponds to ith image

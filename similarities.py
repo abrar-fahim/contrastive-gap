@@ -5,15 +5,15 @@ import sklearn
 from sklearn.metrics.pairwise import euclidean_distances
 
 
-def text_similarity(outputs, similarity_type='cosine_similarity', pca_dims=None):
+def text_similarity(text_features, similarity_type='cosine_similarity', pca_dims=None):
 
-    text_embeds = outputs.text_embeds
-    text_features = text_embeds.detach().cpu()
+    # text_embeds = outputs.text_embeds
+    # text_features = text_embeds.detach().cpu()
 
-    if pca_dims is not None:
-        # do PCA dimensionality reduction on text embeddings
-        pca = sklearn.decomposition.PCA(n_components=pca_dims)
-        text_features = pca.fit_transform(text_features)
+    # if pca_dims is not None:
+    #     # do PCA dimensionality reduction on text embeddings
+    #     pca = sklearn.decomposition.PCA(n_components=pca_dims)
+    #     text_features = pca.fit_transform(text_features)
 
     if similarity_type == 'cosine_similarity':
         
@@ -46,15 +46,15 @@ def text_similarity(outputs, similarity_type='cosine_similarity', pca_dims=None)
 
     return similarities
 
-def image_similarity(outputs, similarity_type='cosine_similarity', pca_dims=None):
+def image_similarity(image_features, similarity_type='cosine_similarity', pca_dims=None):
 
-    image_embeds = outputs.image_embeds
-    image_features = image_embeds.detach().cpu()
+    # image_embeds = outputs.image_embeds
+    # image_features = image_embeds.detach().cpu()
 
-    if pca_dims is not None:
-        # do PCA dimensionality reduction on image embeddings
-        pca = sklearn.decomposition.PCA(n_components=pca_dims)
-        image_features = pca.fit_transform(image_features)
+    # if pca_dims is not None:
+    #     # do PCA dimensionality reduction on image embeddings
+    #     pca = sklearn.decomposition.PCA(n_components=pca_dims)
+    #     image_features = pca.fit_transform(image_features)
 
     if similarity_type == 'cosine_similarity':
         norms = np.linalg.norm(image_features, axis=1)
@@ -84,22 +84,22 @@ def image_similarity(outputs, similarity_type='cosine_similarity', pca_dims=None
 
     return similarities
 
-def text_image_similarity(outputs, similarity_type='cosine_similarity', pca_dims=None):
+def text_image_similarity(text_features, image_features, similarity_type='cosine_similarity', pca_dims=None):
 
-    text_embeds = outputs.text_embeds
-    image_embeds = outputs.image_embeds
+    # text_embeds = outputs.text_embeds
+    # image_embeds = outputs.image_embeds
 
-    text_features = text_embeds.detach().cpu()
-    image_features = image_embeds.detach().cpu()
+    # text_features = text_embeds.detach().cpu()
+    # image_features = image_embeds.detach().cpu()
 
-    if pca_dims is not None:
-        # do PCA dimensionality reduction on text embeddings
-        pca = sklearn.decomposition.PCA(n_components=pca_dims)
-        text_features = pca.fit_transform(text_features)
+    # if pca_dims is not None:
+    #     # do PCA dimensionality reduction on text embeddings
+    #     pca = sklearn.decomposition.PCA(n_components=pca_dims)
+    #     text_features = pca.fit_transform(text_features)
 
-        # do PCA dimensionality reduction on image embeddings
-        pca = sklearn.decomposition.PCA(n_components=pca_dims)
-        image_features = pca.fit_transform(image_features)
+    #     # do PCA dimensionality reduction on image embeddings
+    #     pca = sklearn.decomposition.PCA(n_components=pca_dims)
+    #     image_features = pca.fit_transform(image_features)
 
     if similarity_type == 'cosine_similarity':
 
