@@ -11,10 +11,12 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-pca_dims = 2
+dims = 2
 n = 10
 
 similarity_measure = 'cosine_similarity'
+
+dim_reduction_technique = 'tsne'
 
 f = open('datasets/mscoco/annotations/captions_val2014.json')
 
@@ -70,7 +72,7 @@ for image_id in sampled_caption_ids:
 print('NUM IMAGES SAMPLED ', len(sampled_images))
 print('NUM CAPTIONS SAMPLED ', len(sampled_captions))
 
-clip_model = CLIPWrapper(sampled_captions, sampled_images, similarity_measure, pca_dims=pca_dims)
+clip_model = CLIPWrapper(sampled_captions, sampled_images, similarity_measure, dim_reduction_technique=dim_reduction_technique, dims=dims)
 
 # get text embeddings
 text_embeddings = clip_model.get_text_embeddings() # shape: (n, pca_dims)
@@ -79,7 +81,7 @@ text_embeddings = clip_model.get_text_embeddings() # shape: (n, pca_dims)
 
 image_embeddings = clip_model.get_image_embeddings() # shape: (n, pca_dims)
 
-# plot the embeddings
+# 1. plot the embeddings TEXT VS IMAGES
 
 # plt.scatter(text_embeddings[:,0], text_embeddings[:,1], color='red')
 
@@ -87,22 +89,14 @@ image_embeddings = clip_model.get_image_embeddings() # shape: (n, pca_dims)
 
 # plt.show()
 
-# plot the embeddings such that each image is plotted with its corresponding caption
+
+
+# 2. plot the embeddings such that each image is plotted with its corresponding caption
 
 # take ith color from color wheel
 colors = plt.cm.gist_rainbow(np.linspace(0, 1, n))
 
-print('colors ', colors)
-
-
-
 for i in range(n):
     plt.scatter(text_embeddings[i,0], text_embeddings[i,1], color=colors[i])
     plt.scatter(image_embeddings[i,0], image_embeddings[i,1], color=colors[i])
-
-    # plt.text(text_embeddings[i,0], text_embeddings[i,1], i)
-    # plt.text(image_embeddings[i,0], image_embeddings[i,1], i)
-
-
-
 plt.show()

@@ -11,12 +11,14 @@ from similarities import text_image_similarity, text_similarity, image_similarit
 
 import sklearn.decomposition
 
+from sklearn.manifold import TSNE
+
 
 
 class CLIPWrapper:
 
     # init
-    def __init__(self, texts, images, similarity_type='cosine', pca_dims=None):
+    def __init__(self, texts, images, similarity_type='cosine', dim_reduction_technique=None, dims=None):
         self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
         self.texts = texts
@@ -29,13 +31,23 @@ class CLIPWrapper:
 
         self.similarity_type = similarity_type
 
-        self.pca_dims = pca_dims
+        self.dim_reduction_technique = dim_reduction_technique
+
+        self.dims = dims
+
+    
 
     def get_pca_embeddings(self):
         '''
-        Returns text and image embeddings after PCA dimensionality reduction
-        Does PCA dimensionality reduction on the common space occupied by both image and text embeddings
+        Returns text and image embeddings after some dimensionality reduction
+        Does dimensionality reduction on the common space occupied by both image and text embeddings
+
+        Depends on the dim_reduction_technique attribute
         '''
+
+        if self.dim_reduction_technique is None:
+            raise ValueError('dim_reduction_technique attribute must be set')
+
         text_embeds = self.outputs.text_embeds
         text_embeds = text_embeds.detach().cpu()
 
@@ -47,18 +59,32 @@ class CLIPWrapper:
         # concat text embeddings with image embeddings
 
         all_embeds = np.concatenate((text_embeds, image_embeds), axis=0)
-        # do PCA dimensionality reduction on text embeddings
-        pca = sklearn.decomposition.PCA(n_components=self.pca_dims)
+
+        if self.dim_reduction_technique == 'pca':
+            # do PCA dimensionality reduction on text embeddings
+            pca = sklearn.decomposition.PCA(n_components=self.dims, random_state=0)
 
 
-        all_embeds_pca = pca.fit_transform(all_embeds)
+            all_embeds_pca = pca.fit_transform(all_embeds)
 
-        # seperate text and image embeddings
-        text_embeds = all_embeds_pca[:text_embeds.shape[0], :]
+            # seperate text and image embeddings
+            text_embeds = all_embeds_pca[:text_embeds.shape[0], :]
 
-        image_embeds = all_embeds_pca[text_embeds.shape[0]:, :]
+            image_embeds = all_embeds_pca[text_embeds.shape[0]:, :]
 
-        return text_embeds, image_embeds
+            return text_embeds, image_embeds
+        elif self.dim_reduction_technique == 'tsne':
+            # do TSNE dimensionality reduction on text embeddings
+            tsne = TSNE(n_components=self.dims, perplexity=2, random_state=0)
+
+            all_embeds_tsne = tsne.fit_transform(all_embeds)
+
+            # seperate text and image embeddings
+            text_embeds = all_embeds_tsne[:text_embeds.shape[0], :]
+
+            image_embeds = all_embeds_tsne[text_embeds.shape[0]:, :]
+
+            return text_embeds, image_embeds
 
         
 
@@ -70,7 +96,7 @@ class CLIPWrapper:
 
         # text_embeds shape: (n, 512)
 
-        if self.pca_dims is not None:
+        if self.dims is not None:
 
            text_embeds = self.get_pca_embeddings()[0]
 
@@ -80,7 +106,7 @@ class CLIPWrapper:
         image_embeds = self.outputs.image_embeds
         image_embeds = image_embeds.detach().cpu()
 
-        if self.pca_dims is not None:
+        if self.dims is not None:
             
            image_embeds = self.get_pca_embeddings()[1]
         return image_embeds
@@ -96,7 +122,7 @@ class CLIPWrapper:
 
         text_embeds = self.get_text_embeddings()
         
-        cosine_similarities = text_similarity(text_embeds, self.similarity_type, self.pca_dims)
+        cosine_similarities = text_similarity(text_embeds, self.similarity_type, self.dims)
         return cosine_similarities
     
     def get_average_text_text_similarity(self):
@@ -118,7 +144,7 @@ class CLIPWrapper:
 
         text_embeds = self.get_text_embeddings()
         image_embeds = self.get_image_embeddings()
-        cosine_similarities = text_image_similarity(text_embeds, image_embeds, self.similarity_type, self.pca_dims)
+        cosine_similarities = text_image_similarity(text_embeds, image_embeds, self.similarity_type, self.dims)
         return cosine_similarities
     
     def get_average_text_image_similarity(self):
@@ -131,7 +157,7 @@ class CLIPWrapper:
     
     def get_image_image_similarities(self):
         image_embeds = self.get_image_embeddings()
-        cosine_similarities = image_similarity(image_embeds, self.similarity_type, self.pca_dims)
+        cosine_similarities = image_similarity(image_embeds, self.similarity_type, self.dims)
         return cosine_similarities
     
     def get_average_image_image_similarity(self):
