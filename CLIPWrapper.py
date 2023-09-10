@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from transformers import CLIPProcessor, CLIPModel
 import numpy as np
 import seaborn as sns
+import random
 
 from text_images import image_urls, texts, image_names
 
@@ -35,31 +36,93 @@ class CLIPWrapper:
 
         self.dims = dims
 
-    
 
-    def get_pca_embeddings(self):
+
+
+    def get_pca_embeddings(self, output='projection'):
         '''
         Returns text and image embeddings after some dimensionality reduction
         Does dimensionality reduction on the common space occupied by both image and text embeddings
 
         Depends on the dim_reduction_technique attribute
+
+        output: 'encoder', 'projection', or 'both'
+
+        encoder output returns raw text and image embeddings
+
+        projection output returns text and image embeddings after linear CLIP projection layer 
         '''
+
+        n_texts = self.outputs.text_embeds.shape[0]
+        n_images = self.outputs.image_embeds.shape[0]
+
 
         if self.dim_reduction_technique is None:
             raise ValueError('dim_reduction_technique attribute must be set')
 
-        text_embeds = self.outputs.text_embeds
-        text_embeds = text_embeds.detach().cpu()
 
-        image_embeds = self.outputs.image_embeds
-        image_embeds = image_embeds.detach().cpu()
+        if output == 'projection':
+            text_embeds = self.outputs.text_embeds
+            text_embeds = text_embeds.detach().cpu()
+
+            image_embeds = self.outputs.image_embeds
+            image_embeds = image_embeds.detach().cpu()
+
+            all_embeds = np.concatenate((text_embeds, image_embeds), axis=0)
+
+        elif output == 'encoder':
+            text_encoder_outputs = self.outputs.text_model_output
+            text_embeds = text_encoder_outputs.pooler_output.detach().cpu()
+
+            image_encoder_outputs = self.outputs.vision_model_output
+            image_embeds = image_encoder_outputs.pooler_output.detach().cpu()
+
+            all_embeds = np.concatenate((text_embeds, image_embeds), axis=0)
+
+        elif output == 'both':
+            text_embeds = self.outputs.text_embeds
+            text_embeds = text_embeds.detach().cpu()
+
+            image_embeds = self.outputs.image_embeds
+            image_embeds = image_embeds.detach().cpu()
+
+            text_encoder_outputs = self.outputs.text_model_output
+            text_encoder_outputs = text_encoder_outputs.pooler_output.detach().cpu()
+
+            image_encoder_outputs = self.outputs.vision_model_output
+            image_encoder_outputs = image_encoder_outputs.pooler_output.detach().cpu()
+
+
+            # CAVEAT HERE, FIX LATER
+            '''
+            to concatenate text_encoder_outputs and image_encoder_outputs, we need to make them the same dimension.
+            So, reduce image_encoder_outputs dimension from 768 to 512 by doing PCA on them only
+            Doing this changes all_embeds, but since we're only using image embeds when doing some sort of dimensionality reduction, its fine ig
+
+            UPDATE: this wont work unless I have atleast 512 images
+            '''
+
+            # do PCA dimensionality reduction on image_encoder_outputs
+
+            # pca = sklearn.decomposition.PCA(n_components=512, random_state=0)
+
+            # image_encoder_outputs_pca = pca.fit_transform(image_encoder_outputs)
+           
+            # all_embeds = np.concatenate((text_embeds, image_embeds, text_encoder_outputs, image_encoder_outputs_pca), axis=0)
+
+            # problem here is that image_encoder_outputs is 768 dimensional, whereas everything else is 512 dimensional.
+
+            # concat text embeddings with image embeddings          
+            # for now, just do ignoring image_encoder_outputs
+            all_embeds = np.concatenate((text_embeds, image_embeds, text_encoder_outputs), axis=0)
+
+        else:
+            raise ValueError('output must be either projection or encoder')
+
 
         # text_embeds shape: (n, 512)
 
-        # concat text embeddings with image embeddings
-
-        all_embeds = np.concatenate((text_embeds, image_embeds), axis=0)
-
+        
         if self.dim_reduction_technique == 'pca':
             # do PCA dimensionality reduction on text embeddings
             pca = sklearn.decomposition.PCA(n_components=self.dims, random_state=0)
@@ -67,48 +130,105 @@ class CLIPWrapper:
 
             all_embeds_pca = pca.fit_transform(all_embeds)
 
-            # seperate text and image embeddings
-            text_embeds = all_embeds_pca[:text_embeds.shape[0], :]
+            # # do PCA on image_encoder outputs now
+            # image_encoder_pca = sklearn.decomposition.PCA(n_components=self.dims, random_state=0)
 
-            image_embeds = all_embeds_pca[text_embeds.shape[0]:, :]
+            # image_encoder_outputs_pca = image_encoder_pca.fit_transform(image_encoder_outputs)
 
-            return text_embeds, image_embeds
+            # # do PCA again on all embeds
+
+            # all_embeds_pca = np.concatenate((all_embeds_pca, image_encoder_outputs_pca), axis=0)
+
+            # pca_2 = sklearn.decomposition.PCA(n_components=self.dims, random_state=0)
+
+            # all_embeds_pca = pca_2.fit_transform(all_embeds_pca)
+
+            all_embeds_dim_reduced = all_embeds_pca
+
+            
+
         elif self.dim_reduction_technique == 'tsne':
             # do TSNE dimensionality reduction on text embeddings
             tsne = TSNE(n_components=self.dims, perplexity=2, random_state=0)
 
             all_embeds_tsne = tsne.fit_transform(all_embeds)
 
+            all_embeds_dim_reduced = all_embeds_tsne
+
+        if self.dim_reduction_technique is not None:
             # seperate text and image embeddings
-            text_embeds = all_embeds_tsne[:text_embeds.shape[0], :]
+            text_embeds = all_embeds_dim_reduced[:text_embeds.shape[0], :]
 
-            image_embeds = all_embeds_tsne[text_embeds.shape[0]:, :]
+            image_embeds = all_embeds_dim_reduced[text_embeds.shape[0]:text_embeds.shape[0]+image_embeds.shape[0], :]
 
+            if output == 'both':
+                text_encoder_outputs = all_embeds_dim_reduced[n_texts+n_images:2*n_texts+n_images, :]
+
+
+                # these wont exist now, but they will LATER
+                image_encoder_outputs = all_embeds_dim_reduced[2*n_texts+n_images:, :]
+
+
+        if output == 'projection' or output == 'encoder':
             return text_embeds, image_embeds
-
+        elif output == 'both':
+            return text_embeds, image_embeds, text_encoder_outputs, image_encoder_outputs
+        
         
 
-    def get_text_embeddings(self):
+    def get_text_embeddings(self, both=False):
         text_embeds = self.outputs.text_embeds
         text_embeds = text_embeds.detach().cpu()
-
-        
 
         # text_embeds shape: (n, 512)
 
         if self.dims is not None:
-
-           text_embeds = self.get_pca_embeddings()[0]
+           
+            if both:
+                text_embeds = self.get_pca_embeddings(output='both')[0]
+            else:
+                text_embeds = self.get_pca_embeddings(output='projection')[0]
 
         return text_embeds # shape: (n,512)
     
-    def get_image_embeddings(self):
+
+    
+    def get_image_embeddings(self, both=False):
         image_embeds = self.outputs.image_embeds
         image_embeds = image_embeds.detach().cpu()
 
         if self.dims is not None:
-            
-           image_embeds = self.get_pca_embeddings()[1]
+            if both:
+                image_embeds = self.get_pca_embeddings(output='both')[1]
+            else:
+                image_embeds = self.get_pca_embeddings(output='projection')[1]
+        return image_embeds
+    
+
+    def get_text_encoder_outputs(self, both=False):
+        text_encoder_outputs = self.outputs.text_model_output
+        text_embeds = text_encoder_outputs.pooler_output.detach().cpu()
+
+        if self.dims is not None:
+           
+            if both:
+                # using both here for now, reconsider LATER
+                text_embeds = self.get_pca_embeddings(output='both')[2]
+            else:
+                text_embeds = self.get_pca_embeddings(output='encoder')[0]
+        return text_embeds
+
+    def get_image_encoder_outputs(self, both=False):
+        image_encoder_outputs = self.outputs.vision_model_output
+        image_embeds = image_encoder_outputs.pooler_output.detach().cpu()
+
+        if self.dims is not None:
+           
+            if both:
+                # using both here for now, reconsider LATER
+                image_embeds = self.get_pca_embeddings(output='both')[3]
+            else:
+                image_embeds = self.get_pca_embeddings(output='encoder')[1]
         return image_embeds
 
     def get_logits_per_image_and_probs(self):
