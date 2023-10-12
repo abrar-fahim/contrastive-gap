@@ -11,9 +11,11 @@ from CLIPWrapper import CLIPWrapper
 import json
 import random
 
-# similarity_measure = 'cosine_similarity'
+from matplotlib import pyplot as plt
 
-similarity_measure = 'euclidean_distance'
+similarity_measure = 'cosine_similarity'
+
+# similarity_measure = 'euclidean_distance'
 
 # similarity_measure = 'euclidean_similarity'
 
@@ -40,11 +42,22 @@ for annotation in data['annotations']:
 # load image from url
 image = Image.open(requests.get(data['images'][0]['coco_url'], stream=True).raw)
 
+image1 = Image.open(requests.get('https://github.com/rmokady/CLIP_prefix_caption/raw/main/Images/COCO_val2014_000000165547.jpg', stream=True).raw)
+
+image2 = Image.open(requests.get('https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/zebra-in-living-room-smelling-rug-side-matthias-clamer.jpg', stream=True).raw)
+
+
+
+
+captions = ['A dining table and chairs in a room']
+
+
+
 
 print('CAPTION ', captions)
 
 
-images = [image] # since processor expects a list of images
+images = [image1, image2] # since processor expects a list of images
 
 '''
 1. For one concept, The text embeddings corresponding to that concept are the same distance to each other on average compared to the distance between the text and image embeddings.
@@ -57,6 +70,8 @@ clip_1 = CLIPWrapper(captions, images, similarity_measure)
 
 print('logits_per_image ', clip_1.get_logits_per_image_and_probs()[0])
 
+print('logits_per_text ', clip_1.outputs.logits_per_text)
+
 print('label probs ', clip_1.get_logits_per_image_and_probs()[1])
 
 
@@ -65,9 +80,11 @@ print(f'average text-text {similarity_measure}', clip_1.get_average_text_text_si
 
 print(f'average text-image {similarity_measure}', clip_1.get_average_text_image_similarity())
 
-# plt.imshow(image)
+plt.imshow(image)
 
-# plt.show()
+plt.show()
+
+exit()
 
 '''
 2. The average distance between captions referring to different concepts is further than that between captions referring to the same concept

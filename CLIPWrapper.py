@@ -6,13 +6,15 @@ import numpy as np
 import seaborn as sns
 import random
 
-from text_images import image_urls, texts, image_names
+from archives.text_images import image_urls, texts, image_names
 
 from similarities import text_image_similarity, text_similarity, image_similarity
 
 import sklearn.decomposition
 
 from sklearn.manifold import TSNE
+
+import clip
 
 
 
@@ -22,6 +24,10 @@ class CLIPWrapper:
     def __init__(self, texts, images, similarity_type='cosine', dim_reduction_technique=None, dims=None):
         self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+        # device='cpu'
+
+        # self.model, self.processor = clip.load("ViT-B/32", device=device)
         self.texts = texts
         self.images = images
 
