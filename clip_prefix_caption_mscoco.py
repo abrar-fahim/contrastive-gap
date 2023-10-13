@@ -4,7 +4,6 @@ from PIL import Image
 import numpy as np
 from evaluate import load
 
-
 import matplotlib.pyplot as plt
 from PIL import Image
 

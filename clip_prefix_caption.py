@@ -15,8 +15,6 @@ import skimage.io as io
 import clip
 
 
-import kornia
-
 # GPT imports
 
 import os
