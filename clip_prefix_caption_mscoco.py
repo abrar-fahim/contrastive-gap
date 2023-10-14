@@ -26,6 +26,37 @@ f = open('datasets/mscoco/annotations/captions_val2014.json')
 data = json.load(f)
 
 
+# check to see if there are images without any captions
+# for i, image in enumerate(data['images']):
+#     # print progress
+#     if i % 1000 == 0:
+#         print('progress: ', i, '/', len(data['images']))
+#     has_caption = False
+    
+#     for annotation in data['annotations']:
+#         if annotation['image_id'] == image['id']:
+#             has_caption = True
+#             break
+#     if not has_caption:
+#         print('image without caption: ', image['id'])
+
+
+# check if there are any images with < 5 captions
+for i, image in enumerate(data['images']):
+    # print progress
+    if i % 1000 == 0:
+        print('progress: ', i, '/', len(data['images']))
+    n_captions = 0
+    
+    for annotation in data['annotations']:
+        if annotation['image_id'] == image['id']:
+            n_captions += 1
+        if n_captions >= 5:
+            break
+    if n_captions < 5:
+        print('image with less than 5 captions: ', image['id'])
+exit()
+
 '''
 1. Get image, get true caption, compute caption, measure similarity between true caption and generated caption
 
@@ -67,6 +98,7 @@ random_image_indices = np.random.randint(0, len(data['images']), n_images)
 images = []
 
 # load images and true captions
+
 
 for index in random_image_indices:
     image = Image.open('datasets/mscoco/val2014/' + data['images'][index]['file_name'])
