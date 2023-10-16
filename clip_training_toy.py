@@ -16,9 +16,6 @@
 - Setup toy dataset, MSCOCO for now
 '''
 
-import json
-
-import numpy as np
 from my_clip import MyClip, MyClipLoss
 from torch.utils.data import DataLoader
 import torch.optim as optim
@@ -27,8 +24,9 @@ import torch
 import clip
 # load dataset
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+
 import torchvision.datasets as dset
-import torchvision.transforms as transforms
 
 model, preprocess = clip.load("ViT-B/32")
 train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
@@ -59,10 +57,6 @@ img, target = train_dataset[0] # load 4th sample
 # plt.show()
 
 
-print("Image Size: ", img.size())
-
-print(target)
-
 
 
 
@@ -83,7 +77,7 @@ for name, param in clip_model.named_parameters():
 
 # setup adamW optimizer
 
-optimizer = optim.AdamW(clip_model.parameters(), lr=0.001)
+optimizer = optim.AdamW(clip_model.parameters(), lr=1e-2)
 
 # setup loss function
 clip_loss = MyClipLoss()
@@ -115,14 +109,23 @@ torch.manual_seed(42)
 # training loop
 for epoch in range(n_epochs):  # loop over the dataset multiple times
 
+    
+
+
+
+
     running_loss = 0.0
     for i, (img, caption) in enumerate(train_dataloader):
+        # print weights of image encoder
+        # for name, param in clip_model.image_encoder.named_parameters():
+        #     if param.requires_grad:
+        #         print(name, param.data)
         # get the inputs; data is a list of [inputs, labels]
         # inputs, labels = data
 
         # zero the parameter gradients
         # print('img ', img)
-        print('img ', img.shape)
+        # print('img ', img.shape)
 
         
         optimizer.zero_grad()
@@ -131,17 +134,10 @@ for epoch in range(n_epochs):  # loop over the dataset multiple times
 
         # caption is now a list of 64 strings 
 
-        print('caption ', len(caption))
-
-        # caption = caption[0] # taking only first caption for now, maybe change LATER. This is a tuple
-        # caption is now a tuples of strings
-        # print('caption shape', caption.shape)
-        # print('caption ', caption.shape)
-
         # forward + backward + optimize
         outputs = clip_model(img, caption)
         loss = clip_loss(*outputs)
-        print('loss IN LOOP ', loss)
+        # print('loss IN LOOP ', loss)
         loss.backward()
         optimizer.step()
 

@@ -2,37 +2,36 @@ import torch
 from torch import nn
 
 
-from transformers import ViTFeatureExtractor, ViTForImageClassification, ViTImageProcessor
-from PIL import Image
-import requests
 
-from transformers import AutoImageProcessor, ViTModel
+from transformers import ViTModel
 import torch
-from transformers import AutoTokenizer, GPT2Model, GPT2Config, GPT2Tokenizer
+from transformers import GPT2Model, GPT2Config, GPT2Tokenizer
 from datasets import load_dataset
+
+import numpy as np
 
 class ImageProjector(nn.Module):
     
-        def __init__(self):
-            super().__init__()
-    
-            self.image_projector = nn.Linear(1024, 512)
-            nn.init.xavier_uniform_(self.image_projector.weight)
-    
-        def forward(self, image):
-            return self.image_projector(image)
+    def __init__(self):
+        super().__init__()
+
+        self.image_projector = nn.Linear(1024, 512)
+        nn.init.xavier_uniform_(self.image_projector.weight)
+
+    def forward(self, image):
+        return self.image_projector(image)
         
 
 class TextProjector(nn.Module):
         
-            def __init__(self):
-                super().__init__()
-        
-                self.text_projector = nn.Linear(768, 512)
-                nn.init.xavier_uniform_(self.text_projector.weight)
-        
-            def forward(self, text):
-                return self.text_projector(text)
+    def __init__(self):
+        super().__init__()
+
+        self.text_projector = nn.Linear(768, 512)
+        nn.init.xavier_uniform_(self.text_projector.weight)
+
+    def forward(self, text):
+        return self.text_projector(text)
 
 class MyClip(nn.Module):
 
@@ -71,6 +70,8 @@ class MyClip(nn.Module):
         '''
         for param in self.image_encoder.pooler.parameters():
             param.requires_grad = True
+
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
         
 
 
@@ -93,7 +94,7 @@ class MyClip(nn.Module):
         inputs = self.text_tokenizer(text, return_tensors="pt", padding='max_length', max_length=77)
         # inputs has keys: ['input_ids', 'attention_mask']
         # inputs['input_ids'] has shape: [64, 77]
-        print('inputs shape ', inputs['input_ids'].shape)
+        # print('inputs shape ', inputs['input_ids'].shape)
         outputs = self.text_encoder(**inputs)
         last_hidden_states = outputs.last_hidden_state
         eos_representation = last_hidden_states[:, -1, :] #  shape: ([1, 768])
@@ -117,7 +118,8 @@ class MyClip(nn.Module):
         text_features = text_features / torch.norm(text_features)
 
         # from clip
-        logits_per_image = image_features @ text_features.t()
+        logit_scale = self.logit_scale.exp()
+        logits_per_image = logit_scale * image_features @ text_features.t()
         logits_per_text = logits_per_image.t()
 
         # shape = [global_batch_size, global_batch_size]
