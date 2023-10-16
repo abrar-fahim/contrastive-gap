@@ -24,9 +24,14 @@ import torch
 import clip
 # load dataset
 
+import os
+
 import torchvision.datasets as dset
 
+start_new = False
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 print('device ', device)
 
@@ -98,9 +103,8 @@ def collate_fn(batch):
     captions = [caption[0] for caption in captions]
     return (torch.stack(imgs), captions)
 
-train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
 
-# when batching, need to make sure that captions are the same length by either padding or truncating. FIX LATER
+
 # test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
 
 n_epochs = 3
@@ -108,28 +112,49 @@ n_epochs = 3
 # set seed
 torch.manual_seed(42)
 
+
+clip_model.train()
+
+
+
+
+'''
+checkpointing stuff
+'''
+
+
+
+
+
+model_path = 'checkpoints/my_clip_checkpoint.pt'
+
+if os.path.exists(model_path) and not start_new:
+
+    # load checkpoint
+    checkpoint = torch.load(model_path)
+    clip_model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    loss = checkpoint['loss']
+    train_dataloader = checkpoint['train_dataloader']
+    i = checkpoint['dataloader_enumerator_index']
+
+else:
+    epoch = 0
+    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
+    i = 0
+
+
 # training loop
-for epoch in range(n_epochs):  # loop over the dataset multiple times
-
-    
-
-
+while epoch < n_epochs:
 
 
     running_loss = 0.0
-    for i, (img, caption) in enumerate(train_dataloader):
-        # print weights of image encoder
-        # for name, param in clip_model.image_encoder.named_parameters():
-        #     if param.requires_grad:
-        #         print(name, param.data)
-        # get the inputs; data is a list of [inputs, labels]
-        # inputs, labels = data
+
+    
+    for (img, caption) in train_dataloader:
 
         # zero the parameter gradients
-        # print('img ', img)
-        # print('img ', img.shape)
-
-        
         optimizer.zero_grad()
 
         # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
@@ -139,7 +164,6 @@ for epoch in range(n_epochs):  # loop over the dataset multiple times
         # forward + backward + optimize
         outputs = clip_model(img, caption)
         loss = clip_loss(*outputs)
-        # print('loss IN LOOP ', loss)
         loss.backward()
         optimizer.step()
 
@@ -149,6 +173,18 @@ for epoch in range(n_epochs):  # loop over the dataset multiple times
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 2))
             running_loss = 0.0
+
+        # save model 
+        if i % 100 == 0:
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': clip_model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': loss,
+                'train_dataloader': train_dataloader,
+                'dataloader_enumerator_index': i,
+                }, model_path)
+        i += 1
 
 
 
