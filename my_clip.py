@@ -6,16 +6,18 @@ from torch import nn
 from transformers import ViTModel
 import torch
 from transformers import GPT2Model, GPT2Config, GPT2Tokenizer
-from datasets import load_dataset
 
 import numpy as np
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class ImageProjector(nn.Module):
     
     def __init__(self):
+
         super().__init__()
 
-        self.image_projector = nn.Linear(1024, 512)
+        self.image_projector = nn.Linear(1024, 512, device=device)
         nn.init.xavier_uniform_(self.image_projector.weight)
 
     def forward(self, image):
@@ -27,7 +29,7 @@ class TextProjector(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.text_projector = nn.Linear(768, 512)
+        self.text_projector = nn.Linear(768, 512, device=device)
         nn.init.xavier_uniform_(self.text_projector.weight)
 
     def forward(self, text):
@@ -41,13 +43,13 @@ class MyClip(nn.Module):
         super().__init__()
 
         # self.image_feature_extractor = ViTImageProcessor.from_pretrained('google/vit-large-patch16-224')
-        self.image_encoder = ViTModel.from_pretrained('google/vit-large-patch16-224')
+        self.image_encoder = ViTModel.from_pretrained('google/vit-large-patch16-224').to(device)
 
-        gpt_configuration = GPT2Config(summary_type="cls_index")
+        gpt_configuration = GPT2Config(summary_type="cls_index", device=device)
 
-        self.text_tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        self.text_tokenizer = GPT2Tokenizer.from_pretrained("gpt2", device=device)
         self.text_tokenizer.pad_token = self.text_tokenizer.eos_token # set to zero LATER
-        self.text_encoder = GPT2Model.from_pretrained("gpt2")
+        self.text_encoder = GPT2Model.from_pretrained("gpt2", config=gpt_configuration).to(device)
 
         '''
         setup learnable parameters
@@ -71,7 +73,7 @@ class MyClip(nn.Module):
         for param in self.image_encoder.pooler.parameters():
             param.requires_grad = True
 
-        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).to(device)
         
 
 
@@ -80,6 +82,7 @@ class MyClip(nn.Module):
         # inputs = self.image_feature_extractor(images=image, return_tensors="pt")
         # outputs = self.image_encoder(**inputs)
         # print('image shape, ' , image.shape)
+        image = image.to(device)
         outputs = self.image_encoder(image)
         pooler_output = outputs.pooler_output # shape: ([1, 1024])
         return pooler_output
@@ -92,6 +95,7 @@ class MyClip(nn.Module):
         # eot_token = _tokenizer.encoder["<|endoftext|>"]
         # all_tokens = [[sot_token] + _tokenizer.encode(text) + [eot_token] for text in texts]
         inputs = self.text_tokenizer(text, return_tensors="pt", padding='max_length', max_length=77)
+        inputs.to(device)
         # inputs has keys: ['input_ids', 'attention_mask']
         # inputs['input_ids'] has shape: [64, 77]
         # print('inputs shape ', inputs['input_ids'].shape)

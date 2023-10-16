@@ -24,11 +24,13 @@ import torch
 import clip
 # load dataset
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
-
 import torchvision.datasets as dset
 
-model, preprocess = clip.load("ViT-B/32")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+print('device ', device)
+
+model, preprocess = clip.load("ViT-B/32", device=device)
 train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
@@ -63,7 +65,7 @@ img, target = train_dataset[0] # load 4th sample
 
 
 
-clip_model = MyClip()
+clip_model = MyClip().to(device)
 
 # print parameters that are trainable
 for name, param in clip_model.named_parameters():
