@@ -28,7 +28,14 @@ import os
 
 import torchvision.datasets as dset
 
-start_new = False
+training_hyperparameters = {
+    'batch_size': 64,
+    'n_epochs': 3,
+    'lr': 1e-4,
+    'weight_decay': 1e-6,
+    'model_path': 'checkpoints/my_clip_checkpoint.pt',
+    'start_new': False
+}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -84,7 +91,7 @@ for name, param in clip_model.named_parameters():
 
 # setup adamW optimizer
 
-optimizer = optim.AdamW(clip_model.parameters(), lr=1e-4, weight_decay=1e-6)
+optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
 
 # setup loss function
 clip_loss = MyClipLoss()
@@ -107,7 +114,7 @@ def collate_fn(batch):
 
 # test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
 
-n_epochs = 3
+n_epochs = training_hyperparameters['n_epochs']
 
 # set seed
 torch.manual_seed(42)
@@ -123,17 +130,12 @@ checkpointing stuff
 '''
 
 
-
-
-
-model_path = 'checkpoints/my_clip_checkpoint.pt'
-
 i_loaded_from_checkpoint = False
 
-if os.path.exists(model_path) and not start_new:
+if os.path.exists(training_hyperparameters['model_path']) and not training_hyperparameters['start_new']:
 
     # load checkpoint
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(training_hyperparameters['model_path'])
     clip_model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
@@ -145,7 +147,7 @@ if os.path.exists(model_path) and not start_new:
 
 else:
     epoch = 0
-    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
+    train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
     i = 0
     losses = []
     median_cosine_similarities = []
@@ -220,7 +222,7 @@ while epoch < n_epochs:
                 'median_cosine_similarities': median_cosine_similarities
 
                 }
-            torch.save(checkpoint_to_save, model_path)
+            torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
         i += 1
     
     i_loaded_from_checkpoint = False
