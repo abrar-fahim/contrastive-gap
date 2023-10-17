@@ -84,7 +84,7 @@ for name, param in clip_model.named_parameters():
 
 # setup adamW optimizer
 
-optimizer = optim.AdamW(clip_model.parameters(), lr=1e-2)
+optimizer = optim.AdamW(clip_model.parameters(), lr=1e-4, weight_decay=1e-6)
 
 # setup loss function
 clip_loss = MyClipLoss()
@@ -128,6 +128,8 @@ checkpointing stuff
 
 model_path = 'checkpoints/my_clip_checkpoint.pt'
 
+i_loaded_from_checkpoint = False
+
 if os.path.exists(model_path) and not start_new:
 
     # load checkpoint
@@ -135,14 +137,20 @@ if os.path.exists(model_path) and not start_new:
     clip_model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
-    loss = checkpoint['loss']
+    losses = checkpoint['losses']
     train_dataloader = checkpoint['train_dataloader']
     i = checkpoint['dataloader_enumerator_index']
+    median_cosine_similarities = checkpoint['median_cosine_similarities']
+    i_loaded_from_checkpoint = True
 
 else:
     epoch = 0
-    train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True, collate_fn=collate_fn)
+    train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True, collate_fn=collate_fn)
     i = 0
+    losses = []
+    median_cosine_similarities = []
+
+
 
 
 # training loop
@@ -151,8 +159,17 @@ while epoch < n_epochs:
 
     running_loss = 0.0
 
+
+    
+
+    if not i_loaded_from_checkpoint:
+        i = 0
+
+
     
     for (img, caption) in train_dataloader:
+
+        clip_model.train()  
 
         # zero the parameter gradients
         optimizer.zero_grad()
@@ -169,22 +186,44 @@ while epoch < n_epochs:
 
         # print statistics
         running_loss += loss.item()
+
+        losses.append(loss.item())
         if i % 2 == 1:    # print every 2 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 2))
             running_loss = 0.0
 
+        # evaluate model
+        clip_model.eval()
+
+        with torch.no_grad():
+            outputs = clip_model(img, caption, scale=False) # so tha I get cosine similarities directly
+            logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
+            cosine_similarities = logits_per_image.diag() # shape: [64]
+            # get median cosine similarity
+            median_cosine_similarity = torch.median(cosine_similarities)
+
+            print('median cosine similarity ', median_cosine_similarity)
+            median_cosine_similarities.append(median_cosine_similarity.item())
+            
+
+
         # save model 
         if i % 100 == 0:
-            torch.save({
+            checkpoint_to_save = {
                 'epoch': epoch,
                 'model_state_dict': clip_model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss,
+                'losses': losses,
                 'train_dataloader': train_dataloader,
                 'dataloader_enumerator_index': i,
-                }, model_path)
+                'median_cosine_similarities': median_cosine_similarities
+
+                }
+            torch.save(checkpoint_to_save, model_path)
         i += 1
+    
+    i_loaded_from_checkpoint = False
 
 
 

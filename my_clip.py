@@ -8,6 +8,7 @@ import torch
 from transformers import GPT2Model, GPT2Config, GPT2Tokenizer
 
 import numpy as np
+import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -17,11 +18,24 @@ class ImageProjector(nn.Module):
 
         super().__init__()
 
-        self.image_projector = nn.Linear(1024, 512, device=device)
-        nn.init.xavier_uniform_(self.image_projector.weight)
+        self.layer1 = nn.Linear(1024, 1024, device=device)
+        self.layer2 = nn.Linear(1024, 512, device=device)
+
+        
+        
+        # initialize weights using xavier uniform initialization
+        nn.init.xavier_uniform_(self.layer1.weight)
+        nn.init.xavier_uniform_(self.layer2.weight)
+
+        
+        
 
     def forward(self, image):
-        return self.image_projector(image)
+        x = self.layer1(image)
+        # do relu
+        x = F.relu(x)
+        x = self.layer2(x)
+        return x
         
 
 class TextProjector(nn.Module):
@@ -29,11 +43,16 @@ class TextProjector(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.text_projector = nn.Linear(768, 512, device=device)
-        nn.init.xavier_uniform_(self.text_projector.weight)
+        self.layer1 = nn.Linear(768, 512, device=device)
+        self.layer2 = nn.Linear(512, 512, device=device)
+        nn.init.xavier_uniform_(self.layer1.weight)
+        nn.init.xavier_uniform_(self.layer2.weight)
 
     def forward(self, text):
-        return self.text_projector(text)
+        x  = self.layer1(text)
+        x = F.relu(x)
+        x = self.layer2(x)
+        return x
 
 class MyClip(nn.Module):
 
@@ -111,7 +130,7 @@ class MyClip(nn.Module):
     def project_image(self, image):
         return self.image_projector(image)
     
-    def forward(self, image, text):
+    def forward(self, image, text, scale=True):
         image_features = self.encode_image(image)
         text_features = self.encode_text(text)
         image_features = self.project_image(image_features)
@@ -122,8 +141,11 @@ class MyClip(nn.Module):
         text_features = text_features / torch.norm(text_features)
 
         # from clip
-        logit_scale = self.logit_scale.exp()
-        logits_per_image = logit_scale * image_features @ text_features.t()
+        if scale:
+            logit_scale = self.logit_scale.exp()
+            logits_per_image = logit_scale * image_features @ text_features.t()
+        else:
+            logits_per_image = image_features @ text_features.t()
         logits_per_text = logits_per_image.t()
 
         # shape = [global_batch_size, global_batch_size]
