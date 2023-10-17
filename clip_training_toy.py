@@ -145,7 +145,7 @@ if os.path.exists(model_path) and not start_new:
 
 else:
     epoch = 0
-    train_dataloader = DataLoader(train_dataset, batch_size=256, shuffle=True, collate_fn=collate_fn)
+    train_dataloader = DataLoader(train_dataset, batch_size=2, shuffle=True, collate_fn=collate_fn)
     i = 0
     losses = []
     median_cosine_similarities = []

@@ -113,14 +113,22 @@ class MyClip(nn.Module):
         # sot_token = _tokenizer.encoder["<|startoftext|>"]
         # eot_token = _tokenizer.encoder["<|endoftext|>"]
         # all_tokens = [[sot_token] + _tokenizer.encode(text) + [eot_token] for text in texts]
-        inputs = self.text_tokenizer(text, return_tensors="pt", padding='max_length', max_length=77)
+
+        print('text ', text)
+        inputs = self.text_tokenizer(text, return_tensors="pt", padding='max_length', max_length=77, add_special_tokens=True) # has keys: ['input_ids', 'attention_mask']
+        '''
+        - I set padding token to eos_token, so eos_token already exists at the last position. 
+        - For now, set attention_mask for last token to 1, since I'm taking outputs of last token for text representation
+        '''
+        inputs['attention_mask'][:, -1] = 1
+        print('inputs ', inputs)
         inputs.to(device)
         # inputs has keys: ['input_ids', 'attention_mask']
         # inputs['input_ids'] has shape: [64, 77]
         # print('inputs shape ', inputs['input_ids'].shape)
         outputs = self.text_encoder(**inputs)
         last_hidden_states = outputs.last_hidden_state
-        eos_representation = last_hidden_states[:, -1, :] #  shape: ([1, 768])
+        eos_representation = last_hidden_states[:, -1, :] #  shape: ([batch_size, 768])
         return eos_representation
 
 
