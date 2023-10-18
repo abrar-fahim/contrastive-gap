@@ -226,6 +226,7 @@ while epoch < n_epochs:
         i += 1
     
     i_loaded_from_checkpoint = False
+    epoch +=1
 
 
 

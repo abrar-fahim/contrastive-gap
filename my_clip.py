@@ -131,7 +131,7 @@ class MyClip(nn.Module):
         last_hidden_states = outputs.last_hidden_state # shape: ([64, 77, 768])
         eos_representation = last_hidden_states[torch.arange(inputs['input_ids'].shape[0]), inputs['input_ids'].argmax(dim=-1)] #  shape: ([batch_size, 768])
 
-        print('eos_representation ', eos_representation.shape)
+        # print('eos_representation ', eos_representation.shape)
         return eos_representation
 
 
