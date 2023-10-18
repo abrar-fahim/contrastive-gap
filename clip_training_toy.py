@@ -17,7 +17,7 @@
 '''
 
 from my_clip import MyClip, MyClipLoss
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
 
@@ -30,12 +30,14 @@ import torchvision.datasets as dset
 
 training_hyperparameters = {
     'batch_size': 64,
-    'n_epochs': 3,
+    'n_epochs': 20,
     'lr': 1e-4,
     'weight_decay': 1e-6,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
-    'start_new': False
-}
+    'start_new': False,
+    'use_small_trainloader': True,
+    'small_train_loader_batch_size': 128,
+    'small_train_loader_dataset_size': 128}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -47,6 +49,7 @@ train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
                         transform=preprocess,
+
                         )
 
 print('Number of samples: ', len(train_dataset))
@@ -147,10 +150,28 @@ if os.path.exists(training_hyperparameters['model_path']) and not training_hyper
 
 else:
     epoch = 0
-    train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
+    
+
+    
+
+
+    if training_hyperparameters['use_small_trainloader']:
+
+        train_data_subset = Subset(train_dataset, range(0, training_hyperparameters['small_train_loader_dataset_size']))
+
+        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+    else:
+
+        train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
+
+
+    
+
     i = 0
     losses = []
     median_cosine_similarities = []
+
+dataloader = train_dataloader
 
 
 
@@ -169,7 +190,7 @@ while epoch < n_epochs:
 
 
     
-    for (img, caption) in train_dataloader:
+    for (img, caption) in dataloader:
 
         clip_model.train()  
 
@@ -190,10 +211,10 @@ while epoch < n_epochs:
         running_loss += loss.item()
 
         losses.append(loss.item())
-        if i % 2 == 1:    # print every 2 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 2))
-            running_loss = 0.0
+        # if i % 2 == 1:    # print every 2 mini-batches
+        print('[%d, %5d] loss: %.3f' %
+                (epoch + 1, i + 1, running_loss / 1))
+        running_loss = 0.0
 
         # evaluate model
         clip_model.eval()
@@ -217,7 +238,7 @@ while epoch < n_epochs:
                 'model_state_dict': clip_model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'losses': losses,
-                'train_dataloader': train_dataloader,
+                'train_dataloader': dataloader,
                 'dataloader_enumerator_index': i,
                 'median_cosine_similarities': median_cosine_similarities
 
