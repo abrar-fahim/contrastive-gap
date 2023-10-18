@@ -34,6 +34,7 @@ training_hyperparameters = {
     'lr': 1e-4,
     'weight_decay': 1e-6,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
+    'do_checkpointing': False,
     'start_new': False,
     'use_small_trainloader': True,
     'small_train_loader_batch_size': 128,
@@ -44,7 +45,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print('device ', device)
 
-model, preprocess = clip.load("ViT-B/32", device=device)
+# model, preprocess = clip.load("ViT-B/32", device=device)
+model, preprocess = clip.load("ViT-B/16", device=device)
 train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
@@ -69,8 +71,10 @@ img, target = train_dataset[0] # load 4th sample
 # there are some images with > 5 captions
 # display image
 
+# print("caption: ", target)
+
 # import matplotlib.pyplot as plt
-# plt.imshow( img.permute(1, 2, 0)  )
+# plt.imshow( img.permute(1, 2, 0) )
 # plt.show()
 
 
@@ -135,7 +139,7 @@ checkpointing stuff
 
 i_loaded_from_checkpoint = False
 
-if os.path.exists(training_hyperparameters['model_path']) and not training_hyperparameters['start_new']:
+if os.path.exists(training_hyperparameters['model_path']) and not training_hyperparameters['start_new'] and training_hyperparameters['do_checkpointing']:
 
     # load checkpoint
     checkpoint = torch.load(training_hyperparameters['model_path'])
@@ -150,10 +154,9 @@ if os.path.exists(training_hyperparameters['model_path']) and not training_hyper
 
 else:
     epoch = 0
-    
-
-    
-
+    i = 0
+    losses = []
+    median_cosine_similarities = []
 
     if training_hyperparameters['use_small_trainloader']:
 
@@ -163,13 +166,6 @@ else:
     else:
 
         train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
-
-
-    
-
-    i = 0
-    losses = []
-    median_cosine_similarities = []
 
 dataloader = train_dataloader
 
@@ -202,7 +198,7 @@ while epoch < n_epochs:
         # caption is now a list of 64 strings 
 
         # forward + backward + optimize
-        outputs = clip_model(img, caption)
+        outputs = clip_model(img, caption, scale=False)
         loss = clip_loss(*outputs)
         loss.backward()
         optimizer.step()
@@ -232,7 +228,7 @@ while epoch < n_epochs:
 
 
         # save model 
-        if i % 100 == 0:
+        if i % 100 == 0 and training_hyperparameters['do_checkpointing']:
             checkpoint_to_save = {
                 'epoch': epoch,
                 'model_state_dict': clip_model.state_dict(),
@@ -249,6 +245,12 @@ while epoch < n_epochs:
     i_loaded_from_checkpoint = False
     epoch +=1
 
+# # plot losses and similarities
+# import matplotlib.pyplot as plt
+# plt.plot(losses)
+# plt.plot(median_cosine_similarities)
+# plt.title('losses')
+# plt.show()
 
 
 exit()
