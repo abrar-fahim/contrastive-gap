@@ -43,8 +43,9 @@ class TextProjector(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.layer1 = nn.Linear(768, 512, device=device)
-        self.layer2 = nn.Linear(512, 512, device=device)
+        self.layer1 = nn.Linear(768, 768, device=device)
+        self.layer2 = nn.Linear(768, 512, device=device)
+        
         nn.init.xavier_uniform_(self.layer1.weight)
         nn.init.xavier_uniform_(self.layer2.weight)
 
@@ -116,6 +117,8 @@ class MyClip(nn.Module):
 
         # print('text ', text)
         inputs = self.text_tokenizer(text, return_tensors="pt", padding='max_length', max_length=77, add_special_tokens=True) # has keys: ['input_ids', 'attention_mask']
+
+        # print('inputs ', inputs)
         '''
         - I set padding token to eos_token, so eos_token already exists at the last position. 
         - For now, set attention_mask for eot token to 1, since I'm taking outputs of last token for text representation
@@ -142,14 +145,31 @@ class MyClip(nn.Module):
         return self.image_projector(image)
     
     def forward(self, image, text, scale=True):
-        image_features = self.encode_image(image)
+
+
+        # image_features = self.encode_image(image)
+        image_features = self.encode_text(image)
         text_features = self.encode_text(text)
-        image_features = self.project_image(image_features)
+        # image_features = self.project_image(image_features)
+        
+        image_features = self.project_text(image_features)
         text_features = self.project_text(text_features)
 
+        # print('image_features ', image_features)
+
+        # print('text_features ', text_features)
+
+        
+
         # normalize features
-        image_features = image_features / torch.norm(image_features)
-        text_features = text_features / torch.norm(text_features)
+        image_features = image_features / torch.norm(image_features, dim=1, keepdim=True)
+        text_features = text_features / torch.norm(text_features, dim=1, keepdim=True)
+
+        # print('image_features ', image_features)
+
+        # print('text_features ', text_features)
+
+        
 
         # from clip
         if scale:

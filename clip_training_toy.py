@@ -28,17 +28,20 @@ import os
 
 import torchvision.datasets as dset
 
+# set seed
+torch.manual_seed(42)
+
 training_hyperparameters = {
     'batch_size': 64,
-    'n_epochs': 20,
-    'lr': 1e-4,
+    'n_epochs': 200,
+    'lr': 1e-3,
     'weight_decay': 1e-6,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'do_checkpointing': False,
     'start_new': False,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 128,
-    'small_train_loader_dataset_size': 128}
+    'small_train_loader_batch_size': 5,
+    'small_train_loader_dataset_size': 5}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -111,11 +114,14 @@ def collate_fn(batch):
     caption is a tuple of strings
     '''
 
-    imgs, captions = zip(*batch)
+    imgs, og_captions = zip(*batch)
 
     # keep only first caption for each image
-    captions = [caption[0] for caption in captions]
-    return (torch.stack(imgs), captions)
+    captions = [caption[0] for caption in og_captions]
+
+    caption2 = [caption[0] for caption in og_captions]
+    return (caption2, captions)
+    # return (torch.stack(imgs), captions)
 
 
 
@@ -123,8 +129,7 @@ def collate_fn(batch):
 
 n_epochs = training_hyperparameters['n_epochs']
 
-# set seed
-torch.manual_seed(42)
+
 
 
 clip_model.train()
@@ -160,9 +165,9 @@ else:
 
     if training_hyperparameters['use_small_trainloader']:
 
-        train_data_subset = Subset(train_dataset, range(0, training_hyperparameters['small_train_loader_dataset_size']))
+        train_data_subset = Subset(train_dataset, torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)))
 
-        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=1)
     else:
 
         train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
@@ -187,6 +192,9 @@ while epoch < n_epochs:
 
     
     for (img, caption) in dataloader:
+
+        # print('img ', img)
+        # print('caption ', caption)
 
         clip_model.train()  
 
@@ -218,6 +226,8 @@ while epoch < n_epochs:
         with torch.no_grad():
             outputs = clip_model(img, caption, scale=False) # so tha I get cosine similarities directly
             logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
+
+            print('logits_per_image ', logits_per_image)
             cosine_similarities = logits_per_image.diag() # shape: [64]
             # get median cosine similarity
             median_cosine_similarity = torch.median(cosine_similarities)
