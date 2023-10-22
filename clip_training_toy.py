@@ -227,7 +227,7 @@ while epoch < n_epochs:
             outputs = clip_model(img, caption, scale=False) # so tha I get cosine similarities directly
             logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
 
-            print('logits_per_image ', logits_per_image)
+            # print('logits_per_image ', logits_per_image)
             cosine_similarities = logits_per_image.diag() # shape: [64]
             # get median cosine similarity
             median_cosine_similarity = torch.median(cosine_similarities)
