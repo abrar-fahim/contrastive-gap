@@ -18,14 +18,17 @@ class ImageProjector(nn.Module):
 
         super().__init__()
 
-        self.layer1 = nn.Linear(1024, 1024, device=device)
-        self.layer2 = nn.Linear(1024, 512, device=device)
+        # self.layer1 = nn.Linear(1024, 1024, device=device)
+        # self.layer2 = nn.Linear(1024, 512, device=device)
+
+        self.layer1 = nn.Linear(1024, 512, device=device)  
+
 
         
         
         # initialize weights using xavier uniform initialization
         nn.init.xavier_uniform_(self.layer1.weight)
-        nn.init.xavier_uniform_(self.layer2.weight)
+        # nn.init.xavier_uniform_(self.layer2.weight)
 
         
         
@@ -33,8 +36,8 @@ class ImageProjector(nn.Module):
     def forward(self, image):
         x = self.layer1(image)
         # do relu
-        x = F.relu(x)
-        x = self.layer2(x)
+        # x = F.relu(x)
+        # x = self.layer2(x)
         return x
         
 
@@ -43,16 +46,17 @@ class TextProjector(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.layer1 = nn.Linear(768, 768, device=device)
-        self.layer2 = nn.Linear(768, 512, device=device)
+        # self.layer1 = nn.Linear(768, 768, device=device)
+        # self.layer2 = nn.Linear(768, 512, device=device)
+        self.layer1 = nn.Linear(768, 512, device=device)
         
         nn.init.xavier_uniform_(self.layer1.weight)
-        nn.init.xavier_uniform_(self.layer2.weight)
+        # nn.init.xavier_uniform_(self.layer2.weight)
 
     def forward(self, text):
         x  = self.layer1(text)
-        x = F.relu(x)
-        x = self.layer2(x)
+        # x = F.relu(x)
+        # x = self.layer2(x)
         return x
 
 class MyClip(nn.Module):
@@ -81,17 +85,17 @@ class MyClip(nn.Module):
         '''
         freeze parameters for image encoder and text encoder
         '''
-        for param in self.image_encoder.parameters():
-            param.requires_grad = False
+        # for param in self.image_encoder.parameters():
+        #     param.requires_grad = False
         
-        for param in self.text_encoder.parameters():
-            param.requires_grad = False
+        # for param in self.text_encoder.parameters():
+        #     param.requires_grad = False
 
         '''
         Maybe unfreeze the pooling layer of the image encoder
         '''
-        for param in self.image_encoder.pooler.parameters():
-            param.requires_grad = True
+        # for param in self.image_encoder.pooler.parameters():
+        #     param.requires_grad = True
 
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).to(device)
         

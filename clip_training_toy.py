@@ -37,11 +37,11 @@ training_hyperparameters = {
     'lr': 1e-3,
     'weight_decay': 1e-6,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
-    'do_checkpointing': False,
+    'do_checkpointing': True,
     'start_new': False,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 5,
-    'small_train_loader_dataset_size': 5}
+    'small_train_loader_batch_size': 64,
+    'small_train_loader_dataset_size': 10000}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -206,7 +206,7 @@ while epoch < n_epochs:
         # caption is now a list of 64 strings 
 
         # forward + backward + optimize
-        outputs = clip_model(img, caption, scale=False)
+        outputs = clip_model(img, caption, scale=True)
         loss = clip_loss(*outputs)
         loss.backward()
         optimizer.step()
@@ -228,6 +228,9 @@ while epoch < n_epochs:
             logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
 
             # print('logits_per_image ', logits_per_image)
+
+            # print logits per image for first 5 images
+            # print('logits_per_image ', logits_per_image[:5, :5])
             cosine_similarities = logits_per_image.diag() # shape: [64]
             # get median cosine similarity
             median_cosine_similarity = torch.median(cosine_similarities)
