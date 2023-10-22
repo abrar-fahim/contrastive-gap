@@ -28,6 +28,8 @@ import os
 
 import torchvision.datasets as dset
 
+import matplotlib.pyplot as plt
+
 # set seed
 torch.manual_seed(42)
 
@@ -165,9 +167,42 @@ else:
 
     if training_hyperparameters['use_small_trainloader']:
 
-        train_data_subset = Subset(train_dataset, torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)))
+        '''
+        Prepare subset of training dataset
+        '''
+
+        subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],))
+
+        train_data_subset = Subset(train_dataset, subset_indices)
 
         train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=1)
+
+        '''
+        display all subset indices images as small tiles
+        '''
+
+        # plt.figure()
+
+        # #subplot(r,c) provide the no. of rows and columns
+        # f, axarr = plt.subplots(10,10) 
+        # # hide axis labels and numbers
+        # for ax in axarr:
+        #     for axi in ax:
+        #         axi.axis('off')
+
+        # # reduce space between subplots
+        # f.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+
+        # for i in range(10):
+        #     for j in range(10):
+        #         img, target = train_dataset[subset_indices[i * 10 + j]]
+        #         axarr[i][j].imshow(img.permute(1, 2, 0))
+
+        # plt.show()
+
+
+
+
     else:
 
         train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
