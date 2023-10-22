@@ -34,13 +34,13 @@ torch.manual_seed(42)
 training_hyperparameters = {
     'batch_size': 64,
     'n_epochs': 200,
-    'lr': 1e-3,
-    'weight_decay': 1e-6,
+    'lr': 1e-5,
+    'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'do_checkpointing': True,
     'start_new': False,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 64,
+    'small_train_loader_batch_size': 16,
     'small_train_loader_dataset_size': 10000}
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
