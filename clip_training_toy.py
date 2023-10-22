@@ -234,8 +234,15 @@ while epoch < n_epochs:
             cosine_similarities = logits_per_image.diag() # shape: [64]
             # get median cosine similarity
             median_cosine_similarity = torch.median(cosine_similarities)
-
             print('median cosine similarity ', median_cosine_similarity)
+
+            # get median of elements that are not on the diagonal
+            non_similar_median_cosine_similarity = logits_per_image[~torch.eye(logits_per_image.shape[0], dtype=bool)].median()
+            print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
+
+
+
+            
             median_cosine_similarities.append(median_cosine_similarity.item())
             
 
