@@ -17,7 +17,8 @@ from matplotlib import pyplot as plt
 
 # image1 = Image.open(requests.get('https://github.com/rmokady/CLIP_prefix_caption/raw/main/Images/CONCEPTUAL_04.jpg', stream=True).raw) # BANANAS
 # image1 = Image.open(requests.get('https://m.media-amazon.com/images/I/61U7gUPxlvL.jpg', stream=True).raw) # BANANAS
-image1 = Image.open(requests.get('https://media.istockphoto.com/id/996168058/vector/black-led-tv-television-screen-blank-on-white-wall-background.jpg?s=612x612&w=0&k=20&c=MQI3naQQ7dteEbt8xmiE97OEPy2UA30OAh0pwtyJt9I=', stream=True).raw) # BANANAS
+# image1 = Image.open(requests.get('https://media.istockphoto.com/id/996168058/vector/black-led-tv-television-screen-blank-on-white-wall-background.jpg?s=612x612&w=0&k=20&c=MQI3naQQ7dteEbt8xmiE97OEPy2UA30OAh0pwtyJt9I=', stream=True).raw) # BANANAS
+image1 = Image.open(requests.get('https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSGfpQ3m-QWiXgCBJJbrcUFdNdWAhj7rcUqjeNUC6eKcXZDAtWm', stream=True).raw) # BANANAS
 
 
 
@@ -32,18 +33,14 @@ image1 = Image.open(requests.get('https://media.istockphoto.com/id/996168058/vec
 # image2 = Image.open(requests.get('https://i.etsystatic.com/32710857/r/il/6b4d5b/5157493828/il_fullxfull.5157493828_722c.jpg', stream=True).raw)  # THIS WORKS
 
 # image2 = Image.open(requests.get('https://media.gettyimages.com/id/533113012/it/foto/aynhoe-park.jpg?s=612x612&w=gi&k=20&c=sIx9JV5YzG_tnQTwgcvZsDPokmTm1cyPkD-8EblCW40=', stream=True).raw)  # THIS WORKS BETTER
-image2 = Image.open(requests.get('https://i.etsystatic.com/27160608/r/il/ce5755/3499068372/il_570xN.3499068372_nky9.jpg', stream=True).raw) 
+# image2 = Image.open(requests.get('https://i.etsystatic.com/27160608/r/il/ce5755/3499068372/il_570xN.3499068372_nky9.jpg', stream=True).raw) 
+image2 = Image.open(requests.get('https://m.media-amazon.com/images/M/MV5BMTM3OTUwMDYwNl5BMl5BanBnXkFtZTcwNTUyNzc3Nw@@._V1_FMjpg_UX1000_.jpg', stream=True).raw)
 
 
 
 
 
-
-
-
-
-
-captions = ['A TV in a room', 'A a room TV in']
+captions = ['face of scarlett johansson', 'face of Sophie Turner']
 
 # captions = ['A wooden table sitting in front of a window']
 
@@ -75,5 +72,5 @@ with torch.no_grad():
 
 print("Label probs:", probs)  # prints: [[0.9927937  0.00421068 0.00299572]]
 print('logits_per_image ', logits_per_image)
-print('logits_per_text ', logits_per_text)
+# print('logits_per_text ', logits_per_text)
 

@@ -30,6 +30,10 @@ import torchvision.datasets as dset
 
 import matplotlib.pyplot as plt
 
+
+from PIL import Image
+import requests
+
 # set seed
 torch.manual_seed(42)
 
@@ -43,7 +47,8 @@ training_hyperparameters = {
     'start_new': False,
     'use_small_trainloader': True,
     'small_train_loader_batch_size': 16,
-    'small_train_loader_dataset_size': 10000}
+    'small_train_loader_dataset_size': 10000
+    }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -62,39 +67,12 @@ train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
 print('Number of samples: ', len(train_dataset))
 
 
-img, target = train_dataset[0] # load 4th sample
-
-# check if there are any images with <5 captions
-# for i, (image, cap) in enumerate(train_dataset):
-#     # print progress
-#     if i % 1000 == 0:
-#         print('progress: ', i, '/', len(train_dataset))
-#     if len(cap) > 5:
-#         print('image with more than 5 captions: ', i)
-#         print('cap ', cap)
-
-# there are some images with > 5 captions
-# display image
-
-# print("caption: ", target)
-
-# import matplotlib.pyplot as plt
-# plt.imshow( img.permute(1, 2, 0) )
-# plt.show()
-
-
-
-
-
-
-
-
 clip_model = MyClip().to(device)
 
 # print parameters that are trainable
-for name, param in clip_model.named_parameters():
-    if param.requires_grad:
-        print(name)
+# for name, param in clip_model.named_parameters():
+#     if param.requires_grad:
+#         print(name)
 
 
 '''
@@ -126,17 +104,9 @@ def collate_fn(batch):
     return (torch.stack(imgs), captions)
 
 
-
-# test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
-
 n_epochs = training_hyperparameters['n_epochs']
 
-
-
-
 clip_model.train()
-
-
 
 
 '''
@@ -149,7 +119,7 @@ i_loaded_from_checkpoint = False
 if os.path.exists(training_hyperparameters['model_path']) and not training_hyperparameters['start_new'] and training_hyperparameters['do_checkpointing']:
 
     # load checkpoint
-    checkpoint = torch.load(training_hyperparameters['model_path'])
+    checkpoint = torch.load(training_hyperparameters['model_path'], map_location=device)
     clip_model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
@@ -175,7 +145,7 @@ else:
 
         train_data_subset = Subset(train_dataset, subset_indices)
 
-        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=1)
+        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
 
         '''
         display all subset indices images as small tiles
@@ -199,10 +169,6 @@ else:
         #         axarr[i][j].imshow(img.permute(1, 2, 0))
 
         # plt.show()
-
-
-
-
     else:
 
         train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
@@ -210,6 +176,7 @@ else:
 dataloader = train_dataloader
 
 
+exit()
 
 
 # training loop

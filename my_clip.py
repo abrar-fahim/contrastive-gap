@@ -4,11 +4,12 @@ from torch import nn
 
 
 from transformers import ViTModel
-import torch
 from transformers import GPT2Model, GPT2Config, GPT2Tokenizer
 
 import numpy as np
 import torch.nn.functional as F
+
+from clip_parent import ClipParent
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -59,7 +60,7 @@ class TextProjector(nn.Module):
         # x = self.layer2(x)
         return x
 
-class MyClip(nn.Module):
+class MyClip(ClipParent):
 
     # init
     def __init__(self):
@@ -97,7 +98,7 @@ class MyClip(nn.Module):
         # for param in self.image_encoder.pooler.parameters():
         #     param.requires_grad = True
 
-        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).to(device)
+        # self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).to(device)
         
 
 
