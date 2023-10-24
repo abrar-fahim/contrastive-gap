@@ -8,7 +8,7 @@ from https://colab.research.google.com/drive/1tuoAC5F4sC7qid56Z0ap-stR3rwdk0ZV?u
 
 from PIL import Image
 import requests
-from CLIPWrapper import CLIPWrapper
+from archives2.CLIPWrapper import CLIPWrapper
 
 import skimage.io as io
 

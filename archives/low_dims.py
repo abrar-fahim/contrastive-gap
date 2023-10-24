@@ -6,7 +6,7 @@ from PIL import Image
 import requests
 
 import random
-from CLIPWrapper import CLIPWrapper
+from archives2.CLIPWrapper import CLIPWrapper
 
 from sklearn.decomposition import PCA
 

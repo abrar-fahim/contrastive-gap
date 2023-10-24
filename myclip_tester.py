@@ -6,6 +6,8 @@ from PIL import Image
 import requests
 import clip
 
+from openai_clip import OpenAIClip
+
 
 # set seed
 torch.manual_seed(42)
@@ -18,7 +20,9 @@ validation_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
     transform=preprocess,
     )
 
-clip_model = MyClip().to(device)
+# clip_model = MyClip().to(device)
+clip_model = OpenAIClip().to(device)
+
 
 '''
 Testing on random images and captions

@@ -8,7 +8,7 @@ import random
 
 from archives.text_images import image_urls, texts, image_names
 
-from similarities import text_image_similarity, text_similarity, image_similarity
+from archives2.similarities import text_image_similarity, text_similarity, image_similarity
 
 import sklearn.decomposition
 

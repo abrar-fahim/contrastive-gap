@@ -7,7 +7,7 @@ MSCOCO has 5 captions per image
 
 from PIL import Image
 import requests
-from CLIPWrapper import CLIPWrapper
+from archives2.CLIPWrapper import CLIPWrapper
 import json
 import random
 

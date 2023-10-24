@@ -1,11 +1,11 @@
 from PIL import Image
 import requests
-from CLIPWrapper import CLIPWrapper
+from archives2.CLIPWrapper import CLIPWrapper
 import json
 import random
 import matplotlib.pyplot as plt
 
-from CLIPDataLoader import CLIPDataLoader
+from archives2.CLIPDataLoader import CLIPDataLoader
 
 import numpy as np
 

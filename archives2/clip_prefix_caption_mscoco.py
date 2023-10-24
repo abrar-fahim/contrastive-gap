@@ -7,7 +7,7 @@ from evaluate import load
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from clip_caption import init, get_caption
+from archives2.clip_caption import init, get_caption
 
 import json
 
