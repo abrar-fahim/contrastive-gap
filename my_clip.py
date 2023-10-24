@@ -98,7 +98,7 @@ class MyClip(ClipParent):
         # for param in self.image_encoder.pooler.parameters():
         #     param.requires_grad = True
 
-        # self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).to(device)
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07)).to(device)
         
 
 

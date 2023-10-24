@@ -176,7 +176,6 @@ else:
 dataloader = train_dataloader
 
 
-exit()
 
 
 # training loop
