@@ -17,20 +17,14 @@
 '''
 
 from my_clip import MyClip, MyClipLoss
+from openai_clip import OpenAIClip
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
-
 import clip
-# load dataset
-
 import os
-
 import torchvision.datasets as dset
-
 import matplotlib.pyplot as plt
-
-
 from PIL import Image
 import requests
 
@@ -67,12 +61,13 @@ train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
 print('Number of samples: ', len(train_dataset))
 
 
-clip_model = MyClip().to(device)
+# clip_model = MyClip().to(device)
+clip_model = OpenAIClip().to(device)
 
 # print parameters that are trainable
-# for name, param in clip_model.named_parameters():
-#     if param.requires_grad:
-#         print(name)
+for name, param in clip_model.named_parameters():
+    if param.requires_grad:
+        print(name)
 
 
 '''

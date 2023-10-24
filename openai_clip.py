@@ -14,7 +14,10 @@ class OpenAIClip(ClipParent):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
 
+        # self.model = self.model.to(self.device)
+
     def encode_image(self, image):
+        image = image.to(self.device)
         return self.model.encode_image(image)
 
     def encode_text(self, text):
@@ -24,12 +27,17 @@ class OpenAIClip(ClipParent):
     
     def tokenize_text(self, text):
         tokenized_captions = torch.cat([clip.tokenize(c) for c in text]).to(self.device)
+        tokenized_captions = tokenized_captions.to(self.device)
         return tokenized_captions
 
 
     def forward(self, preprocessed_images, captions, scale=True):
 
         tokenized_captions = self.tokenize_text(captions)
+
+        tokenized_captions = tokenized_captions.to(self.device)
+
+        preprocessed_images = preprocessed_images.to(self.device)
 
 
         logits_per_image, logits_per_text = self.model(preprocessed_images, tokenized_captions)
