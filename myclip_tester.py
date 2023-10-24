@@ -12,6 +12,24 @@ from openai_clip import OpenAIClip
 # set seed
 torch.manual_seed(42)
 
+def collate_fn(batch):
+    '''
+    batch is a list of tuples?
+    each tuple is of the form (image, caption)
+    image is a tensor of shape [3, 224, 224]
+    caption is a tuple of strings
+    '''
+
+    imgs, og_captions = zip(*batch)
+
+    # keep only first caption for each image
+    captions = [caption[0] for caption in og_captions]
+
+    # caption2 = [caption[0] for caption in og_captions]
+    # return (caption2, captions)
+    return (torch.stack(imgs), captions)
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model, preprocess = clip.load("ViT-B/16", device=device)
 validation_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
@@ -20,28 +38,46 @@ validation_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
     transform=preprocess,
     )
 
-# clip_model = MyClip().to(device)
-clip_model = OpenAIClip().to(device)
+openai_clip_model = OpenAIClip().to(device)
+myclip_model = MyClip().to(device)
+
+model_path = 'checkpoints/my_clip_checkpoint.pt'
+
+checkpoint = torch.load(model_path, map_location=device)
+
+myclip_model.load_state_dict(checkpoint['model_state_dict'])
 
 
 '''
 Testing on random images and captions
 '''
 
-image1 = Image.open(requests.get('https://m.media-amazon.com/images/M/MV5BMTM3OTUwMDYwNl5BMl5BanBnXkFtZTcwNTUyNzc3Nw@@._V1_FMjpg_UX1000_.jpg', stream=True).raw)
+# image1 = Image.open(requests.get('https://m.media-amazon.com/images/M/MV5BMTM3OTUwMDYwNl5BMl5BanBnXkFtZTcwNTUyNzc3Nw@@._V1_FMjpg_UX1000_.jpg', stream=True).raw)
+image1 = Image.open(requests.get('https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187_square.jpg', stream=True).raw)
 
 
-captions = ['face of scarlett johansson', 'face of Sophie Turner']
+captions = ['image of a cat', 'image of a dog']
 
 preprocessed_image = preprocess(image1)
 
 preprocessed_image = preprocessed_image.unsqueeze(0).to(device)
 
-outputs = clip_model(preprocessed_image, captions, scale=False) # so that I get cosine similarities directly
+myclip_outputs = myclip_model(preprocessed_image, captions, scale=False) # so that I get cosine similarities directly
 
-logits_per_image, logits_per_text = outputs # shape of both: ([batch_size, batch_size])
+logits_per_image, logits_per_text = myclip_outputs # shape of both: ([batch_size, batch_size])
 
-print('logits_per_image ', logits_per_image)
+print('logits_per_image for MYCLIP', logits_per_image)
+
+
+
+openai_clip_outputs = openai_clip_model(preprocessed_image, captions)
+
+logits_per_image, logits_per_text = openai_clip_outputs # shape of both: ([batch_size, batch_size])
+
+print('logits_per_image for OPENAI CLIP', logits_per_image)
+
+
+
 
 exit()
 

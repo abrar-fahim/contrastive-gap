@@ -18,6 +18,7 @@
 
 from my_clip import MyClip, MyClipLoss
 from openai_clip import OpenAIClip
+from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
@@ -38,9 +39,9 @@ training_hyperparameters = {
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'do_checkpointing': True,
-    'start_new': False,
+    'start_new': True,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 16,
+    'small_train_loader_batch_size': 3,
     'small_train_loader_dataset_size': 10000
     }
 
@@ -49,8 +50,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print('device ', device)
 
-# model, preprocess = clip.load("ViT-B/32", device=device)
-model, preprocess = clip.load("ViT-B/16", device=device)
+model, preprocess = clip.load("ViT-B/32", device=device)
+# model, preprocess = clip.load("ViT-B/16", device=device)
 train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
@@ -62,7 +63,9 @@ print('Number of samples: ', len(train_dataset))
 
 
 # clip_model = MyClip().to(device)
-clip_model = OpenAIClip().to(device)
+# clip_model = OpenAIClip().to(device)
+
+clip_model = HFClip().to(device)
 
 # print parameters that are trainable
 for name, param in clip_model.named_parameters():
@@ -180,8 +183,6 @@ while epoch < n_epochs:
     running_loss = 0.0
 
 
-    
-
     if not i_loaded_from_checkpoint:
         i = 0
 
@@ -192,30 +193,6 @@ while epoch < n_epochs:
         # print('img ', img)
         # print('caption ', caption)
 
-        clip_model.train()  
-
-        # zero the parameter gradients
-        optimizer.zero_grad()
-
-        # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
-
-        # caption is now a list of 64 strings 
-
-        # forward + backward + optimize
-        outputs = clip_model(img, caption, scale=True)
-        loss = clip_loss(*outputs)
-        loss.backward()
-        optimizer.step()
-
-        # print statistics
-        running_loss += loss.item()
-
-        losses.append(loss.item())
-        # if i % 2 == 1:    # print every 2 mini-batches
-        print('[%d, %5d] loss: %.3f' %
-                (epoch + 1, i + 1, running_loss / 1))
-        running_loss = 0.0
-
         # evaluate model
         clip_model.eval()
 
@@ -223,7 +200,7 @@ while epoch < n_epochs:
             outputs = clip_model(img, caption, scale=False) # so tha I get cosine similarities directly
             logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
 
-            # print('logits_per_image ', logits_per_image)
+            print('logits_per_image ', logits_per_image)
 
             # print logits per image for first 5 images
             # print('logits_per_image ', logits_per_image[:5, :5])
@@ -241,6 +218,40 @@ while epoch < n_epochs:
             
             median_cosine_similarities.append(median_cosine_similarity.item())
             
+
+        clip_model.train()  
+
+        # zero the parameter gradients
+        optimizer.zero_grad()
+
+        # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
+
+        # caption is now a list of 64 strings 
+
+        # forward + backward + optimize
+        outputs = clip_model(img, caption, scale=True)
+        loss = clip_loss(*outputs)
+        loss.backward()
+        # check with of the gradients are nan
+        # for name, param in clip_model.named_parameters():
+        #     if param.requires_grad:
+        #         # print(name, torch.isnan(param.grad).any())
+        #         # print the weights themselves
+        #         print(name, param.grad)
+
+
+
+
+        optimizer.step()
+
+        # print statistics
+        running_loss += loss.item()
+
+        losses.append(loss.item())
+        # if i % 2 == 1:    # print every 2 mini-batches
+        print('[%d, %5d] loss: %.3f' %
+                (epoch + 1, i + 1, running_loss / 1))
+        running_loss = 0.0
 
 
         # save model 

@@ -13,8 +13,27 @@ class OpenAIClip(ClipParent):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
+        # self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
 
         # self.model = self.model.to(self.device)
+
+        for param in self.model.parameters():
+            param.requires_grad = True
+
+
+        # set logit scale param requires grad to False
+        # self.model.logit_scale.requires_grad = False
+
+
+        
+        # set transformer params to False
+        # for param in self.model.transformer.parameters():
+        #     param.requires_grad = False
+
+        # set visual transformer params to False
+        for param in self.model.visual.parameters():
+            param.requires_grad = False
+
 
     def encode_image(self, image):
         image = image.to(self.device)
@@ -39,7 +58,15 @@ class OpenAIClip(ClipParent):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
+        # print('preprocessed_images ', preprocessed_images)
+
+        # print('tokenized_captions ', tokenized_captions)
 
         logits_per_image, logits_per_text = self.model(preprocessed_images, tokenized_captions)
 
+        logits_per_image, logits_per_text = logits_per_image / 100, logits_per_text / 100
+
+        
+
+        # return logits_per_image.softmax(dim=-1), logits_per_text.softmax(dim=-1)
         return logits_per_image, logits_per_text
