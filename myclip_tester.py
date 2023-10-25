@@ -1,5 +1,6 @@
 from my_clip import MyClip, MyClipLoss
 import torch
+from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
 import torchvision.datasets as dset
 from PIL import Image
@@ -39,13 +40,15 @@ validation_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
     )
 
 openai_clip_model = OpenAIClip().to(device)
-myclip_model = MyClip().to(device)
+# myclip_model = MyClip().to(device)
+
+hf_clip_model = HFClip().to(device)
 
 model_path = 'checkpoints/my_clip_checkpoint.pt'
 
 checkpoint = torch.load(model_path, map_location=device)
 
-myclip_model.load_state_dict(checkpoint['model_state_dict'])
+hf_clip_model.load_state_dict(checkpoint['model_state_dict'])
 
 
 '''
@@ -53,16 +56,21 @@ Testing on random images and captions
 '''
 
 # image1 = Image.open(requests.get('https://m.media-amazon.com/images/M/MV5BMTM3OTUwMDYwNl5BMl5BanBnXkFtZTcwNTUyNzc3Nw@@._V1_FMjpg_UX1000_.jpg', stream=True).raw)
-image1 = Image.open(requests.get('https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187_square.jpg', stream=True).raw)
+# image1 = Image.open(requests.get('https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187_square.jpg', stream=True).raw)
+image1 = Image.open(requests.get('https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Pac-man.png/220px-Pac-man.png', stream=True).raw)
 
 
 captions = ['image of a cat', 'image of a dog']
+
+captions = ['scarlett johansson', 'priyanka chopra']
+
+captions = ['pacman game', 'super mario game']
 
 preprocessed_image = preprocess(image1)
 
 preprocessed_image = preprocessed_image.unsqueeze(0).to(device)
 
-myclip_outputs = myclip_model(preprocessed_image, captions, scale=False) # so that I get cosine similarities directly
+myclip_outputs = hf_clip_model(preprocessed_image, captions, scale=False) # so that I get cosine similarities directly
 
 logits_per_image, logits_per_text = myclip_outputs # shape of both: ([batch_size, batch_size])
 

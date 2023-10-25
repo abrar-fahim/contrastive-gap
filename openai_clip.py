@@ -35,13 +35,13 @@ class OpenAIClip(ClipParent):
             param.requires_grad = False
 
 
-    def encode_image(self, image):
-        image = image.to(self.device)
-        return self.model.encode_image(image)
+    def encode_image(self, preprocessed_images):
+        preprocessed_images = preprocessed_images.to(self.device)
+        return self.model.encode_image(preprocessed_images)
 
-    def encode_text(self, text):
+    def encode_text(self, captions):
         # assuming raw captions input, so need to tokenize and stuff
-        tokenized_captions = self.tokenize_text(text)
+        tokenized_captions = self.tokenize_text(captions)
         return self.model.encode_text(tokenized_captions)
     
     def tokenize_text(self, text):
