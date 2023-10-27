@@ -5,7 +5,7 @@ import numpy as np
 import torch.nn.functional as F
 from clip_parent import ClipParent
 import clip
-from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, CLIPTextModel, CLIPVisionModel
+from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, CLIPTextModel, CLIPVisionModel, CLIPVisionModelWithProjection, CLIPTextModelWithProjection
 from PIL import Image
 import requests
 
@@ -25,6 +25,12 @@ class HFClip(ClipParent):
         self.text_model = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
 
         self.vision_model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
+
+        self.vision_model_with_projection = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
+
+        self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
+
+        
     
         self.model = self.model.to(self.device)
 
@@ -39,6 +45,16 @@ class HFClip(ClipParent):
 
         return pooled_output
     
+    def project_image(self, preprocessed_images):
+        # print("projecting image")
+        preprocessed_images = preprocessed_images.to(self.device)
+
+        outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
+
+        return outputs.image_embeds
+    
+
+    
     def encode_text(self, captions):
         # assuming raw captions input, so need to tokenize and stuff
         tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
@@ -51,6 +67,16 @@ class HFClip(ClipParent):
         pooled_output = outputs.pooler_output # pooled (EOS token) states, text encoding just before CLIP's linear projection. shape: ([batch_size, 512])
 
         return pooled_output
+    
+    def project_text(self, captions):
+        # assuming raw captions input, so need to tokenize and stuff
+        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
+
+        tokenized_captions = tokenized_captions.to(self.device)
+
+        outputs = self.text_model_with_projection(**tokenized_captions)
+
+        return outputs.text_embeds
     
     def forward(self, preprocessed_images, captions, scale=True):
 

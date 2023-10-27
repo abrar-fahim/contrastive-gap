@@ -17,6 +17,7 @@
 '''
 
 from my_clip import MyClip, MyClipLoss
+from grad_cache_wrapper import GradCacheWrapper
 from openai_clip import OpenAIClip
 from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
@@ -33,16 +34,19 @@ import requests
 torch.manual_seed(42)
 
 training_hyperparameters = {
-    'batch_size': 64,
+    'batch_size': 16,
+    'grad_cache': False,
+    'grad_cache_multiplier': 2,
     'n_epochs': 200,
     'lr': 1e-5,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
+    'validation_dataset_size': 1000,
     'do_checkpointing': True,
     'start_new': True,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 3,
-    'small_train_loader_dataset_size': 10000
+    'small_train_loader_batch_size': 32,
+    'small_train_loader_dataset_size': 10000,
     }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -114,6 +118,8 @@ checkpointing stuff
 
 i_loaded_from_checkpoint = False
 
+subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
+
 if os.path.exists(training_hyperparameters['model_path']) and not training_hyperparameters['start_new'] and training_hyperparameters['do_checkpointing']:
 
     # load checkpoint
@@ -139,11 +145,10 @@ else:
         Prepare subset of training dataset
         '''
 
-        subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],))
 
         train_data_subset = Subset(train_dataset, subset_indices)
 
-        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+        train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=False, collate_fn=collate_fn, num_workers=0)
 
         '''
         display all subset indices images as small tiles
@@ -175,6 +180,27 @@ dataloader = train_dataloader
 
 
 
+'''
+Build validation dataset
+- This only works when using small train loader
+'''
+
+
+# get 100 indices that are not in train_data_subset
+val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
+i = 0
+while i < training_hyperparameters['validation_dataset_size']:
+    while val_indices[i] in subset_indices:
+        val_indices[i] = torch.randint(0, len(train_dataset) , (1,))
+    i += 1
+print('i ', i)
+
+val_data_subset = Subset(train_dataset, val_indices)
+
+val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+
+
+
 
 # training loop
 while epoch < n_epochs:
@@ -182,114 +208,162 @@ while epoch < n_epochs:
 
     running_loss = 0.0
 
-
     if not i_loaded_from_checkpoint:
         i = 0
 
+    if training_hyperparameters['grad_cache']:
+        clip_model_grad_cache = GradCacheWrapper(clip_model)
 
-    
-    for (imgs, captions) in dataloader:
+        clip_model_grad_cache.clip_model.train()
 
-        # print('img ', img)
-        # print('caption ', caption)
+        cache_x = []
+        cache_y = []
+        closures_x = []
+        closures_y = []
 
-        # evaluate model
-        clip_model.eval()
+        for step, sub_batch in enumerate(dataloader):  
+            imgs, captions = sub_batch
+            r_imgs, c_imgs = clip_model_grad_cache.get_image_projections(imgs)
 
-        with torch.no_grad():
-            outputs = clip_model(imgs, captions, scale=False) # so tha I get cosine similarities directly
-            logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
+            r_txts, c_txts = clip_model_grad_cache.get_text_projections(captions)
 
-            # print('logits_per_image ', logits_per_image)
 
-            # print logits per image for first 5 images
-            # print('logits_per_image ', logits_per_image[:5, :5])
-            cosine_similarities = logits_per_image.diag() # shape: [64]
-            # get median cosine similarity
-            median_cosine_similarity = torch.median(cosine_similarities)
-            print('median cosine similarity ', median_cosine_similarity)
-
-            # get median of elements that are not on the diagonal
-            non_similar_median_cosine_similarity = logits_per_image[~torch.eye(logits_per_image.shape[0], dtype=bool)].median()
-            print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
-
-            '''
-            - Get text-text similarities
-            '''
-
-            text_encoder_outputs = clip_model.encode_text(captions) # shape: ([batch_size, 512])
-
-            # normalize features
-            text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
-
-            # cosine similarities between text-text pairs
-            text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
-
-            # get median of elements that are in the upper triangle (excluding diagonal!!)
-            median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
-
-            print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
-
-            '''
-            - Get image-image similarities
-            '''
-
-            image_encoder_outputs = clip_model.encode_image(imgs) # shape: ([batch_size, 512])
-
-            # normalize features
-            image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
-
-            # cosine similarities between image-image pairs
-            image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
-
-            # get median of elements that are not on the diagonal
-            median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
-
-            print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
-
-            median_cosine_similarities.append(median_cosine_similarity.item())
             
+            cache_x.append(r_imgs)
+            cache_y.append(r_txts)
+            closures_x.append(c_imgs)
+            closures_y.append(c_txts)
 
-        clip_model.train()  
+            # print size of cache x
+            print('len(cache_x) ', len(cache_x))
+            
+            if (step + 1) % training_hyperparameters['grad_cache_multiplier'] == 0:
+                loss = clip_model_grad_cache.contrastive_loss(cache_x, cache_y)
+                # print loss
+                print('loss ', loss.item())
+                loss.backward()
+            
+                # TEST THESE FOR LOOPS LATER 
+                for f, r in zip(closures_x, cache_x):
+                    f(r)
+                for f, r in zip(closures_y, cache_y):
+                    f(r)
 
-        # zero the parameter gradients
-        optimizer.zero_grad()
+                cache_x = []
+                cache_y = []
+                closures_x = []
+                closures_y = []
+            
+                optimizer.step()
+                # scaler.update()
+                optimizer.zero_grad()
 
-        # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
+    else:
 
-        # caption is now a list of 64 strings 
+        for (imgs, captions) in dataloader:
 
-        # forward + backward + optimize
-        outputs = clip_model(imgs, captions, scale=True)
-        loss = clip_loss(*outputs)
-        loss.backward()
+            # print('img ', img)
+            # print('caption ', caption)
 
-        optimizer.step()
+            # evaluate model
+            clip_model.eval()
 
-        # print statistics
-        running_loss += loss.item()
+            with torch.no_grad():
+                # get batch from validation set
+                (val_imgs, val_captions) = next(iter(val_dataloader))
+                outputs = clip_model(val_imgs, val_captions, scale=False) # so tha I get cosine similarities directly
+                logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
 
-        losses.append(loss.item())
-        # if i % 2 == 1:    # print every 2 mini-batches
-        print('[%d, %5d] loss: %.3f' %
-                (epoch + 1, i + 1, running_loss / 1))
-        running_loss = 0.0
+                # print('logits_per_image ', logits_per_image)
+
+                # print logits per image for first 5 images
+                # print('logits_per_image ', logits_per_image[:5, :5])
+                cosine_similarities = logits_per_image.diag() # shape: [64]
+                # get median cosine similarity
+                median_cosine_similarity = torch.median(cosine_similarities)
+                print('median cosine similarity ', median_cosine_similarity)
+
+                # get median of elements that are not on the diagonal
+                non_similar_median_cosine_similarity = logits_per_image[~torch.eye(logits_per_image.shape[0], dtype=bool)].median()
+                print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
+
+                '''
+                - Get text-text similarities
+                '''
+
+                text_encoder_outputs = clip_model.encode_text(captions) # shape: ([batch_size, 512])
+
+                # normalize features
+                text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
+
+                # cosine similarities between text-text pairs
+                text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
+
+                # get median of elements that are in the upper triangle (excluding diagonal!!)
+                median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
+
+                print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
+
+                '''
+                - Get image-image similarities
+                '''
+
+                image_encoder_outputs = clip_model.encode_image(imgs) # shape: ([batch_size, 512])
+
+                # normalize features
+                image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
+
+                # cosine similarities between image-image pairs
+                image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
+
+                # get median of elements that are not on the diagonal
+                median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
+
+                print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
+
+                median_cosine_similarities.append(median_cosine_similarity.item())
+                
+
+            clip_model.train()  
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
+
+            # caption is now a list of 64 strings 
+
+            # forward + backward + optimize
+            outputs = clip_model(imgs, captions, scale=True)
+            loss = clip_loss(*outputs)
+            loss.backward()
+
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+
+            losses.append(loss.item())
+            # if i % 2 == 1:    # print every 2 mini-batches
+            print('[%d, %5d] loss: %.3f' %
+                    (epoch + 1, i + 1, running_loss / 1))
+            running_loss = 0.0
 
 
-        # save model 
-        if i % 100 == 0 and training_hyperparameters['do_checkpointing']:
-            checkpoint_to_save = {
-                'epoch': epoch,
-                'model_state_dict': clip_model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'losses': losses,
-                'train_dataloader': dataloader,
-                'dataloader_enumerator_index': i,
-                'median_cosine_similarities': median_cosine_similarities
+            # save model 
+            if i % 100 == 0 and training_hyperparameters['do_checkpointing']:
+                checkpoint_to_save = {
+                    'epoch': epoch,
+                    'model_state_dict': clip_model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'losses': losses,
+                    'train_dataloader': dataloader,
+                    'dataloader_enumerator_index': i,
+                    'median_cosine_similarities': median_cosine_similarities
 
-                }
-            torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
-        i += 1
+                    }
+                torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
+            i += 1
     
     i_loaded_from_checkpoint = False
     epoch +=1

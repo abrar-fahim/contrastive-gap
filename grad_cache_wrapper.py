@@ -1,0 +1,67 @@
+from grad_cache.functional import cached, cat_input_tensor
+
+import torch
+import torch.nn.functional as F
+
+from clip_parent import ClipParent
+
+class GradCacheWrapper():
+    def __init__(self, clip_model: ClipParent) -> None:
+        self.clip_model = clip_model
+
+    
+    @cached
+    def get_text_projections(self, captions):
+        # return representation after linear projection
+        return self.clip_model.project_text(captions)
+    
+    @cached
+    def get_image_projections(self, preprocessed_images):
+        # return representation after linear projection
+        return self.clip_model.project_image(preprocessed_images)
+    
+
+    @cat_input_tensor
+    def contrastive_loss(self, image_projections, text_projections):
+        '''
+        image_projections: shape: (batch_size, 512)
+        text_projections: shape: (batch_size, 512)
+        '''
+        # normalize
+        # image_projections = F.normalize(image_projections, dim=1)
+        # text_projections = F.normalize(text_projections, dim=1)
+
+        image_projections = image_projections / torch.norm(image_projections, dim=1, keepdim=True)
+        text_projections = text_projections / torch.norm(text_projections, dim=1, keepdim=True)
+
+        # cosine similarity
+        # shape: (batch_size, batch_size)
+        similarity_matrix = torch.matmul(image_projections, text_projections.T)
+
+        labels = torch.arange(similarity_matrix.shape[0]).to(similarity_matrix.device)
+
+        # image_loss
+        image_loss = F.cross_entropy(similarity_matrix, labels)
+
+        # text_loss
+        text_loss = F.cross_entropy(similarity_matrix.T, labels)
+
+        loss = (image_loss + text_loss) / 2
+
+        # # shape: (batch_size, )
+        # image_similarity = torch.diag(similarity_matrix)
+
+        # # shape: (batch_size, )
+        # text_similarity = torch.diag(similarity_matrix.T)
+
+        # # shape: (2 * batch_size, )
+        # contrastive_similarity = torch.cat([image_similarity, text_similarity])
+
+        # # shape: (2 * batch_size, )
+        # labels = torch.arange(contrastive_similarity.shape[0] // 2)
+        # labels = torch.cat([labels, labels])
+
+        # # shape: (2 * batch_size, )
+        # loss = F.cross_entropy(contrastive_similarity, labels)
+
+        return loss
