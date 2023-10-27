@@ -37,7 +37,7 @@ torch.manual_seed(42)
 training_hyperparameters = {
     'batch_size': 16,
     'grad_cache': True,
-    'grad_cache_multiplier': 1,
+    'grad_cache_multiplier': 32,
     'n_epochs': 200,
     'lr': 1e-5,
     'weight_decay': 0.2,
@@ -46,7 +46,7 @@ training_hyperparameters = {
     'do_checkpointing': False,
     'start_new': False,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 128,
+    'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 10000,
     }
 
@@ -223,11 +223,20 @@ while epoch < n_epochs:
         cache_y = []
         closures_x = []
         closures_y = []
+
         for step, sub_batch in enumerate(dataloader):  
             imgs, captions = sub_batch
             r_imgs, c_imgs = clip_model_grad_cache.get_image_projections(imgs)
 
             r_txts, c_txts = clip_model_grad_cache.get_text_projections(captions)
+
+            # print progress in place
+            # print('\rstep: ' + str(step), end='')
+
+            # print progress every 5 steps
+            if step % 5 == 0:
+                print('step: ', step)
+
 
 
             
