@@ -11,7 +11,7 @@ def do_validation(val_dataloader, clip_model):
     with torch.no_grad():
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
-        outputs = clip_model(val_imgs, val_captions, scale=False) # so tha I get cosine similarities directly
+        outputs = clip_model(val_imgs, val_captions, output_loss=False) # so tha I get cosine similarities directly
         logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
 
         # print('logits_per_image ', logits_per_image)
@@ -27,37 +27,40 @@ def do_validation(val_dataloader, clip_model):
         non_similar_median_cosine_similarity = logits_per_image[~torch.eye(logits_per_image.shape[0], dtype=bool)].median()
         print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
 
+        # print temperature
+        print('clip_model.logit_scale ', clip_model.model.logit_scale)
+
         '''
         - Get text-text similarities
         '''
 
-        text_encoder_outputs = clip_model.project_image(val_captions) # shape: ([batch_size, 512])
+        # text_encoder_outputs = clip_model.project_image(val_captions) # shape: ([batch_size, 512])
 
-        # normalize features
-        text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
+        # # normalize features
+        # text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
 
-        # cosine similarities between text-text pairs
-        text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
+        # # cosine similarities between text-text pairs
+        # text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
 
-        # get median of elements that are in the upper triangle (excluding diagonal!!)
-        median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
+        # # get median of elements that are in the upper triangle (excluding diagonal!!)
+        # median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
 
-        print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
+        # print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
 
-        '''
-        - Get image-image similarities
-        '''
+        # '''
+        # - Get image-image similarities
+        # '''
 
-        image_encoder_outputs = clip_model.project_image(val_imgs) # shape: ([batch_size, 512])
+        # image_encoder_outputs = clip_model.project_image(val_imgs) # shape: ([batch_size, 512])
 
-        # normalize features
-        image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
+        # # normalize features
+        # image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
 
-        # cosine similarities between image-image pairs
-        image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
+        # # cosine similarities between image-image pairs
+        # image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
 
-        # get median of elements that are not on the diagonal
-        median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
+        # # get median of elements that are not on the diagonal
+        # median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
 
-        print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
+        # print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
 

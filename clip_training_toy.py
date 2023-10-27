@@ -36,7 +36,7 @@ torch.manual_seed(42)
 
 training_hyperparameters = {
     'batch_size': 16,
-    'grad_cache': True,
+    'grad_cache': False,
     'grad_cache_multiplier': 32,
     'n_epochs': 200,
     'lr': 1e-5,
@@ -46,7 +46,7 @@ training_hyperparameters = {
     'do_checkpointing': False,
     'start_new': False,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 256,
+    'small_train_loader_batch_size': 128,
     'small_train_loader_dataset_size': 10000,
     }
 
@@ -298,6 +298,8 @@ while epoch < n_epochs:
 
             # evaluate model
             clip_model.eval()
+            
+            clip_model.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=True, device=device))
 
             do_validation(val_dataloader, clip_model)
                 
@@ -311,9 +313,11 @@ while epoch < n_epochs:
 
             # caption is now a list of 64 strings 
 
+            
+
             # forward + backward + optimize
-            outputs = clip_model(imgs, captions, scale=True)
-            loss = clip_loss(*outputs)
+            _, _, loss = clip_model(imgs, captions, output_loss=True)
+            # loss = clip_loss(*outputs)
             loss.backward()
 
             optimizer.step()

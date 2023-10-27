@@ -17,7 +17,8 @@ class HFClip(ClipParent):
         # self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
 
 
-        # self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
+
+        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
         # self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
         self.tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
@@ -26,9 +27,9 @@ class HFClip(ClipParent):
 
         # self.vision_model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
 
-        self.vision_model_with_projection = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
+        # self.vision_model_with_projection = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
-        self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
+        # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
     def encode_image(self, preprocessed_images):
 
@@ -52,7 +53,12 @@ class HFClip(ClipParent):
 
     #     return outputs.image_embeds
     
+    def tokenize_captions(self, captions):
+        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
+        tokenized_captions = tokenized_captions.to(self.device)
+
+        return tokenized_captions
     
     def encode_text(self, captions):
         # # assuming raw captions input, so need to tokenize and stuff
@@ -88,8 +94,32 @@ class HFClip(ClipParent):
 
     #     return outputs.text_embeds
     
+    def forward(self, preprocessed_images, captions, output_loss=True):
 
-    def forward(self, preprocessed_images, captions, scale=False):
+        # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
+
+        preprocessed_images = preprocessed_images.to(self.device)
+
+        tokenized_captions = self.tokenize_captions(captions)
+
+
+
+
+        outputs = self.model(input_ids=tokenized_captions['input_ids'].to(self.device), attention_mask=tokenized_captions['attention_mask'].to(self.device), pixel_values=preprocessed_images, return_loss=output_loss)
+
+
+
+        logits_per_image = outputs.logits_per_image
+        logits_per_text = outputs.logits_per_text
+
+        loss = outputs.loss
+
+        if output_loss:
+            return logits_per_image, logits_per_text, loss
+        else:
+            return logits_per_image, logits_per_text
+
+    def forward_1(self, preprocessed_images, captions, scale=False):
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
 
