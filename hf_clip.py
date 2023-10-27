@@ -14,61 +14,59 @@ class HFClip(ClipParent):
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
+        # self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
 
 
-        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
-        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        # self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
+        # self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
         self.tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
 
-        self.text_model = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
+        # self.text_model = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
 
-        self.vision_model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
+        # self.vision_model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
 
         self.vision_model_with_projection = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
         self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
-        
-    
-        self.model = self.model.to(self.device)
-
     def encode_image(self, preprocessed_images):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
-        outputs = self.vision_model(pixel_values=preprocessed_images)
+        # outputs = self.vision_model(pixel_values=preprocessed_images)
 
-        last_hidden_states = outputs.last_hidden_state
-        pooled_output = outputs.pooler_output # the last image encoder output just before linear projection. shape: ([batch_size, 512])
-
-        return pooled_output
-    
-    def project_image(self, preprocessed_images):
-        # print("projecting image")
-        preprocessed_images = preprocessed_images.to(self.device)
+        # last_hidden_states = outputs.last_hidden_state
+        # pooled_output = outputs.pooler_output # the last image encoder output just before linear projection. shape: ([batch_size, 512])
 
         outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
 
+        # return pooled_output
         return outputs.image_embeds
+    
+    # def project_image(self, preprocessed_images):
+    #     # print("projecting image")
+    #     preprocessed_images = preprocessed_images.to(self.device)
+
+    #     outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
+
+    #     return outputs.image_embeds
     
 
     
     def encode_text(self, captions):
-        # assuming raw captions input, so need to tokenize and stuff
-        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
+        # # assuming raw captions input, so need to tokenize and stuff
+        # tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
-        tokenized_captions = tokenized_captions.to(self.device)
+        # tokenized_captions = tokenized_captions.to(self.device)
 
-        outputs = self.text_model(**tokenized_captions)
+        # outputs = self.text_model(**tokenized_captions)
 
-        last_hidden_states = outputs.last_hidden_state
-        pooled_output = outputs.pooler_output # pooled (EOS token) states, text encoding just before CLIP's linear projection. shape: ([batch_size, 512])
+        # last_hidden_states = outputs.last_hidden_state
+        # pooled_output = outputs.pooler_output # pooled (EOS token) states, text encoding just before CLIP's linear projection. shape: ([batch_size, 512])
 
-        return pooled_output
-    
-    def project_text(self, captions):
+        # return pooled_output
+
         # assuming raw captions input, so need to tokenize and stuff
         tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
@@ -78,7 +76,45 @@ class HFClip(ClipParent):
 
         return outputs.text_embeds
     
-    def forward(self, preprocessed_images, captions, scale=True):
+    
+    
+    # def project_text(self, captions):
+    #     # assuming raw captions input, so need to tokenize and stuff
+    #     tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
+
+    #     tokenized_captions = tokenized_captions.to(self.device)
+
+    #     outputs = self.text_model_with_projection(**tokenized_captions)
+
+    #     return outputs.text_embeds
+    
+
+    def forward(self, preprocessed_images, captions, scale=False):
+
+        # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
+
+        preprocessed_images = preprocessed_images.to(self.device)
+
+        encoded_images = self.encode_image(preprocessed_images)
+
+        encoded_captions = self.encode_text(captions)
+
+         # normalize features
+        image_features = encoded_images / torch.norm(encoded_images, dim=1, keepdim=True)
+        text_features = encoded_captions / torch.norm(encoded_captions, dim=1, keepdim=True)
+
+        if scale:
+            logit_scale = self.logit_scale.exp()
+            logits_per_image = logit_scale * image_features @ text_features.t()
+        else:
+            logits_per_image = image_features @ text_features.t()
+        logits_per_text = logits_per_image.t()
+
+        # shape = [global_batch_size, global_batch_size]
+        return logits_per_image, logits_per_text
+    
+
+    def forward_old(self, preprocessed_images, captions, scale=True):
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
 
@@ -97,3 +133,4 @@ class HFClip(ClipParent):
         logits_per_image, logits_per_text = logits_per_image / 100, logits_per_text / 100
 
         return logits_per_image, logits_per_text
+    

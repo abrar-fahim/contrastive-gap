@@ -13,12 +13,12 @@ class GradCacheWrapper():
     @cached
     def get_text_projections(self, captions):
         # return representation after linear projection
-        return self.clip_model.project_text(captions)
+        return self.clip_model.encode_text(captions)
     
     @cached
     def get_image_projections(self, preprocessed_images):
         # return representation after linear projection
-        return self.clip_model.project_image(preprocessed_images)
+        return self.clip_model.encode_image(preprocessed_images)
     
 
     @cat_input_tensor
