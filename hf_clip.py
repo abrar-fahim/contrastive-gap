@@ -31,6 +31,15 @@ class HFClip(ClipParent):
 
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
+        # set temperature to zero
+        self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+
+        self.model.logit_scale.requires_grad = False
+
+
+
+
+
     def encode_image(self, preprocessed_images):
 
         preprocessed_images = preprocessed_images.to(self.device)
@@ -94,7 +103,7 @@ class HFClip(ClipParent):
 
     #     return outputs.text_embeds
     
-    def forward(self, preprocessed_images, captions, output_loss=True):
+    def forward(self, preprocessed_images, captions, output_loss=True, return_all=False):
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
 
@@ -109,6 +118,11 @@ class HFClip(ClipParent):
 
 
 
+        
+
+        if return_all:
+            return outputs
+        
         logits_per_image = outputs.logits_per_image
         logits_per_text = outputs.logits_per_text
 

@@ -74,6 +74,8 @@ print('Number of samples: ', len(train_dataset))
 
 clip_model = HFClip().to(device)
 
+
+
 # print parameters that are trainable
 for name, param in clip_model.named_parameters():
     if param.requires_grad:
@@ -299,7 +301,7 @@ while epoch < n_epochs:
             # evaluate model
             clip_model.eval()
             
-            clip_model.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=True, device=device))
+            
 
             do_validation(val_dataloader, clip_model)
                 

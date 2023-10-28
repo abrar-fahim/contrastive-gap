@@ -9,10 +9,16 @@ import requests
 
 def do_validation(val_dataloader, clip_model):
     with torch.no_grad():
+        
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
-        outputs = clip_model(val_imgs, val_captions, output_loss=False) # so tha I get cosine similarities directly
-        logits_per_image, logits_per_text = outputs # shape of both: ([64, 64])
+
+        outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
+        logits_per_image = outputs.logits_per_image # shape of both: ([64, 64])
+
+        logits_per_text = outputs.logits_per_text # shape of both: ([64, 64])
+
+
 
         # print('logits_per_image ', logits_per_image)
 
@@ -29,6 +35,49 @@ def do_validation(val_dataloader, clip_model):
 
         # print temperature
         print('clip_model.logit_scale ', clip_model.model.logit_scale)
+
+        '''
+        Check if model predictions are exploding
+        (Do this check without the temperature param)
+        '''
+
+        # doing it just for images for now
+        # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
+        image_embeds = outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
+
+
+
+        print('---IMAGE --- ')
+
+        # find max and min values
+        max_value = image_embeds.max()
+        min_value = image_embeds.min()
+        print('max_value ', max_value)
+        print('min_value ', min_value)
+        # median
+        median_value = image_embeds.median()
+        print('median_value ', median_value)
+
+        # text_embeds = outputs.text_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
+        text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are before linear projection
+        print('--- TEXT --- ')
+
+        # find max and min values
+        max_value = text_embeds.max()
+        min_value = text_embeds.min()
+        print('max_value ', max_value)
+        print('min_value ', min_value)
+        # median
+        median_value = text_embeds.median()
+        print('median_value ', median_value)
+
+
+
+
+
+
+
+
 
         '''
         - Get text-text similarities
