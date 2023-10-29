@@ -1,14 +1,10 @@
-import numpy as np
-import torch
 
-from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, CLIPTextModel, CLIPVisionModel, CLIPVisionModelWithProjection, CLIPTextModelWithProjection
+from training_utils import *
 
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
+index = 0
 
-# print model parameters that have requires_grad=True
-for name, param in model.named_parameters():
-    if param.requires_grad:
-        print(name)
+# plot pca
+# plot_pca_from_file(f'pca_plots/image_coordinates_{index}.npy', f'pca_plots/text_coordinates_{index}.npy')
 
-# print value of logit_scale parameter in model
-print('model.logit_scale ', model.logit_scale)
+# plot pca subplots
+plot_pca_subplots_from_file('pca_plots/', 0, 20, 4)

@@ -38,15 +38,16 @@ training_hyperparameters = {
     'batch_size': 16,
     'grad_cache': False,
     'grad_cache_multiplier': 32,
-    'n_epochs': 200,
+    'n_epochs': 1,
     'lr': 1e-5,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
-    'validation_dataset_size': 1000,
+    'validation_dataset_size': 256,
+    'validation_batch_size': 256,
     'do_checkpointing': False,
     'start_new': False,
     'use_small_trainloader': True,
-    'small_train_loader_batch_size': 128,
+    'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 10000,
     }
 
@@ -202,7 +203,7 @@ print('j ', j)
 
 val_data_subset = Subset(train_dataset, val_indices)
 
-val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
 
 
 
@@ -303,7 +304,7 @@ while epoch < n_epochs:
             
             
 
-            do_validation(val_dataloader, clip_model)
+            do_validation(val_dataloader, clip_model, index=i)
                 
 
             clip_model.train()  
