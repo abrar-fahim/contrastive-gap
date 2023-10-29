@@ -64,8 +64,8 @@ train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
                         transform=preprocess,
+)
 
-                        )
 
 print('Number of samples: ', len(train_dataset))
 

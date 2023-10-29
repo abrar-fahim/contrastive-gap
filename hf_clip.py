@@ -32,9 +32,9 @@ class HFClip(ClipParent):
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
         # set temperature to zero
-        self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+        # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
 
-        self.model.logit_scale.requires_grad = False
+        # self.model.logit_scale.requires_grad = False
 
 
 
@@ -44,12 +44,17 @@ class HFClip(ClipParent):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
+        # make garbage captions
+        captions = torch.ones(preprocessed_images.shape[0], 10, dtype=torch.long, device=self.device)
+
         # outputs = self.vision_model(pixel_values=preprocessed_images)
 
         # last_hidden_states = outputs.last_hidden_state
         # pooled_output = outputs.pooler_output # the last image encoder output just before linear projection. shape: ([batch_size, 512])
 
-        outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
+        outputs = self.model(pixel_values=preprocessed_images, input_ids=captions)
+
+        # outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
 
         # return pooled_output
         return outputs.image_embeds

@@ -8,7 +8,7 @@ from https://colab.research.google.com/drive/1tuoAC5F4sC7qid56Z0ap-stR3rwdk0ZV?u
 
 from PIL import Image
 import requests
-from archives2.CLIPWrapper import CLIPWrapper
+from CLIPWrapper import CLIPWrapper
 
 import skimage.io as io
 
@@ -68,7 +68,7 @@ cat_url = "https://ronixtools.com/en/blog/wp-content/uploads/2021/03/Learn-how-t
 cat_url = "https://i.ytimg.com/vi/V1-JeJawN80/maxresdefault.jpg"  # BANANAS
 cat_url = "https://media.istockphoto.com/id/996168058/vector/black-led-tv-television-screen-blank-on-white-wall-background.jpg?s=612x612&w=0&k=20&c=MQI3naQQ7dteEbt8xmiE97OEPy2UA30OAh0pwtyJt9I="  # BANANAS
 
-cat_url = ''
+# cat_url = ''
 
 
 

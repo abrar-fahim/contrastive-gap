@@ -3,12 +3,12 @@ import requests
 import matplotlib.pyplot as plt
 from transformers import CLIPProcessor, CLIPModel
 import numpy as np
-import seaborn as sns
+# import seaborn as sns
 import random
 
-from archives.text_images import image_urls, texts, image_names
+# from archives.text_images import image_urls, texts, image_names
 
-from archives2.similarities import text_image_similarity, text_similarity, image_similarity
+from similarities import text_image_similarity, text_similarity, image_similarity
 
 import sklearn.decomposition
 
