@@ -17,9 +17,9 @@ from transformers import (
 )
 import skimage.io as io
 import PIL.Image
-
 import cog
 from cog import Path, Input
+from hf_clip import HFClip
 
 # import torch
 
@@ -55,6 +55,8 @@ class Predictor(cog.BasePredictor):
         self.clip_model, self.preprocess = clip.load(
             "ViT-B/32", device=self.device, jit=False
         )
+
+        self.clip_model = HFClip().to(self.device)
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
         self.models = {}
@@ -114,6 +116,7 @@ class Predictor(cog.BasePredictor):
             prefix = self.clip_model.encode_image(preprocessed_images).to(
                 self.device, dtype=torch.float32
             )
+            # this prefix is supposed to be after the linear projection, buttt, BEFORE normalizing
             prefix_embed = model.clip_project(prefix).reshape(preprocessed_images.shape[0], self.prefix_length, -1)
 
             # prefix embed shape: ([batch_size, 10, 768])

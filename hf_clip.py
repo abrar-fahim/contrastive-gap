@@ -52,12 +52,14 @@ class HFClip(ClipParent):
         # last_hidden_states = outputs.last_hidden_state
         # pooled_output = outputs.pooler_output # the last image encoder output just before linear projection. shape: ([batch_size, 512])
 
-        outputs = self.model(pixel_values=preprocessed_images, input_ids=captions)
+        # outputs = self.model(pixel_values=preprocessed_images, input_ids=captions)
+
+        image_features = self.model.get_image_features(pixel_values=preprocessed_images)
 
         # outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
 
-        # return pooled_output
-        return outputs.image_embeds
+        # return pooled_output AFTER projection
+        return image_features
     
     # def project_image(self, preprocessed_images):
     #     # print("projecting image")
