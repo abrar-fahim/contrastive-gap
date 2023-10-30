@@ -41,7 +41,8 @@ WEIGHTS_PATHS = {
     # "coco": "coco_weights.pt",
     # "conceptual-captions": "conceptual_weights.pt",
     # "og_mscoco": "caption_checkpoints/coco_prefix-009.pt",
-    "og_mscoco": "caption_checkpoints/model_wieghts_conceptual.pt"
+    "og_mscoco": "caption_checkpoints/coco_weights.pt",
+    "finetuned_caption_only": "caption_checkpoints/coco_prefix-009.pt",
 }
 
 D = torch.device

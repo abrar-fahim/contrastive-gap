@@ -18,6 +18,15 @@ from hf_clip import HFClip
 import numpy as np
 
 
+class ClipModels(Enum):
+    DEFAULT = "clip_default"
+    FINETUNED = 'clip_finetuned'
+    FINETUNED_TEMP = 'clip_finetuned_temp'
+
+
+selected_clip_model = ClipModels.FINETUNED
+
+
 class MappingType(Enum):
     MLP = 'mlp'
     Transformer = 'transformer'
@@ -84,6 +93,19 @@ class ClipCocoDataset(Dataset):
         model, preprocess = clip.load("ViT-B/32", device=self.device)
 
         model = HFClip().to(self.device)
+
+        if selected_clip_model == ClipModels.FINETUNED:
+
+            saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned.pt'
+
+            
+        elif selected_clip_model == ClipModels.FINETUNED_TEMP:
+                
+            saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
+    
+        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=self.device)
+
+        model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
 
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
@@ -485,6 +507,8 @@ def main():
     print('data setup done')
     prefix_dim = 640 if args.is_rn else 512
     args.mapping_type = {'mlp': MappingType.MLP, 'transformer': MappingType.Transformer}[args.mapping_type]
+
+    print('args.only_prefix ', args.only_prefix)
     if args.only_prefix:
         print('training only prefix')
         model = ClipCaptionPrefix(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
@@ -494,6 +518,18 @@ def main():
         print('training prefix and gpt')
         model = ClipCaptionModel(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
+        # device cuda or cpu 
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # get model weights from pretrained caption model
+        model_path = "caption_checkpoints/coco_weights.pt"
+        altered_state_dict = torch.load(model_path, map_location=device)
+        for i in range(12):
+            del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.bias']
+            del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
+        model.load_state_dict(altered_state_dict)
+        # now, model has same weights as the authors had when they trained the caption model
+
         print("Train both prefix and GPT")
         sys.stdout.flush()
     

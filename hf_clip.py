@@ -37,9 +37,6 @@ class HFClip(ClipParent):
         # self.model.logit_scale.requires_grad = False
 
 
-
-
-
     def encode_image(self, preprocessed_images):
 
         preprocessed_images = preprocessed_images.to(self.device)

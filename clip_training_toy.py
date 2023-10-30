@@ -39,12 +39,12 @@ training_hyperparameters = {
     'grad_cache': False,
     'grad_cache_multiplier': 32,
     'n_epochs': 1,
-    'lr': 1e-5,
+    'lr': 1e-6,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'validation_dataset_size': 256,
     'validation_batch_size': 256,
-    'do_checkpointing': False,
+    'do_checkpointing': True,
     'start_new': False,
     'use_small_trainloader': True,
     'small_train_loader_batch_size': 256,
@@ -303,8 +303,8 @@ while epoch < n_epochs:
             clip_model.eval()
             
             
-
-            do_validation(val_dataloader, clip_model, index=i, captioning_model=True)
+            if i % 10 == 0:
+                do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
                 
 
             clip_model.train()  
@@ -336,7 +336,7 @@ while epoch < n_epochs:
 
 
             # save model 
-            if i % 100 == 0 and training_hyperparameters['do_checkpointing']:
+            if i % 10 == 0 and training_hyperparameters['do_checkpointing']:
                 checkpoint_to_save = {
                     'epoch': epoch,
                     'model_state_dict': clip_model.state_dict(),

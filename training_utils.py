@@ -95,7 +95,7 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
 
             predictor.setup()
             # get predictions
-            predicted_captions = predictor.predict(val_imgs, "og_mscoco", False)
+            predicted_captions = predictor.predict(val_imgs, "finetuned_caption_only", False)
 
             # predictions is a list of strings
 
