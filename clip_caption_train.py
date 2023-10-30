@@ -101,11 +101,10 @@ class ClipCocoDataset(Dataset):
         
         
         # add image encodings to clip_embedding of all_data
-        i = 0
-        for (images, captions) in tqdm(train_dataloader):
+        for i, (images, captions) in enumerate(tqdm(train_dataloader)):
             # images, captions = train_dataloader[i]
             # caption is a list (len = batch_size) of strings 
-            images = images.to(self.device)
+            # images = images.to(self.device)
             with torch.no_grad():
                 outputs = model(images, captions, return_all=True)
                 image_encodings = outputs.image_embeds.cpu()
@@ -118,7 +117,6 @@ class ClipCocoDataset(Dataset):
             start = i * images.shape[0]
             end = start + images.shape[0]
             caption2embedding.extend(np.arange(start, end)) # so that caption2embedding is just one list of indices, instead of list of lists.
-            i += 1
 
 
         # add clip_embedding to all_data
@@ -184,14 +182,17 @@ class ClipCocoDataset(Dataset):
                 self.captions_tokens, self.caption2embedding, self.max_seq_len = pickle.load(f)
         else:
             self.captions_tokens = []
-            self.caption2embedding = [] # maps caption index to index of corresponding image embedding in self.prefixes
+            # self.caption2embedding = [] # maps caption index to index of corresponding image embedding in self.prefixes
+            # print('cap2emb ', self.caption2embedding)
             max_seq_len = 0
             for i, caption in tqdm(enumerate(captions_raw)):
                 # self.captions_tokens.append(torch.tensor(self.tokenizer.encode(caption['caption']), dtype=torch.int64))
                 self.captions_tokens.append(torch.tensor(self.tokenizer.encode(caption), dtype=torch.int64))
 
+                # print('i ', i)
+
         
-                self.caption2embedding.append(self.caption2embedding[i])
+                # self.caption2embedding.append(self.caption2embedding[i])
                 max_seq_len = max(max_seq_len, self.captions_tokens[-1].shape[0])
             # self.max_seq_len = max_seq_len
             print('captions tokens shape ', len(self.captions_tokens))

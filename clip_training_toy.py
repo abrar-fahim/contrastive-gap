@@ -304,7 +304,7 @@ while epoch < n_epochs:
             
             
 
-            do_validation(val_dataloader, clip_model, index=i)
+            do_validation(val_dataloader, clip_model, index=i, captioning_model=True)
                 
 
             clip_model.train()  

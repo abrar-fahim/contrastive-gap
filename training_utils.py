@@ -10,16 +10,21 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
+from clip_caption_train import load_model, ClipCaptionModel
+from clip_caption_predict import Predictor
+
 
 pca = None
 
 
 
-def do_validation(val_dataloader, clip_model, index=0):
+
+def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
     with torch.no_grad():
         
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
+
 
         outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
         logits_per_image = outputs.logits_per_image # shape of both: ([64, 64])
@@ -40,7 +45,7 @@ def do_validation(val_dataloader, clip_model, index=0):
 
         print('--- ACCURACY STUFF --- ')
 
-        print('image preds ', image_class_preds)
+        # print('image preds ', image_class_preds)
         # print('image labels ', image_class_labels)
 
         print('image_accuracy ', image_accuracy)
@@ -73,37 +78,25 @@ def do_validation(val_dataloader, clip_model, index=0):
         # doing it just for images for now
         # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
         image_embeds = outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
+        '''
+        evaluating captioning model
+        '''
+        if captioning_model:
+            # text_embeds = outputs.text_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
+            # image_embeds = outputs.image_embeds
 
-        
+            predictor = Predictor()
+
+            predictor.setup()
+            # get predictions
+            predictions = predictor.predict(val_imgs, "og_mscoco", False)
+
+            # predictions is a list of strings
+
+            print('predictions ', predictions)
 
 
 
-        print('---IMAGE --- ')
-
-        # find max and min values
-        max_value = image_embeds.max()
-        min_value = image_embeds.min()
-        print('max_value ', max_value)
-        print('min_value ', min_value)
-        # median
-        median_value = image_embeds.median()
-        print('median_value ', median_value)
-
-        # text_embeds = outputs.text_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
-        text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are before linear projection
-        print('--- TEXT --- ')
-
-        # find max and min values
-        max_value = text_embeds.max()
-        min_value = text_embeds.min()
-        print('max_value ', max_value)
-        print('min_value ', min_value)
-        # median
-        median_value = text_embeds.median()
-        print('median_value ', median_value)
-
-        # save pca plots to file
-        # write_pca_plots_to_file(image_embeds, text_embeds, index, 'pca_plots/')
 
 
         '''

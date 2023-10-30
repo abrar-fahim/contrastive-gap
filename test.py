@@ -1,10 +1,11 @@
 
 from training_utils import *
 
-index = 0
+from clip_caption_train import load_model, ClipCaptionModel
 
-# plot pca
-# plot_pca_from_file(f'pca_plots/image_coordinates_{index}.npy', f'pca_plots/text_coordinates_{index}.npy')
+model = ClipCaptionModel()
 
-# plot pca subplots
-plot_pca_subplots_from_file('pca_plots/', 0, 20, 4)
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+model.load_state_dict(torch.load('caption_checkpoints/coco_prefix-009.py', map_location=device))
+
