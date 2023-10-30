@@ -16,15 +16,7 @@ import torchvision.datasets as dset
 import clip
 from hf_clip import HFClip
 import numpy as np
-
-
-class ClipModels(Enum):
-    DEFAULT = "clip_default"
-    FINETUNED = 'clip_finetuned'
-    FINETUNED_TEMP = 'clip_finetuned_temp'
-
-
-selected_clip_model = ClipModels.FINETUNED_TEMP
+from config import ClipModels, selected_clip_model
 
 
 class MappingType(Enum):

@@ -10,12 +10,7 @@ from PIL import Image
 import requests
 from enum import Enum
 
-class ClipConfigs(Enum):
-    DEFAULT = "clip_default"
-    FINETUNED = 'clip_finetuned'
-    FINETUNED_TEMP = 'clip_finetuned_temp'
-
-selected_clip_config = ClipConfigs.FINETUNED_TEMP
+from config import ClipConfigs, selected_clip_config
 
 
 

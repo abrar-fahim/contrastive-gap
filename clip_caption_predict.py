@@ -22,13 +22,6 @@ from cog import Path, Input
 from hf_clip import HFClip
 from enum import Enum
 
-class ClipModels(Enum):
-    DEFAULT = "clip_default"
-    FINETUNED = 'clip_finetuned'
-    FINETUNED_TEMP = 'clip_finetuned_temp'
-
-# selected_clip_model = ClipModels.FINETUNED_TEMP
-
 
 # import torch
 

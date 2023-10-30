@@ -16,16 +16,10 @@ from clip_caption_predict import Predictor
 from evaluate import load as load_evaluator
 
 from enum import Enum
+from config import selected_clip_model, ClipModels
 
 
 pca = None
-
-class ClipModels(Enum):
-    DEFAULT = "clip_default"
-    FINETUNED = 'clip_finetuned'
-    FINETUNED_TEMP = 'clip_finetuned_temp'
-
-selected_clip_model = ClipModels.FINETUNED_TEMP
 
 
 
