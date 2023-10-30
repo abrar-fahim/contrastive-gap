@@ -13,6 +13,8 @@ from sklearn.manifold import TSNE
 from clip_caption_train import load_model, ClipCaptionModel
 from clip_caption_predict import Predictor
 
+from evaluate import load as load_evaluator
+
 
 pca = None
 
@@ -78,9 +80,13 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # doing it just for images for now
         # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
         image_embeds = outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
+
+
         '''
         evaluating captioning model
         '''
+
+
         if captioning_model:
             # text_embeds = outputs.text_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
             # image_embeds = outputs.image_embeds
@@ -89,11 +95,39 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
 
             predictor.setup()
             # get predictions
-            predictions = predictor.predict(val_imgs, "og_mscoco", False)
+            predicted_captions = predictor.predict(val_imgs, "og_mscoco", False)
 
             # predictions is a list of strings
 
-            print('predictions ', predictions)
+            # print('predictions ', predicted_captions)
+
+            bertscore_evaluator = load_evaluator("bertscore")
+
+            # get bertscore
+            bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions, model_type="distilbert-base-uncased", lang="en", verbose=True)
+
+            print()
+            print(' --- CAPTIONING METRICS --- ')
+            print()
+
+            # get scores
+            precision = np.mean(bertscores['precision'])
+            recall = np.mean(bertscores['recall'])
+            f1 = 2 * (precision * recall) / (precision + recall)
+
+            print('bertscore precision ', precision)
+            print('bertscore recall ', recall)
+            print('bertscore f1 ', f1)
+
+
+
+            
+
+
+
+
+
+
 
 
 
