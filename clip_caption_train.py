@@ -24,7 +24,7 @@ class ClipModels(Enum):
     FINETUNED_TEMP = 'clip_finetuned_temp'
 
 
-selected_clip_model = ClipModels.FINETUNED
+selected_clip_model = ClipModels.FINETUNED_TEMP
 
 
 class MappingType(Enum):
@@ -507,6 +507,14 @@ def main():
     print('data setup done')
     prefix_dim = 640 if args.is_rn else 512
     args.mapping_type = {'mlp': MappingType.MLP, 'transformer': MappingType.Transformer}[args.mapping_type]
+
+
+    if selected_clip_model == ClipModels.FINETUNED:
+        args.prefix = "finetuned_clip_coco_prefix"
+    elif selected_clip_model == ClipModels.FINETUNED_TEMP:
+        args.prefix = "finetuned_temp_clip_coco_prefix"
+    elif selected_clip_model == ClipModels.DEFAULT:
+        args.prefix = "default_clip_coco_prefix"
 
     print('args.only_prefix ', args.only_prefix)
     if args.only_prefix:

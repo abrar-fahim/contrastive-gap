@@ -8,6 +8,15 @@ import clip
 from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, CLIPTextModel, CLIPVisionModel, CLIPVisionModelWithProjection, CLIPTextModelWithProjection
 from PIL import Image
 import requests
+from enum import Enum
+
+class ClipConfigs(Enum):
+    DEFAULT = "clip_default"
+    FINETUNED = 'clip_finetuned'
+    FINETUNED_TEMP = 'clip_finetuned_temp'
+
+selected_clip_config = ClipConfigs.FINETUNED_TEMP
+
 
 
 class HFClip(ClipParent):
@@ -31,10 +40,12 @@ class HFClip(ClipParent):
 
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
-        # set temperature to zero
-        # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+        if selected_clip_config == ClipConfigs.FINETUNED_TEMP:
 
-        # self.model.logit_scale.requires_grad = False
+            # set temperature to zero
+            self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+
+            self.model.logit_scale.requires_grad = False
 
 
     def encode_image(self, preprocessed_images):

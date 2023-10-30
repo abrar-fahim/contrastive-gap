@@ -30,6 +30,16 @@ import torchvision.datasets as dset
 import matplotlib.pyplot as plt
 from PIL import Image
 import requests
+from enum import Enum
+
+class ClipModels(Enum):
+    DEFAULT = "clip_default"
+    FINETUNED = 'clip_finetuned'
+    FINETUNED_TEMP = 'clip_finetuned_temp'
+
+selected_clip_model = ClipModels.FINETUNED_TEMP
+
+    
 
 # set seed
 torch.manual_seed(42)
@@ -39,7 +49,7 @@ training_hyperparameters = {
     'grad_cache': False,
     'grad_cache_multiplier': 32,
     'n_epochs': 1,
-    'lr': 1e-6,
+    'lr': 1e-5,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'validation_dataset_size': 256,
@@ -50,6 +60,8 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 10000,
     }
+
+training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
 
 
 

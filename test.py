@@ -1,58 +1,25 @@
-url = "https://canary.contestimg.wish.com/api/webimage/61b241a3a4ee2ecaf2f63c77-large.jpg?cache_buster=bbeee1fdb460a1d12bc266824914e030"
+from evaluate import load as load_evaluator
 
-# get HF image fearures
-from PIL import Image
-import requests
-from transformers import CLIPProcessor, CLIPModel
-import torch
-import clip
-from PIL import Image
-import numpy as np
-from hf_clip import HFClip
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# bertscore_evaluator = load_evaluator("bertscore")
+bertscore_evaluator = load_evaluator("bleu")
 
 
+predicted_captions = ["Hello there, how are you", "Table under the tree"]
+
+val_captions = [
+    ["Hello there, how are you"], 
+    ["Table under the tree right"]
+    ]
+# get bertscore
+# bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions, model_type="distilbert-base-uncased", lang="en", verbose=True)
+bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions)
 
 
-model, preprocess = clip.load("ViT-B/32", device=device)
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-
-model = HFClip()
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-
-image = Image.open(requests.get(url, stream=True).raw)
-
-image = preprocess(Image.open(requests.get(url, stream=True).raw)).unsqueeze(0).to(device)
-
-# inputs = processor(images=image, return_tensors="pt")
+# print('precision ', bertscores['precision'])
+# print('recall ', bertscores['recall'])
+# print('f1 ', bertscores['f1'])
 
 
-
-# outputs = model.get_image_features(pixel_values=image)
-outputs = model.encode_image(image)
-# outputs = model.get_image_features(**inputs)
-pooled_output_hf = outputs.detach().cpu().numpy()
-
-# get OpenAI image features
-
-
-
-model, preprocess = clip.load("ViT-B/32", device=device)
-image = preprocess(Image.open(requests.get(url, stream=True).raw)).unsqueeze(0).to(device)
-
-
-with torch.no_grad():
-   image_features = model.encode_image(image)
-pooled_output_clip = image_features.detach().cpu().numpy()
-
-# check difference
-
-
-# assert np.allclose(pooled_output_hf, pooled_output_clip, atol=0.1), "hf and clip too different"
-
-if np.allclose(pooled_output_hf, pooled_output_clip, atol=0.01):
-    print("hf and clip similar YAAAYYYY")
-else:
-    print("hf and clip too different :(")
+print('bleu ', bertscores['bleu'])
+print('precisions ', bertscores['precisions'])
 

@@ -15,8 +15,17 @@ from clip_caption_predict import Predictor
 
 from evaluate import load as load_evaluator
 
+from enum import Enum
+
 
 pca = None
+
+class ClipModels(Enum):
+    DEFAULT = "clip_default"
+    FINETUNED = 'clip_finetuned'
+    FINETUNED_TEMP = 'clip_finetuned_temp'
+
+selected_clip_model = ClipModels.FINETUNED_TEMP
 
 
 
@@ -26,6 +35,22 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
+
+        # show the first 10 images from the validation set in a subplot
+        fig = plt.figure()
+
+        
+            
+        for i in range(10):
+            ax = plt.subplot(2, 5, i + 1)
+            plt.imshow(val_imgs[i].permute(1, 2, 0))
+            # plt.title(captions[i])
+            plt.axis("off")
+            
+            print(val_captions[i])
+
+
+        plt.show()
 
 
         outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
@@ -94,30 +119,57 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
             predictor = Predictor()
 
             predictor.setup()
-            # get predictions
-            predicted_captions = predictor.predict(val_imgs, "finetuned_caption_only", False)
+
+            if selected_clip_model == ClipModels.FINETUNED_TEMP:
+                # get predictions
+                predicted_captions = predictor.predict(val_imgs, "finetuned_caption_temp", False)
+            elif selected_clip_model == ClipModels.FINETUNED:
+                # get predictions
+                predicted_captions = predictor.predict(val_imgs, "finetuned_caption", False)
+            elif selected_clip_model == ClipModels.DEFAULT:
+                # get predictions
+                predicted_captions = predictor.predict(val_imgs, "og_mscoco", False)
 
             # predictions is a list of strings
 
             # print('predictions ', predicted_captions)
 
-            bertscore_evaluator = load_evaluator("bertscore")
+            # bertscore_evaluator = load_evaluator("bertscore")
 
             # get bertscore
-            bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions, model_type="distilbert-base-uncased", lang="en", verbose=True)
+            # bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions, model_type="distilbert-base-uncased", lang="en", verbose=True)
+
+            bleu_score_evaluator = load_evaluator("bleu")
+
+            # convert val captions into a list of lists for input to bleu score
+            bleu_val_captions = [[caption] for caption in val_captions]
+
+            # get bleu score
+            bleu_scores = bleu_score_evaluator.compute(predictions=predicted_captions, references=bleu_val_captions)
+
+            # print first 10 predicted captions and ground truth captions
+            print('predicted_captions ', predicted_captions[:10])
+            print('val_captions ', val_captions[:10])
 
             print()
             print(' --- CAPTIONING METRICS --- ')
             print()
 
-            # get scores
-            precision = np.mean(bertscores['precision'])
-            recall = np.mean(bertscores['recall'])
-            f1 = 2 * (precision * recall) / (precision + recall)
+            # print('precision ', bertscores['precision'])
+            # print('recall ', bertscores['recall'])
+            # print('f1 ', bertscores['f1'])
 
-            print('bertscore precision ', precision)
-            print('bertscore recall ', recall)
-            print('bertscore f1 ', f1)
+            print('bleu ', bleu_scores['bleu'])
+            # print('precisions ', bleu_scores['precisions'])
+
+            # get scores
+            # precision = np.mean(bertscores['precision'])
+            # recall = np.mean(bertscores['recall'])
+            # f1 = 2 * (precision * recall) / (precision + recall)
+
+            # print('bertscore precision ', precision)
+            # print('bertscore recall ', recall)
+            # print('bertscore f1 ', f1)
 
 
 

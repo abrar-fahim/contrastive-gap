@@ -14,6 +14,14 @@ import torchvision.datasets as dset
 import matplotlib.pyplot as plt
 from PIL import Image
 import requests
+from enum import Enum
+
+class ClipModels(Enum):
+    DEFAULT = "clip_default"
+    FINETUNED = 'clip_finetuned'
+    FINETUNED_TEMP = 'clip_finetuned_temp'
+
+selected_clip_model = ClipModels.FINETUNED_TEMP
 
 # set seed
 torch.manual_seed(42)
@@ -72,6 +80,23 @@ train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
 
 clip_model = HFClip().to(device)
 
+# if selected_clip_model == ClipModels.FINETUNED:
+
+#     saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned.pt'
+
+            
+# elif selected_clip_model == ClipModels.FINETUNED_TEMP:
+                
+#     saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
+    
+# saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=device)
+
+# clip_model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
+
+
+
+
+
 subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
 
 train_data_subset = Subset(train_dataset, subset_indices)
@@ -93,6 +118,10 @@ print('j ', j)
 val_data_subset = Subset(train_dataset, val_indices)
 
 val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+
+
+
+
 
 
 

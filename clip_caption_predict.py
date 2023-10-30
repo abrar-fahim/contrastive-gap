@@ -20,6 +20,15 @@ import PIL.Image
 import cog
 from cog import Path, Input
 from hf_clip import HFClip
+from enum import Enum
+
+class ClipModels(Enum):
+    DEFAULT = "clip_default"
+    FINETUNED = 'clip_finetuned'
+    FINETUNED_TEMP = 'clip_finetuned_temp'
+
+# selected_clip_model = ClipModels.FINETUNED_TEMP
+
 
 # import torch
 
@@ -42,8 +51,12 @@ WEIGHTS_PATHS = {
     # "conceptual-captions": "conceptual_weights.pt",
     # "og_mscoco": "caption_checkpoints/coco_prefix-009.pt",
     "og_mscoco": "caption_checkpoints/coco_weights.pt",
-    "finetuned_caption_only": "caption_checkpoints/coco_prefix-009.pt",
+    # "finetuned_caption_only": "caption_checkpoints/coco_prefix-009.pt", # doesnt exist for now
+    "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
+    "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-009.pt"
 }
+
+
 
 D = torch.device
 CPU = torch.device("cpu")
@@ -66,8 +79,7 @@ class Predictor(cog.BasePredictor):
             
         for key, weights_path in WEIGHTS_PATHS.items():
 
-            
-
+        
             model = ClipCaptionModel(self.prefix_length)
 
             if key == 'og_mscoco':
