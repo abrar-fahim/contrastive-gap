@@ -456,7 +456,7 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
         if epoch % args.save_every == 0 or epoch == epochs - 1:
             torch.save(
                 model.state_dict(),
-                os.path.join(output_dir, f"{output_prefix}-{epoch:03d}.pt"),
+                os.path.join(output_dir, f"{output_prefix}-{epoch:03d}_{selected_clip_model.name}.pt"),
             )
             # save_config(args)
     return model
@@ -469,7 +469,7 @@ def main():
     parser.add_argument('--prefix', default='coco_prefix', help='prefix for saved filenames')
     # parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--epochs', type=int, default=clip_caption_model_train_hyperparameters['n_epochs'])
-    parser.add_argument('--save_every', type=int, default=1)
+    parser.add_argument('--save_every', type=int, default=20)
     parser.add_argument('--prefix_length', type=int, default=10)
     parser.add_argument('--prefix_length_clip', type=int, default=10)
     # parser.add_argument('--bs', type=int, default=40)
@@ -480,6 +480,10 @@ def main():
     parser.add_argument('--is_rn', dest='is_rn', action='store_true')
     parser.add_argument('--normalize_prefix', dest='normalize_prefix', action='store_true')
     args = parser.parse_args()
+
+    args.save_every = clip_caption_model_train_hyperparameters['save_every']
+
+    print("selected clip model ", selected_clip_model.name)
 
     # args.only_prefix = True
 
