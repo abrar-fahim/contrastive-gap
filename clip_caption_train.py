@@ -17,6 +17,7 @@ import clip
 from hf_clip import HFClip
 import numpy as np
 from config import ClipModels, selected_clip_model
+from training_utils import collate_fn
 
 
 class MappingType(Enum):
@@ -51,23 +52,6 @@ class ClipCocoDataset(Dataset):
             prefix = prefix.float()
             prefix = prefix / prefix.norm(2, -1)
         return tokens, mask, prefix
-    
-    def collate_fn(self, batch):
-        '''
-        batch is a list of tuples?
-        each tuple is of the form (image, caption)
-        image is a tensor of shape [3, 224, 224]
-        caption is a tuple of strings
-        '''
-
-        imgs, og_captions = zip(*batch)
-
-        # keep only first caption for each image
-        captions = [caption[0] for caption in og_captions]
-
-        # caption2 = [caption[0] for caption in og_captions]
-        # return (caption2, captions)
-        return (torch.stack(imgs), captions)
 
     
     def make_all_data(self):
@@ -109,7 +93,7 @@ class ClipCocoDataset(Dataset):
         train_data_subset = Subset(train_dataset, subset_indices)
         
         # create dataloader
-        train_dataloader = DataLoader(train_data_subset, batch_size=256, shuffle=False, num_workers=0, collate_fn=self.collate_fn)
+        train_dataloader = DataLoader(train_data_subset, batch_size=256, shuffle=False, num_workers=0, collate_fn=collate_fn)
 
         print('making all_data')
         

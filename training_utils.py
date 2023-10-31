@@ -214,6 +214,23 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
 
 
+def collate_fn(batch):
+    '''
+    batch is a list of tuples?
+    each tuple is of the form (image, caption)
+    image is a tensor of shape [3, 224, 224]
+    caption is a tuple of strings
+    '''
+
+    imgs, og_captions = zip(*batch)
+
+    # keep only first caption for each image
+    captions = [caption[0] for caption in og_captions]
+
+    # caption2 = [caption[0] for caption in og_captions]
+    # return (caption2, captions)
+    return (torch.stack(imgs), captions)
+
 def write_pca_plots_to_file(image_projections, text_projections, index, output_dir):
     '''
     write PCA plot coordinates of image and text projections, AFTER the linear projection, to file in output_dir

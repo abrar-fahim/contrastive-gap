@@ -7,28 +7,14 @@ from PIL import Image
 import requests
 import clip
 
+from training_utils import collate_fn
 from openai_clip import OpenAIClip
 
 
 # set seed
 torch.manual_seed(42)
 
-def collate_fn(batch):
-    '''
-    batch is a list of tuples?
-    each tuple is of the form (image, caption)
-    image is a tensor of shape [3, 224, 224]
-    caption is a tuple of strings
-    '''
 
-    imgs, og_captions = zip(*batch)
-
-    # keep only first caption for each image
-    captions = [caption[0] for caption in og_captions]
-
-    # caption2 = [caption[0] for caption in og_captions]
-    # return (caption2, captions)
-    return (torch.stack(imgs), captions)
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -115,24 +101,6 @@ while i < 100:
         val_indices[i] = torch.randint(0, len(validation_dataset) , (1,))
     i += 1
 print('i ', i)
-
-
-def collate_fn(batch):
-    '''
-    batch is a list of tuples?
-    each tuple is of the form (image, caption)
-    image is a tensor of shape [3, 224, 224]
-    caption is a tuple of strings
-    '''
-
-    imgs, og_captions = zip(*batch)
-
-    # keep only first caption for each image
-    captions = [caption[0] for caption in og_captions]
-
-    # caption2 = [caption[0] for caption in og_captions]
-    # return (caption2, captions)
-    return (torch.stack(imgs), captions)
 
 
 

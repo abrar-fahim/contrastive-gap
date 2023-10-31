@@ -10,7 +10,7 @@ from PIL import Image
 import requests
 from enum import Enum
 
-from config import ClipConfigs, selected_clip_config
+from config import ClipModels, selected_clip_model
 
 
 
@@ -35,7 +35,7 @@ class HFClip(ClipParent):
 
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
-        if selected_clip_config == ClipConfigs.FINETUNED_TEMP:
+        if selected_clip_model == ClipModels.FINETUNED_TEMP:
 
             # set temperature to zero
             self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
