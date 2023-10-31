@@ -24,7 +24,7 @@ training_hyperparameters = {
     'batch_size': 16,
     'grad_cache': False,
     'grad_cache_multiplier': 32,
-    'n_epochs': 2,
+    'n_epochs': 1,
     'lr': 1e-5,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
@@ -40,19 +40,16 @@ training_hyperparameters = {
     }
 
 
+clip_caption_prev_checkpoint_epoch = 91
+
 clip_caption_model_train_hyperparameters = {
     'batch_size': 150,
     'n_epochs': 100,
     'lr': 2e-5,
     'train_from_scratch': False,
-    'continue_train_from_prev_checkpoint': True,
-    'prev_checkpoint_epoch': 99,
+    'continue_train_from_prev_checkpoint': False,
+    'prev_checkpoint_epoch': clip_caption_prev_checkpoint_epoch,
     'model_config': ClipCaptionModelMapping.MLP
-}
-
-clip_caption_transformer_model_weight_paths = {
-    # 'og_mscoco': 'caption_checkpoints/transformer_coco_weights.pt',
-    'finetuned_caption_temp': 'caption_checkpoints/transformer_finetuned_temp_clip_coco_prefix-049.pt',
 }
 
 
@@ -61,7 +58,14 @@ clip_caption_model_weight_paths = {
 
     # "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
 
-    "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-091.pt"
+    'finetuned_caption_temp': f"caption_checkpoints/finetuned_temp_clip_coco_prefix-{clip_caption_prev_checkpoint_epoch:03d}.pt",
 
 }
 
+
+
+
+clip_caption_transformer_model_weight_paths = {
+    # 'og_mscoco': 'caption_checkpoints/transformer_coco_weights.pt',
+    'finetuned_caption_temp': f"caption_checkpoints/transformer_finetuned_temp_clip_coco_prefix-{clip_caption_prev_checkpoint_epoch:03d}.pt",
+}
