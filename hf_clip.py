@@ -36,18 +36,19 @@ class HFClip(ClipParent):
 
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
-        if selected_clip_model == ClipModels.FINETUNED_TEMP:
+        if not training_hyperparameters['start_new']:
+            if selected_clip_model == ClipModels.FINETUNED_TEMP:
 
-            # set temperature to zero
-            self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+                # set temperature to zero
+                self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
 
-            self.model.logit_scale.requires_grad = False
+                self.model.logit_scale.requires_grad = False
 
-            self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned_temp.pt', map_location=self.device)['model_state_dict'])
-        elif selected_clip_model == ClipModels.FINETUNED:
-            self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned.pt', map_location=self.device)['model_state_dict'])
-        elif selected_clip_model == ClipModels.DEFAULT:
-            pass # no need to load, since hfclip already preloads the default model
+                self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned_temp.pt', map_location=self.device)['model_state_dict'])
+            elif selected_clip_model == ClipModels.FINETUNED:
+                self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned.pt', map_location=self.device)['model_state_dict'])
+            elif selected_clip_model == ClipModels.DEFAULT:
+                pass # no need to load, since hfclip already preloads the default model
 
 
     def encode_image(self, preprocessed_images):
