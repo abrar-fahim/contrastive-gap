@@ -1,4 +1,4 @@
-from training_utils import do_validation
+from training_utils import do_validation, collate_fn
 import torch
 from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
@@ -9,22 +9,6 @@ from config import training_hyperparameters, ClipModels, selected_clip_model
 
 
 def main():
-    def collate_fn(batch):
-        '''
-        batch is a list of tuples?
-        each tuple is of the form (image, caption)
-        image is a tensor of shape [3, 224, 224]
-        caption is a tuple of strings
-        '''
-
-        imgs, og_captions = zip(*batch)
-
-        # keep only first caption for each image
-        captions = [caption[0] for caption in og_captions]
-
-        # caption2 = [caption[0] for caption in og_captions]
-        # return (caption2, captions)
-        return (torch.stack(imgs), captions)
     # set seed
     torch.manual_seed(42)
 
@@ -45,33 +29,6 @@ def main():
     )
 
     clip_model = HFClip().to(device)
-
-    if selected_clip_model == ClipModels.FINETUNED:
-
-        saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned.pt'
-        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=device)
-        clip_model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
-
-                
-    elif selected_clip_model == ClipModels.FINETUNED_TEMP:
-                    
-        saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
-        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=device)
-        clip_model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
-
-    elif selected_clip_model == ClipModels.DEFAULT:
-        
-        # saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_default.pt'
-
-        
-        pass # no need to load, since hfclip already preloads the default model
-        
-    
-
-
-
-
-
 
 
     subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start

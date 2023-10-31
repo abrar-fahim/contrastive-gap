@@ -30,12 +30,6 @@ openai_clip_model = OpenAIClip().to(device)
 
 hf_clip_model = HFClip().to(device)
 
-model_path = 'checkpoints/my_clip_checkpoint.pt'
-
-checkpoint = torch.load(model_path, map_location=device)
-
-hf_clip_model.load_state_dict(checkpoint['model_state_dict'])
-
 
 '''
 Testing on random images and captions

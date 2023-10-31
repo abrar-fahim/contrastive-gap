@@ -26,8 +26,19 @@ training_hyperparameters = {
 
 
 clip_caption_model_train_hyperparameters = {
-    'batch_size': 40,
+    'batch_size': 128,
     'n_epochs': 50,
-    'lr': 2e-5
+    'lr': 2e-5,
+    'train_from_scratch': True,
+    'continue_train_from_prev_checkpoint': True
 }
 
+
+clip_caption_model_weight_paths = {
+    "og_mscoco": "caption_checkpoints/coco_weights.pt", # this is default
+
+    "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
+
+    "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-049_notfromscratch.pt"
+
+}

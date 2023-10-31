@@ -71,19 +71,6 @@ class ClipCocoDataset(Dataset):
 
         model = HFClip().to(self.device)
 
-        if selected_clip_model == ClipModels.FINETUNED:
-
-            saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned.pt'
-
-            
-        elif selected_clip_model == ClipModels.FINETUNED_TEMP:
-                
-            saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
-    
-        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=self.device)
-
-        model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
-
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
@@ -518,15 +505,26 @@ def main():
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
         # device cuda or cpu 
         device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        if not clip_caption_model_train_hyperparameters['train_from_scratch']:
+            print('loading pretrained caption model')
         
-        # get model weights from pretrained caption model
-        model_path = "caption_checkpoints/coco_weights.pt"
-        altered_state_dict = torch.load(model_path, map_location=device)
-        for i in range(12):
-            del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.bias']
-            del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
-        model.load_state_dict(altered_state_dict)
-        # now, model has same weights as the authors had when they trained the caption model
+            # get model weights from pretrained caption model
+            model_path = "caption_checkpoints/coco_weights.pt"
+            altered_state_dict = torch.load(model_path, map_location=device)
+            for i in range(12):
+                del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.bias']
+                del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
+            model.load_state_dict(altered_state_dict)
+            # now, model has same weights as the authors had when they trained the caption model
+        elif clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
+            print('Continuing training from prev checkpoint')
+            model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{49:03d}.pt"), map_location=device))
+            
+        else:
+            print('Training from scratch')
+
+        
 
         print("Train both prefix and GPT")
         sys.stdout.flush()

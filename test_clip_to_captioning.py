@@ -23,7 +23,7 @@ print()
 
 
 # then train clip caption model on the trained clip model above
-clip_caption_train.main()
+# clip_caption_train.main()
 
 print()
 print(' --- VALIDATING CLIP CAPTION MODEL --- ')
@@ -31,4 +31,4 @@ print()
 
 
 # then, validate the caption model
-validate_caption_model.main()
+# validate_caption_model.main()

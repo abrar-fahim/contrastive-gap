@@ -16,6 +16,11 @@ from cog import Path, Input
 from hf_clip import HFClip
 
 
+from config import clip_caption_model_weight_paths as WEIGHTS_PATHS
+
+from config import ClipModels, selected_clip_model
+
+
 # import torch
 
 N = type(None)
@@ -32,15 +37,9 @@ TNS = Union[Tuple[TN, ...], List[TN]]
 TSN = Optional[TS]
 TA = Union[T, ARRAY]
 
-WEIGHTS_PATHS = {
-    # "coco": "coco_weights.pt",
-    # "conceptual-captions": "conceptual_weights.pt",
-    # "og_mscoco": "caption_checkpoints/coco_prefix-009.pt",
-    "og_mscoco": "caption_checkpoints/coco_weights.pt",
-    # "finetuned_caption_only": "caption_checkpoints/coco_prefix-009.pt", # doesnt exist for now
-    "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
-    "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-009.pt"
-}
+
+
+
 
 
 
@@ -57,6 +56,9 @@ class Predictor(cog.BasePredictor):
         )
 
         self.clip_model = HFClip().to(self.device)
+        
+
+
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
         self.models = {}

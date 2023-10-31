@@ -18,7 +18,6 @@
 
 from my_clip import MyClip, MyClipLoss
 from grad_cache_wrapper import GradCacheWrapper
-from openai_clip import OpenAIClip
 from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
@@ -292,7 +291,7 @@ def main():
 
                 # caption is now a list of 64 strings 
 
-                
+
 
                 
 

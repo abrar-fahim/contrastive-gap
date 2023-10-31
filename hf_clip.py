@@ -42,6 +42,12 @@ class HFClip(ClipParent):
 
             self.model.logit_scale.requires_grad = False
 
+            self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned_temp.pt', map_location=self.device)['model_state_dict'])
+        elif selected_clip_model == ClipModels.FINETUNED:
+            self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned.pt', map_location=self.device)['model_state_dict'])
+        elif selected_clip_model == ClipModels.DEFAULT:
+            pass # no need to load, since hfclip already preloads the default model
+
 
     def encode_image(self, preprocessed_images):
 

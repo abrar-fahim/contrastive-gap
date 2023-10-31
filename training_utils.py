@@ -20,20 +20,20 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
         # show the first 10 images from the validation set in a subplot
-        # fig = plt.figure()
+        fig = plt.figure()
 
         
             
-        # for i in range(10):
-        #     ax = plt.subplot(2, 5, i + 1)
-        #     plt.imshow(val_imgs[i].permute(1, 2, 0))
-        #     # plt.title(captions[i])
-        #     plt.axis("off")
+        for i in range(10):
+            ax = plt.subplot(2, 5, i + 1)
+            plt.imshow(val_imgs[i].permute(1, 2, 0))
+            # plt.title(captions[i])
+            plt.axis("off")
             
-        #     print(val_captions[i])
+            print(val_captions[i])
 
 
-        # plt.show()
+        plt.show()
 
 
         outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
