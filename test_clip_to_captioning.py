@@ -15,7 +15,7 @@ print(' --- TRAINING CLIP --- ')
 print()
 
 # first train clip model
-clip_training_toy.main()
+# clip_training_toy.main()
 
 print()
 print(' --- TRAINING CLIP CAPTION MODEL --- ')
@@ -31,4 +31,4 @@ print()
 
 
 # then, validate the caption model
-# validate_caption_model.main()
+validate_caption_model.main()

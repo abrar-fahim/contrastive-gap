@@ -284,6 +284,10 @@ def generate_beam(
     ]
     order = scores.argsort(descending=True)
     output_texts = [output_texts[i] for i in order]
+
+    # print('output texts ', output_texts)
+
+
     return output_texts
 
 

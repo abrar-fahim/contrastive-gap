@@ -458,6 +458,7 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
                 model.state_dict(),
                 os.path.join(output_dir, f"{output_prefix}-{epoch:03d}.pt"),
             )
+            # save_config(args)
     return model
 
 
@@ -479,11 +480,29 @@ def main():
     parser.add_argument('--is_rn', dest='is_rn', action='store_true')
     parser.add_argument('--normalize_prefix', dest='normalize_prefix', action='store_true')
     args = parser.parse_args()
+
+    if clip_caption_model_train_hyperparameters['model_config'] == ClipCaptionModelMapping.TRANSFORMER:
+        
+        args.only_prefix = True
+        args.mapping_type = 'transformer'
+        args.num_layers = 8
+        args.prefix_length = 40
+        args.prefix_length_clip = 40
+    
+
     prefix_length = args.prefix_length
+        
+    
+
+
+
     dataset = ClipCocoDataset(args.data, prefix_length, normalize_prefix=args.normalize_prefix)
     print('data setup done')
     prefix_dim = 640 if args.is_rn else 512
     args.mapping_type = {'mlp': MappingType.MLP, 'transformer': MappingType.Transformer}[args.mapping_type]
+
+     # device cuda or cpu 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
     if selected_clip_model == ClipModels.FINETUNED:
@@ -493,18 +512,29 @@ def main():
     elif selected_clip_model == ClipModels.DEFAULT:
         args.prefix = "default_clip_coco_prefix"
 
+    if clip_caption_model_train_hyperparameters['model_config'] == ClipCaptionModelMapping.TRANSFORMER:
+        # add the word transformer_ to the prefix
+        args.prefix = 'transformer_' + args.prefix
+
+
     print('args.only_prefix ', args.only_prefix)
     if args.only_prefix:
         print('training only prefix')
         model = ClipCaptionPrefix(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
         print("Train only prefix")
+
+        if clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
+            print('Continuing training from prev checkpoint')
+            model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{49:03d}_notfromscratch.pt"), map_location=device))
+            
+        else:
+            print('Training from scratch')
     else:
         print('training prefix and gpt')
         model = ClipCaptionModel(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
-        # device cuda or cpu 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+       
 
         if not clip_caption_model_train_hyperparameters['train_from_scratch']:
             print('loading pretrained caption model')
@@ -517,12 +547,17 @@ def main():
                 del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
             model.load_state_dict(altered_state_dict)
             # now, model has same weights as the authors had when they trained the caption model
-        elif clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
-            print('Continuing training from prev checkpoint')
-            model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{49:03d}.pt"), map_location=device))
-            
         else:
-            print('Training from scratch')
+            print('DID NOT load pretrained caption model')
+
+
+        if clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
+            print()
+            print('Continuing training from prev checkpoint')
+            print()
+            model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{clip_caption_model_train_hyperparameters['prev_checkpoint_epoch']:03d}.pt"), map_location=device))
+            
+        
 
         
 

@@ -17,7 +17,7 @@ class HFClipPretrainedModels(Enum):
     RN50 = "mlunar/clip-variants-resnet-50x4",
 
 
-selected_clip_model = ClipModels.DEFAULT
+selected_clip_model = ClipModels.FINETUNED_TEMP
 
 
 training_hyperparameters = {
@@ -41,25 +41,27 @@ training_hyperparameters = {
 
 
 clip_caption_model_train_hyperparameters = {
-    'batch_size': 128,
-    'n_epochs': 50,
+    'batch_size': 150,
+    'n_epochs': 100,
     'lr': 2e-5,
-    'train_from_scratch': True,
+    'train_from_scratch': False,
     'continue_train_from_prev_checkpoint': True,
-    'model_config': ClipCaptionModelMapping.TRANSFORMER
+    'prev_checkpoint_epoch': 99,
+    'model_config': ClipCaptionModelMapping.MLP
 }
 
 clip_caption_transformer_model_weight_paths = {
-    'og_mscoco': 'caption_checkpoints/transformer_coco_weights.pt',
+    # 'og_mscoco': 'caption_checkpoints/transformer_coco_weights.pt',
+    'finetuned_caption_temp': 'caption_checkpoints/transformer_finetuned_temp_clip_coco_prefix-049.pt',
 }
 
 
 clip_caption_model_weight_paths = {
-    "og_mscoco": "caption_checkpoints/coco_weights.pt", # this is default
+    # "og_mscoco": "caption_checkpoints/coco_weights.pt", # this is default
 
-    "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
+    # "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
 
-    "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-049_notfromscratch.pt"
+    "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-091.pt"
 
 }
 

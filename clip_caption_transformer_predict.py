@@ -65,7 +65,7 @@ class Predictor(cog.BasePredictor):
         for key, weights_path in WEIGHTS_PATHS.items():
 
         
-            model = ClipCaptionModel(self.prefix_length, clip_length=40, prefix_size=640, num_layers=8, mapping_type=MappingType.Transformer)
+            model = ClipCaptionModel(self.prefix_length, clip_length=40, prefix_size=512, num_layers=8, mapping_type=MappingType.Transformer)
 
             if key == 'og_mscoco':
                 altered_state_dict = torch.load(weights_path, map_location=self.device)
