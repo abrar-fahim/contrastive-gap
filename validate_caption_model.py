@@ -1,26 +1,30 @@
-from training_utils import do_validation, collate_fn
+from training_utils import do_validation
 import torch
-from my_clip import MyClip, MyClipLoss
-from grad_cache_wrapper import GradCacheWrapper
-from openai_clip import OpenAIClip
 from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
-import torch.optim as optim
-import torch
-from training_utils import do_validation
 import clip
-import os
 import torchvision.datasets as dset
-import matplotlib.pyplot as plt
-from PIL import Image
-import requests
-from enum import Enum
 
 from config import training_hyperparameters, ClipModels, selected_clip_model
 
 
 def main():
-        
+    def collate_fn(batch):
+        '''
+        batch is a list of tuples?
+        each tuple is of the form (image, caption)
+        image is a tensor of shape [3, 224, 224]
+        caption is a tuple of strings
+        '''
+
+        imgs, og_captions = zip(*batch)
+
+        # keep only first caption for each image
+        captions = [caption[0] for caption in og_captions]
+
+        # caption2 = [caption[0] for caption in og_captions]
+        # return (caption2, captions)
+        return (torch.stack(imgs), captions)
     # set seed
     torch.manual_seed(42)
 
@@ -45,19 +49,26 @@ def main():
     if selected_clip_model == ClipModels.FINETUNED:
 
         saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned.pt'
+        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=device)
+        clip_model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
 
                 
     elif selected_clip_model == ClipModels.FINETUNED_TEMP:
                     
         saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
+        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=device)
+        clip_model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
 
     elif selected_clip_model == ClipModels.DEFAULT:
         
-        saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_default.pt'
-        
-    saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=device)
+        # saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_default.pt'
 
-    clip_model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
+        
+        pass # no need to load, since hfclip already preloads the default model
+        
+    
+
+
 
 
 

@@ -11,7 +11,7 @@ training_hyperparameters = {
     'batch_size': 16,
     'grad_cache': False,
     'grad_cache_multiplier': 32,
-    'n_epochs': 1,
+    'n_epochs': 2,
     'lr': 1e-5,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
@@ -23,4 +23,11 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 10000,
     }
+
+
+clip_caption_model_train_hyperparameters = {
+    'batch_size': 40,
+    'n_epochs': 50,
+    'lr': 2e-5
+}
 

@@ -1,21 +1,10 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from clip_parent import ClipParent
-from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, CLIPTextModel, CLIPVisionModel, CLIPVisionModelWithProjection, CLIPTextModelWithProjection
-from PIL import Image
-import requests
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-
-from clip_caption_train import load_model, ClipCaptionModel
 from clip_caption_predict import Predictor
-
 from evaluate import load as load_evaluator
-
-from enum import Enum
 from config import selected_clip_model, ClipModels
 
 
@@ -31,20 +20,20 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
         # show the first 10 images from the validation set in a subplot
-        fig = plt.figure()
+        # fig = plt.figure()
 
         
             
-        for i in range(10):
-            ax = plt.subplot(2, 5, i + 1)
-            plt.imshow(val_imgs[i].permute(1, 2, 0))
-            # plt.title(captions[i])
-            plt.axis("off")
+        # for i in range(10):
+        #     ax = plt.subplot(2, 5, i + 1)
+        #     plt.imshow(val_imgs[i].permute(1, 2, 0))
+        #     # plt.title(captions[i])
+        #     plt.axis("off")
             
-            print(val_captions[i])
+        #     print(val_captions[i])
 
 
-        plt.show()
+        # plt.show()
 
 
         outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
@@ -128,10 +117,10 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
 
             # print('predictions ', predicted_captions)
 
-            # bertscore_evaluator = load_evaluator("bertscore")
+            bertscore_evaluator = load_evaluator("bertscore")
 
             # get bertscore
-            # bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions, model_type="distilbert-base-uncased", lang="en", verbose=True)
+            bertscores = bertscore_evaluator.compute(predictions=predicted_captions, references=val_captions, model_type="distilbert-base-uncased", lang="en", verbose=True)
 
             bleu_score_evaluator = load_evaluator("bleu")
 
@@ -149,21 +138,35 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
             print(' --- CAPTIONING METRICS --- ')
             print()
 
-            # print('precision ', bertscores['precision'])
-            # print('recall ', bertscores['recall'])
-            # print('f1 ', bertscores['f1'])
+            # print('bertscore precision ', bertscores['precision'])
+            # print('bertscore recall ', bertscores['recall'])
+            # print('bertscore f1 ', bertscores['f1'])
 
             print('bleu ', bleu_scores['bleu'])
             # print('precisions ', bleu_scores['precisions'])
 
             # get scores
-            # precision = np.mean(bertscores['precision'])
-            # recall = np.mean(bertscores['recall'])
-            # f1 = 2 * (precision * recall) / (precision + recall)
+            precision = np.mean(bertscores['precision'])
+            recall = np.mean(bertscores['recall'])
+            f1 = 2 * (precision * recall) / (precision + recall)
 
-            # print('bertscore precision ', precision)
-            # print('bertscore recall ', recall)
-            # print('bertscore f1 ', f1)
+            print('bertscore precision ', precision)
+            print('bertscore recall ', recall)
+            print('bertscore f1 ', f1)
+
+            print()
+            print(' ROUGE')
+            print()
+
+            rouge_evaluator = load_evaluator("rouge")
+
+            # get rouge score
+            rouge_scores = rouge_evaluator.compute(predictions=predicted_captions, references=val_captions)
+
+            print('rouge1 ', rouge_scores['rouge1'])
+            print('rouge2 ', rouge_scores['rouge2'])
+            print('rougeL ', rouge_scores['rougeL'])
+            print("rougeLsum ", rouge_scores['rougeLsum'])
 
 
 

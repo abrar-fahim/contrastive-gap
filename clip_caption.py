@@ -16,9 +16,6 @@ import torchvision.datasets as dset
 import clip
 from hf_clip import HFClip
 import numpy as np
-from config import ClipModels, selected_clip_model
-from training_utils import collate_fn
-from config import clip_caption_model_train_hyperparameters
 
 
 class MappingType(Enum):
@@ -53,6 +50,23 @@ class ClipCocoDataset(Dataset):
             prefix = prefix.float()
             prefix = prefix / prefix.norm(2, -1)
         return tokens, mask, prefix
+    
+    def collate_fn(self, batch):
+        '''
+        batch is a list of tuples?
+        each tuple is of the form (image, caption)
+        image is a tensor of shape [3, 224, 224]
+        caption is a tuple of strings
+        '''
+
+        imgs, og_captions = zip(*batch)
+
+        # keep only first caption for each image
+        captions = [caption[0] for caption in og_captions]
+
+        # caption2 = [caption[0] for caption in og_captions]
+        # return (caption2, captions)
+        return (torch.stack(imgs), captions)
 
     
     def make_all_data(self):
@@ -71,19 +85,6 @@ class ClipCocoDataset(Dataset):
 
         model = HFClip().to(self.device)
 
-        if selected_clip_model == ClipModels.FINETUNED:
-
-            saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned.pt'
-
-            
-        elif selected_clip_model == ClipModels.FINETUNED_TEMP:
-                
-            saved_clip_checkpoint_path = 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
-    
-        saved_clip_checkpoint = torch.load(saved_clip_checkpoint_path, map_location=self.device)
-
-        model.load_state_dict(saved_clip_checkpoint['model_state_dict'])
-
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                         # transform=[transforms.PILToTensor()])
@@ -94,7 +95,7 @@ class ClipCocoDataset(Dataset):
         train_data_subset = Subset(train_dataset, subset_indices)
         
         # create dataloader
-        train_dataloader = DataLoader(train_data_subset, batch_size=256, shuffle=False, num_workers=0, collate_fn=collate_fn)
+        train_dataloader = DataLoader(train_data_subset, batch_size=256, shuffle=False, num_workers=0, collate_fn=self.collate_fn)
 
         print('making all_data')
         
@@ -420,10 +421,6 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
     
     print('starting train')
 
-
-    lr = clip_caption_model_train_hyperparameters['lr']
-
-
     device = torch.device('cuda:0')
     batch_size = args.bs
     epochs = args.epochs
@@ -436,13 +433,6 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=warmup_steps, num_training_steps=epochs * len(train_dataloader)
     )
-
-
-    # print model parameters that are trainable
-    # print('model parameters')
-    # for name, param in model.named_parameters():
-    #     if param.requires_grad:
-    #         print(name, param.data.shape)
     # save_config(args)
     for epoch in range(epochs):
         print(f">>> Training epoch {epoch}")
@@ -479,13 +469,11 @@ def main():
     parser.add_argument('--data', default='./caption_dataset/split_train.pkl')
     parser.add_argument('--out_dir', default='./caption_checkpoints')
     parser.add_argument('--prefix', default='coco_prefix', help='prefix for saved filenames')
-    # parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--epochs', type=int, default=clip_caption_model_train_hyperparameters['n_epochs'])
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--save_every', type=int, default=1)
     parser.add_argument('--prefix_length', type=int, default=10)
     parser.add_argument('--prefix_length_clip', type=int, default=10)
-    # parser.add_argument('--bs', type=int, default=40)
-    parser.add_argument('--bs', type=int, default=clip_caption_model_train_hyperparameters['batch_size'])
+    parser.add_argument('--bs', type=int, default=40)
     parser.add_argument('--only_prefix', dest='only_prefix', action='store_true')
     parser.add_argument('--mapping_type', type=str, default='mlp', help='mlp/transformer')
     parser.add_argument('--num_layers', type=int, default=8)
@@ -497,16 +485,6 @@ def main():
     print('data setup done')
     prefix_dim = 640 if args.is_rn else 512
     args.mapping_type = {'mlp': MappingType.MLP, 'transformer': MappingType.Transformer}[args.mapping_type]
-
-
-    if selected_clip_model == ClipModels.FINETUNED:
-        args.prefix = "finetuned_clip_coco_prefix"
-    elif selected_clip_model == ClipModels.FINETUNED_TEMP:
-        args.prefix = "finetuned_temp_clip_coco_prefix"
-    elif selected_clip_model == ClipModels.DEFAULT:
-        args.prefix = "default_clip_coco_prefix"
-
-    print('args.only_prefix ', args.only_prefix)
     if args.only_prefix:
         print('training only prefix')
         model = ClipCaptionPrefix(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
@@ -516,18 +494,6 @@ def main():
         print('training prefix and gpt')
         model = ClipCaptionModel(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
-        # device cuda or cpu 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        
-        # get model weights from pretrained caption model
-        model_path = "caption_checkpoints/coco_weights.pt"
-        altered_state_dict = torch.load(model_path, map_location=device)
-        for i in range(12):
-            del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.bias']
-            del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
-        model.load_state_dict(altered_state_dict)
-        # now, model has same weights as the authors had when they trained the caption model
-
         print("Train both prefix and GPT")
         sys.stdout.flush()
     

@@ -27,10 +27,6 @@ from training_utils import do_validation, collate_fn
 import clip
 import os
 import torchvision.datasets as dset
-import matplotlib.pyplot as plt
-from PIL import Image
-import requests
-from enum import Enum
 
 from config import selected_clip_model, training_hyperparameters
 
@@ -165,6 +161,7 @@ def main():
 
 
 
+
     '''
     Build validation dataset
     - This only works when using small train loader
@@ -294,6 +291,8 @@ def main():
                 # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
 
                 # caption is now a list of 64 strings 
+
+                
 
                 
 

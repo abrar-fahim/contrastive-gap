@@ -2,25 +2,18 @@
 # Reference: https://github.com/replicate/cog/blob/main/docs/python.md
 
 import clip
-import os
 from torch import nn
 import numpy as np
 import torch
 import torch.nn.functional as nnf
-import sys
 from typing import Tuple, List, Union, Optional
 from transformers import (
     GPT2Tokenizer,
     GPT2LMHeadModel,
-    AdamW,
-    get_linear_schedule_with_warmup,
 )
-import skimage.io as io
-import PIL.Image
 import cog
 from cog import Path, Input
 from hf_clip import HFClip
-from enum import Enum
 
 
 # import torch
