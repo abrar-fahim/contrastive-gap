@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, Subset
 import clip
 import torchvision.datasets as dset
 
-from config import training_hyperparameters, ClipModels, selected_clip_model
+from config import *
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
 
     print('device ', device)
 
-    model, preprocess = clip.load("ViT-B/32", device=device)
+    model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
 
 
 

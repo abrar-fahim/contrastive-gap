@@ -10,7 +10,7 @@ from PIL import Image
 import requests
 from enum import Enum
 
-from config import ClipModels, selected_clip_model
+from config import *
 
 
 
@@ -22,10 +22,11 @@ class HFClip(ClipParent):
 
 
 
-        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
+        # self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
+        self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
         # self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-        self.tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+        self.tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
 
         # self.text_model = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
 

@@ -3,9 +3,10 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from clip_caption_predict import Predictor
+from clip_caption_predict import Predictor as MLPPredictor
+from clip_caption_transformer_predict import Predictor as TransformerPredictor
 from evaluate import load as load_evaluator
-from config import selected_clip_model, ClipModels
+from config import selected_clip_model, ClipModels, ClipCaptionModelMapping, clip_caption_model_weight_paths, clip_caption_model_train_hyperparameters
 
 
 pca = None
@@ -99,7 +100,10 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
             # text_embeds = outputs.text_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
             # image_embeds = outputs.image_embeds
 
-            predictor = Predictor()
+            if clip_caption_model_train_hyperparameters['model_config'] == ClipCaptionModelMapping.MLP:
+                predictor = MLPPredictor()
+            elif clip_caption_model_train_hyperparameters['model_config'] == ClipCaptionModelMapping.TRANSFORMER:
+                predictor = TransformerPredictor()
 
             predictor.setup()
 

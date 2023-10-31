@@ -3,13 +3,15 @@ import torchvision.datasets as dset
 import clip
 import torch
 
+from config import *
+
 
 torch.manual_seed(42)
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model, preprocess = clip.load("ViT-B/32", device=device)
+model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
 
 train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
         annFile = 'datasets/mscoco/annotations/captions_val2014.json',

@@ -50,7 +50,7 @@ def main():
 
     print('device ', device)
 
-    model, preprocess = clip.load("ViT-B/32", device=device)
+    model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
     # model, preprocess = clip.load("ViT-B/16", device=device)
     train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                             annFile = 'datasets/mscoco/annotations/captions_val2014.json',

@@ -4,6 +4,19 @@ class ClipModels(Enum):
     FINETUNED = 'clip_finetuned'
     FINETUNED_TEMP = 'clip_finetuned_temp'
 
+class ClipCaptionModelMapping(Enum):
+    MLP = 'mlp'
+    TRANSFORMER = 'transformer'
+
+class OpenAIClipPretrainedModels(Enum):
+    VIT = "ViT-B/32",
+    RN50 = "RN50x4",
+
+class HFClipPretrainedModels(Enum):
+    VIT = "openai/clip-vit-base-patch32",
+    RN50 = "openai/clip-resnet-50x4",
+
+
 selected_clip_model = ClipModels.FINETUNED_TEMP
 
 
@@ -22,6 +35,8 @@ training_hyperparameters = {
     'use_small_trainloader': True,
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 10000,
+    'openai_clip_model': OpenAIClipPretrainedModels.VIT,
+    'hf_clip_model': HFClipPretrainedModels.VIT,
     }
 
 
@@ -30,7 +45,12 @@ clip_caption_model_train_hyperparameters = {
     'n_epochs': 50,
     'lr': 2e-5,
     'train_from_scratch': True,
-    'continue_train_from_prev_checkpoint': True
+    'continue_train_from_prev_checkpoint': True,
+    'model_config': ClipCaptionModelMapping.TRANSFORMER
+}
+
+clip_caption_transformer_model_weight_paths = {
+    'default': 'caption_checkpoints/transformer_coco_weights.pt',
 }
 
 
@@ -42,3 +62,5 @@ clip_caption_model_weight_paths = {
     "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-049_notfromscratch.pt"
 
 }
+
+

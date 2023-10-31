@@ -18,7 +18,7 @@ from hf_clip import HFClip
 import numpy as np
 from config import ClipModels, selected_clip_model
 from training_utils import collate_fn
-from config import clip_caption_model_train_hyperparameters
+from config import *
 
 
 class MappingType(Enum):
@@ -67,7 +67,7 @@ class ClipCocoDataset(Dataset):
         all_captions = []
         caption2embedding = []
 
-        model, preprocess = clip.load("ViT-B/32", device=self.device)
+        model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
 
         model = HFClip().to(self.device)
 
