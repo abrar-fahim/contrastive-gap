@@ -481,6 +481,8 @@ def main():
     parser.add_argument('--normalize_prefix', dest='normalize_prefix', action='store_true')
     args = parser.parse_args()
 
+    # args.only_prefix = True
+
     if clip_caption_model_train_hyperparameters['model_config'] == ClipCaptionModelMapping.TRANSFORMER:
         
         args.only_prefix = True
@@ -522,21 +524,18 @@ def main():
         print('training only prefix')
         model = ClipCaptionPrefix(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
-        print("Train only prefix")
-
-        if clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
-            print('Continuing training from prev checkpoint')
-            model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{49:03d}_notfromscratch.pt"), map_location=device))
-            
-        else:
-            print('Training from scratch')
+        # this freezes the gpt's parameters
+        
     else:
         print('training prefix and gpt')
         model = ClipCaptionModel(prefix_length, clip_length=args.prefix_length_clip, prefix_size=prefix_dim,
                                   num_layers=args.num_layers, mapping_type=args.mapping_type)
-       
+        # this trains gpt as well
 
-        if not clip_caption_model_train_hyperparameters['train_from_scratch']:
+        print("Train both prefix and GPT")
+        sys.stdout.flush()
+
+    if not clip_caption_model_train_hyperparameters['train_from_scratch']:
             print('loading pretrained caption model')
         
             # get model weights from pretrained caption model
@@ -547,22 +546,16 @@ def main():
                 del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
             model.load_state_dict(altered_state_dict)
             # now, model has same weights as the authors had when they trained the caption model
-        else:
-            print('DID NOT load pretrained caption model')
+    else:
+        print('DID NOT load pretrained caption model')
 
 
-        if clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
-            print()
-            print('Continuing training from prev checkpoint')
-            print()
-            model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{clip_caption_model_train_hyperparameters['prev_checkpoint_epoch']:03d}.pt"), map_location=device))
+    if clip_caption_model_train_hyperparameters['continue_train_from_prev_checkpoint']:
+        print()
+        print('Continuing training from prev checkpoint')
+        print()
+        model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{clip_caption_model_train_hyperparameters['prev_checkpoint_epoch']:03d}.pt"), map_location=device))
             
-        
-
-        
-
-        print("Train both prefix and GPT")
-        sys.stdout.flush()
     
     train(dataset, model, args, output_dir=args.out_dir, output_prefix=args.prefix)
 

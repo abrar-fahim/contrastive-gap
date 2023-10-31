@@ -4,6 +4,7 @@ from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
 import clip
 import torchvision.datasets as dset
+import torchvision.transforms as transforms
 
 from config import *
 
@@ -24,7 +25,7 @@ def main():
 
     train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
-                            # transform=[transforms.PILToTensor()])
+                            # transform=transforms.PILToTensor()
                             transform=preprocess,
     )
 
@@ -64,7 +65,8 @@ def main():
         clip_model.eval()
 
 
-        do_validation(val_dataloader, clip_model, index=0, captioning_model=True)
+
+        do_validation(dataloader, clip_model, index=0, captioning_model=True)
 
         break
 

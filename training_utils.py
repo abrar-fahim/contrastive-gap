@@ -110,6 +110,8 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
             if selected_clip_model == ClipModels.FINETUNED_TEMP:
                 # get predictions
                 predicted_captions = predictor.predict(val_imgs, "finetuned_caption_temp", False)
+                # predicted_captions = predictor.predict(val_imgs, "og_mscoco", False) # using the default model for now
+
             elif selected_clip_model == ClipModels.FINETUNED:
                 # get predictions
                 predicted_captions = predictor.predict(val_imgs, "finetuned_caption", False)
@@ -236,6 +238,7 @@ def collate_fn(batch):
 
     # caption2 = [caption[0] for caption in og_captions]
     # return (caption2, captions)
+    # return (imgs, captions)
     return (torch.stack(imgs), captions)
 
 def write_pca_plots_to_file(image_projections, text_projections, index, output_dir):
