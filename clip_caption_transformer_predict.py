@@ -47,7 +47,7 @@ class Predictor(cog.BasePredictor):
         """Load the model into memory to make running multiple predictions efficient"""
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.clip_model, self.preprocess = clip.load(
-            training_hyperparameters['open_clip_model'], device=self.device, jit=False
+            training_hyperparameters['openai_clip_model'], device=self.device, jit=False
         )
 
         self.clip_model = HFClip().to(self.device)
@@ -65,28 +65,22 @@ class Predictor(cog.BasePredictor):
         for key, weights_path in WEIGHTS_PATHS.items():
 
         
-            model = ClipCaptionModel(self.prefix_length, clip_length=40, prefix_size=640, num_layers=8, mapping_type=MappingType.MLP)
+            model = ClipCaptionModel(self.prefix_length, clip_length=40, prefix_size=640, num_layers=8, mapping_type=MappingType.Transformer)
 
-
-            model.load_state_dict(torch.load(weights_path, map_location=self.device))
+            if key == 'og_mscoco':
+                altered_state_dict = torch.load(weights_path, map_location=self.device)
+                # remove attn bias and masked bias from state dict
+                for i in range(12):
+                    del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.bias']
+                    del altered_state_dict['gpt.transformer.h.' + str(i) + '.attn.masked_bias']
+                model.load_state_dict(altered_state_dict)
+            else:
+                # no need to alter state dict here, since it was already saved in the proper way by me in my code
+                model.load_state_dict(torch.load(weights_path, map_location=self.device))
             model = model.eval()
             model = model.to(self.device)
             self.models[key] = model
 
-    # @cog.input("image", type=cog.Path, help="Input image")
-    # @cog.input(
-    #     "model",
-    #     type=str,
-    #     options=WEIGHTS_PATHS.keys(),
-    #     default="coco",
-    #     help="Model to use",
-    # )
-    # @cog.input(
-    #     "use_beam_search",
-    #     type=bool,
-    #     default=False,
-    #     help="Whether to apply beam search to generate the output text",
-    # )
     def predict(self, 
                 preprocessed_images: Path = Input(description="Input batch of  image"),
                 model: str = Input(choices=WEIGHTS_PATHS.keys(), 

@@ -14,10 +14,10 @@ class OpenAIClipPretrainedModels(Enum):
 
 class HFClipPretrainedModels(Enum):
     VIT = "openai/clip-vit-base-patch32",
-    RN50 = "openai/clip-resnet-50x4",
+    RN50 = "mlunar/clip-variants-resnet-50x4",
 
 
-selected_clip_model = ClipModels.FINETUNED_TEMP
+selected_clip_model = ClipModels.DEFAULT
 
 
 training_hyperparameters = {
@@ -35,8 +35,8 @@ training_hyperparameters = {
     'use_small_trainloader': True,
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 10000,
-    'openai_clip_model': OpenAIClipPretrainedModels.VIT,
-    'hf_clip_model': HFClipPretrainedModels.VIT,
+    'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
+    'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     }
 
 
@@ -50,7 +50,7 @@ clip_caption_model_train_hyperparameters = {
 }
 
 clip_caption_transformer_model_weight_paths = {
-    'default': 'caption_checkpoints/transformer_coco_weights.pt',
+    'og_mscoco': 'caption_checkpoints/transformer_coco_weights.pt',
 }
 
 
@@ -62,5 +62,4 @@ clip_caption_model_weight_paths = {
     "finetuned_caption_temp": "caption_checkpoints/finetuned_temp_clip_coco_prefix-049_notfromscratch.pt"
 
 }
-
 
