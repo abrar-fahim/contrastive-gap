@@ -52,10 +52,11 @@ class ClipCocoDataset(Dataset):
         if self.normalize_prefix:
             prefix = prefix.float()
             prefix = prefix / prefix.norm(2, -1)
-        return tokens, mask, prefix
+        return tokens, mask, prefix, self.captions_raw[item]
 
     
     def make_all_data(self):
+        torch.random.manual_seed(42)
         all_data = {
             'clip_embedding': None, # tensor of shape: ([num_images, 512])
             'captions': [], # list of dictionaries, each dictionary has keys: 'image_id', 'caption', 'clip_embedding'
@@ -76,12 +77,18 @@ class ClipCocoDataset(Dataset):
                         # transform=[transforms.PILToTensor()])
                         transform=preprocess,)
         
-        subset_indices = torch.randint(0, len(train_dataset) , (10000,)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
+        subset_indices = torch.randint(0, len(train_dataset) , (clip_caption_model_train_hyperparameters['dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
+
+        # instead of random, just train on first 1k images
+        # subset_indices = torch.arange(0, clip_caption_model_train_hyperparameters['dataset_size'])
+
+        
 
         train_data_subset = Subset(train_dataset, subset_indices)
         
         # create dataloader
-        train_dataloader = DataLoader(train_data_subset, batch_size=256, shuffle=False, num_workers=0, collate_fn=collate_fn)
+        train_dataloader = DataLoader(train_data_subset, batch_size=2048, shuffle=False, num_workers=4, collate_fn=collate_fn)
+        # shuffle false here since I'm only encoding the clip images, not really training.
 
         print('making all_data')
         
@@ -150,7 +157,7 @@ class ClipCocoDataset(Dataset):
         self.prefixes = all_data["clip_embedding"]
         # this is all clip_embeddings of images, concatenated together of shape: ([num_images, 512])
         # captions_raw = all_data["captions"]
-        captions_raw = all_data["my_captions"]
+        self.captions_raw = all_data["my_captions"]
         # captions is a list all strings
 
         self.caption2embedding = all_data["caption2embedding"]
@@ -171,7 +178,7 @@ class ClipCocoDataset(Dataset):
             # self.caption2embedding = [] # maps caption index to index of corresponding image embedding in self.prefixes
             # print('cap2emb ', self.caption2embedding)
             max_seq_len = 0
-            for i, caption in tqdm(enumerate(captions_raw)):
+            for i, caption in tqdm(enumerate(self.captions_raw)):
                 # self.captions_tokens.append(torch.tensor(self.tokenizer.encode(caption['caption']), dtype=torch.int64))
                 self.captions_tokens.append(torch.tensor(self.tokenizer.encode(caption), dtype=torch.int64))
 
@@ -363,8 +370,17 @@ class ClipCaptionModel(nn.Module):
 
 class ClipCaptionPrefix(ClipCaptionModel):
 
+    def __init__(self, prefix_length: int, clip_length: Optional[int] = None, prefix_size: int = 512,
+                    num_layers: int = 8, mapping_type: MappingType = MappingType.MLP):
+        super(ClipCaptionPrefix, self).__init__(prefix_length, clip_length, prefix_size, num_layers, mapping_type)
+
+        # freeze gpt
+        for param in self.gpt.parameters():
+            param.requires_grad = False
+
     def parameters(self, recurse: bool = True):
         return self.clip_project.parameters()
+        
 
     def train(self, mode: bool = True):
         super(ClipCaptionPrefix, self).train(mode)
@@ -419,10 +435,11 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
     model = model.to(device)
     model.train()
     optimizer = AdamW(model.parameters(), lr=lr)
-    train_dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=warmup_steps, num_training_steps=epochs * len(train_dataloader)
-    )
+    train_dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=0)
+    # shuffle here doesnt matter, as long as the data just comes from the 1k images.
+    # scheduler = get_linear_schedule_with_warmup(
+    #     optimizer, num_warmup_steps=warmup_steps, num_training_steps=epochs * len(train_dataloader)
+    # )
 
 
     # print model parameters that are trainable
@@ -435,7 +452,8 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
         print(f">>> Training epoch {epoch}")
         sys.stdout.flush()
         progress = tqdm(total=len(train_dataloader), desc=output_prefix)
-        for idx, (tokens, mask, prefix) in enumerate(train_dataloader):
+        for idx, (tokens, mask, prefix, cap) in enumerate(train_dataloader):
+            # print('caps ', cap[:10])
             model.zero_grad()
             tokens, mask, prefix = tokens.to(device), mask.to(device), prefix.to(device, dtype=torch.float32)
             outputs = model(tokens, prefix, mask)
@@ -443,7 +461,7 @@ def train(dataset: ClipCocoDataset, model: ClipCaptionModel, args,
             loss = nnf.cross_entropy(logits.reshape(-1, logits.shape[-1]), tokens.flatten(), ignore_index=0)
             loss.backward()
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
             optimizer.zero_grad()
             progress.set_postfix({"loss": loss.item()})
             progress.update()
@@ -485,7 +503,10 @@ def main():
 
     print("selected clip model ", selected_clip_model.name)
 
-    # args.only_prefix = True
+
+    
+
+    args.only_prefix = clip_caption_model_train_hyperparameters['only_prefix']
 
     if clip_caption_model_train_hyperparameters['model_config'] == ClipCaptionModelMapping.TRANSFORMER:
         
@@ -558,8 +579,14 @@ def main():
         print()
         print('Continuing training from prev checkpoint')
         print()
-        model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{clip_caption_model_train_hyperparameters['prev_checkpoint_epoch']:03d}.pt"), map_location=device))
+        model.load_state_dict(torch.load(os.path.join(args.out_dir, f"{args.prefix}-{clip_caption_model_train_hyperparameters['prev_checkpoint_epoch']:03d}_{selected_clip_model.name}.pt"), map_location=device))
             
+
+    # print the trainable parameters of model
+    print('model parameters')
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            print(name, param.data.shape)
     
     train(dataset, model, args, output_dir=args.out_dir, output_prefix=args.prefix)
 

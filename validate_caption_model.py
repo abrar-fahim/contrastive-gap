@@ -25,8 +25,8 @@ def main():
 
     train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
-                            # transform=transforms.PILToTensor()
-                            transform=preprocess,
+                            transform=transforms.PILToTensor() if clip_caption_model_train_hyperparameters['show_real_images'] else preprocess
+                            # transform=preprocess
     )
 
     clip_model = HFClip().to(device)
@@ -41,7 +41,9 @@ def main():
     dataloader = train_dataloader
 
 
-    # get 100 indices that are not in train_data_subset
+    # get 100 indices that are NOT in train_data_subset
+
+    # this doesnt technically ensure the same for when training clip captioning model, cuz thats a different random seed, FIX THIS LATER
     val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
     j = 0
     while j < training_hyperparameters['validation_dataset_size']:
@@ -56,9 +58,15 @@ def main():
 
 
 
+    # just for now, create a dataloader with just the first 1k images from train dataset.
+    # temp_dataset = Subset(train_dataset, torch.arange(0, clip_caption_model_train_hyperparameters['dataset_size']))
+
+    # temp_dataloader = DataLoader(temp_dataset, batch_size=clip_caption_model_train_hyperparameters['dataset_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+    # shuffle here is irrelevant, since this is just shuffling minibatches during validation. I dont care about that. Also, torch random seed is set, so it should be reproducible.
 
 
 
+    # dataloader = temp_dataloader
 
     for (imgs, captions) in dataloader:
 
@@ -66,7 +74,7 @@ def main():
 
 
 
-        do_validation(dataloader, clip_model, index=0, captioning_model=True)
+        do_validation(val_dataloader, clip_model, index=0, captioning_model=True)
 
         break
 

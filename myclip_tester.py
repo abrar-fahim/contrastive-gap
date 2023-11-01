@@ -18,7 +18,7 @@ torch.manual_seed(42)
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model, preprocess = clip.load("ViT-B/16", device=device)
+model, preprocess = clip.load("ViT-B/32", device=device)
 validation_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
     annFile = 'datasets/mscoco/annotations/captions_val2014.json',
     # transform=[transforms.PILToTensor()])
@@ -37,22 +37,26 @@ Testing on random images and captions
 
 # image1 = Image.open(requests.get('https://m.media-amazon.com/images/M/MV5BMTM3OTUwMDYwNl5BMl5BanBnXkFtZTcwNTUyNzc3Nw@@._V1_FMjpg_UX1000_.jpg', stream=True).raw)
 # image1 = Image.open(requests.get('https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187_square.jpg', stream=True).raw)
-image1 = Image.open(requests.get('https://upload.wikimedia.org/wikipedia/en/thumb/5/59/Pac-man.png/220px-Pac-man.png', stream=True).raw)
+# image1 = Image.open(requests.get('https://www.purina.co.uk/sites/default/files/2020-12/How%20to%20Stop%20Cats%20Scratching%20FurnitureTEASER.jpg', stream=True).raw)
+image1 = Image.open(requests.get('https://mms.businesswire.com/media/20150312005220/en/457282/5/2015Mustang_t5e9701_%281%29.jpg', stream=True).raw)
 
 
-captions = ['image of a cat', 'image of a dog']
 
-captions = ['scarlett johansson', 'priyanka chopra']
+# captions = ['orange cat sitting on black couch.', 'black cat sitting on orange couch.']
+captions = ['black cat sitting on brown couch.', 'brown cat sitting on black couch.']
+captions = ['photo of a cat.', 'photo of a dog.']
+captions = ['picture of a red car traveling on a black road.', 'picture of a black car traveling on a red road.']
 
-captions = ['pacman game', 'super mario game']
 
 preprocessed_image = preprocess(image1)
 
 preprocessed_image = preprocessed_image.unsqueeze(0).to(device)
 
-myclip_outputs = hf_clip_model(preprocessed_image, captions, scale=False) # so that I get cosine similarities directly
+myclip_outputs = hf_clip_model(preprocessed_image, captions, output_loss=False) # so that I get cosine similarities directly
 
 logits_per_image, logits_per_text = myclip_outputs # shape of both: ([batch_size, batch_size])
+
+print('label probs for MYCLIP', logits_per_image.softmax(dim=-1))
 
 print('logits_per_image for MYCLIP', logits_per_image)
 
@@ -61,6 +65,8 @@ print('logits_per_image for MYCLIP', logits_per_image)
 openai_clip_outputs = openai_clip_model(preprocessed_image, captions)
 
 logits_per_image, logits_per_text = openai_clip_outputs # shape of both: ([batch_size, batch_size])
+
+print('label probs for OPENAI CLIP', logits_per_image.softmax(dim=-1))
 
 print('logits_per_image for OPENAI CLIP', logits_per_image)
 

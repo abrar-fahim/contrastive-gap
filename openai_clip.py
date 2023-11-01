@@ -12,8 +12,8 @@ class OpenAIClip(ClipParent):
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
-        # self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
+        # self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
+        self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
 
         # self.model = self.model.to(self.device)
 
@@ -64,7 +64,7 @@ class OpenAIClip(ClipParent):
 
         logits_per_image, logits_per_text = self.model(preprocessed_images, tokenized_captions)
 
-        logits_per_image, logits_per_text = logits_per_image / 100, logits_per_text / 100
+        # logits_per_image, logits_per_text = logits_per_image / 100, logits_per_text / 100
 
         
 

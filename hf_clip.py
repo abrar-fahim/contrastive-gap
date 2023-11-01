@@ -145,9 +145,10 @@ class HFClip(ClipParent):
         logits_per_image = outputs.logits_per_image
         logits_per_text = outputs.logits_per_text
 
-        loss = outputs.loss
+        
 
         if output_loss:
+            loss = outputs.loss
             return logits_per_image, logits_per_text, loss
         else:
             return logits_per_image, logits_per_text

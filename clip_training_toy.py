@@ -323,6 +323,7 @@ def main():
                         'dataloader_enumerator_index': i,
                         'median_cosine_similarities': median_cosine_similarities
                         }
+                    # torch.save(checkpoint_to_save, training_hyperparameters['model_path'].split(".")[0] + str(epoch) + '_' + str(i) + '.pt')
                     torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
                 i += 1
         

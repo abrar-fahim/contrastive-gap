@@ -20,21 +20,25 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
-        # show the first 10 images from the validation set in a subplot
-        # fig = plt.figure()
+        print('val caps ', val_captions[:15])
 
-        
+        if clip_caption_model_train_hyperparameters['show_real_images']:
+
+            # show the first 10 images from the validation set in a subplot
+            fig = plt.figure()
+
             
-        # for i in range(10):
-        #     ax = plt.subplot(2, 5, i + 1)
-        #     plt.imshow(val_imgs[i].permute(1, 2, 0))
-        #     # plt.title(captions[i])
-        #     plt.axis("off")
-            
-        #     print(val_captions[i])
+                
+            for i in range(10):
+                ax = plt.subplot(2, 5, i + 1)
+                plt.imshow(val_imgs[i + 5].permute(1, 2, 0))
+                # plt.title(captions[i])
+                plt.axis("off")
+                
+                print(val_captions[i])
 
 
-        # plt.show()
+            plt.show()
 
 
         outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
@@ -73,6 +77,14 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # get median cosine similarity
         median_cosine_similarity = torch.median(cosine_similarities)
         print('median cosine similarity ', median_cosine_similarity)
+
+
+        # Get 2nd highest cosine similarity for each image
+        top2_cosine_similarities = torch.topk(cosine_similarities, k=2, dim=-1).values # shape: [64, 2]
+        # get median of 2nd highest cosine similarity for each image
+        median_top2_cosine_similarity = torch.median(top2_cosine_similarities[:, 1])
+
+        print('median_top2_cosine_similarity ', median_top2_cosine_similarity)
 
         # get median of elements that are not on the diagonal
         non_similar_median_cosine_similarity = logits_per_image[~torch.eye(logits_per_image.shape[0], dtype=bool)].median()
@@ -238,7 +250,9 @@ def collate_fn(batch):
 
     # caption2 = [caption[0] for caption in og_captions]
     # return (caption2, captions)
-    # return (imgs, captions)
+    if clip_caption_model_train_hyperparameters['show_real_images']:
+        # return (torch.stack(imgs), captions)
+        return (imgs, captions)     
     return (torch.stack(imgs), captions)
 
 def write_pca_plots_to_file(image_projections, text_projections, index, output_dir):
