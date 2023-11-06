@@ -1,5 +1,8 @@
 from training_utils import collate_fn
 import clip_training_toy, clip_caption_train, validate_caption_model
+import config
+import importlib
+
 
 
 '''
@@ -32,3 +35,35 @@ print()
 
 # then, validate the caption model
 validate_caption_model.main()
+
+
+# Now, train caption model on DEFAULT clip from scratch
+
+
+# config.selected_clip_model = config.ClipModels.DEFAULT
+
+# importlib.reload(clip_caption_train)
+
+
+# print()
+# print(' --- TRAINING CLIP --- ')
+# print()
+
+# # first train clip model
+# # clip_training_toy.main()
+
+# print()
+# print(' --- TRAINING CLIP CAPTION MODEL --- ')
+# print()
+
+
+# # then train clip caption model on the trained clip model above
+# clip_caption_train.main()
+
+# print()
+# print(' --- VALIDATING CLIP CAPTION MODEL --- ')
+# print()
+
+
+# # then, validate the caption model
+# # validate_caption_model.main()

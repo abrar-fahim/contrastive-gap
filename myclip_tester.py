@@ -37,15 +37,22 @@ Testing on random images and captions
 
 # image1 = Image.open(requests.get('https://m.media-amazon.com/images/M/MV5BMTM3OTUwMDYwNl5BMl5BanBnXkFtZTcwNTUyNzc3Nw@@._V1_FMjpg_UX1000_.jpg', stream=True).raw)
 # image1 = Image.open(requests.get('https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187_square.jpg', stream=True).raw)
-# image1 = Image.open(requests.get('https://www.purina.co.uk/sites/default/files/2020-12/How%20to%20Stop%20Cats%20Scratching%20FurnitureTEASER.jpg', stream=True).raw)
-image1 = Image.open(requests.get('https://mms.businesswire.com/media/20150312005220/en/457282/5/2015Mustang_t5e9701_%281%29.jpg', stream=True).raw)
+image1 = Image.open(requests.get('https://www.purina.co.uk/sites/default/files/2020-12/How%20to%20Stop%20Cats%20Scratching%20FurnitureTEASER.jpg', stream=True).raw)
+# image1 = Image.open(requests.get('https://mms.businesswire.com/media/20150312005220/en/457282/5/2015Mustang_t5e9701_%281%29.jpg', stream=True).raw)
+# image1 = Image.open(requests.get('https://img.freepik.com/premium-photo/light-bulb-with-plant-inside-it-white-surface-with-green-leaves-surrounding-it-generative-ai_97167-4973.jpg?w=2000', stream=True).raw)
+# image1 = Image.open(requests.get('https://d163axztg8am2h.cloudfront.net/static/img/6e/dc/8f4d8aa1bbaee091316efcc557a7.webp', stream=True).raw)
+image1 = Image.open(requests.get('https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/800px-Cat_November_2010-1a.jpg', stream=True).raw)
 
 
 
 # captions = ['orange cat sitting on black couch.', 'black cat sitting on orange couch.']
-captions = ['black cat sitting on brown couch.', 'brown cat sitting on black couch.']
-captions = ['photo of a cat.', 'photo of a dog.']
-captions = ['picture of a red car traveling on a black road.', 'picture of a black car traveling on a red road.']
+# captions = ['black cat sitting on brown couch.', 'brown cat sitting on black couch.']
+captions = ['a lightbulb surrounding some plants', 'some plants surrounding a lightbulb']
+
+captions = ['a white cat sitting on a red couch.', 'a red cat sitting on a white couch.']
+
+captions = ['photo of a brown cat.', 'photo of a black cat.']
+# captions = ['picture of a red car traveling on a black road.', 'picture of a black car traveling on a red road.']
 
 
 preprocessed_image = preprocess(image1)

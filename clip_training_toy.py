@@ -70,9 +70,9 @@ def main():
 
 
     # print parameters that are trainable
-    for name, param in clip_model.named_parameters():
-        if param.requires_grad:
-            print(name)
+    # for name, param in clip_model.named_parameters():
+    #     if param.requires_grad:
+    #         print(name)
 
 
     '''

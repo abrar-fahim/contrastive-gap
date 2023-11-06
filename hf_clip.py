@@ -36,9 +36,15 @@ class HFClip(ClipParent):
 
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
+        print('selected clip model ', selected_clip_model.name)
+
         if selected_clip_model == ClipModels.FINETUNED_TEMP:
             # set temperature to zero
-            self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+            # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+
+            # logit scale = 2.3
+            # Setting T = 0.1
+            self.model.logit_scale = torch.nn.Parameter(torch.tensor(2.3, requires_grad=False, device=self.device))
 
             self.model.logit_scale.requires_grad = False
         
@@ -56,31 +62,13 @@ class HFClip(ClipParent):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
-        # make garbage captions
-        captions = torch.ones(preprocessed_images.shape[0], 10, dtype=torch.long, device=self.device)
-
-        # outputs = self.vision_model(pixel_values=preprocessed_images)
-
-        # last_hidden_states = outputs.last_hidden_state
-        # pooled_output = outputs.pooler_output # the last image encoder output just before linear projection. shape: ([batch_size, 512])
-
-        # outputs = self.model(pixel_values=preprocessed_images, input_ids=captions)
 
         image_features = self.model.get_image_features(pixel_values=preprocessed_images)
 
-        # outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
-
         # return pooled_output AFTER projection
         return image_features
-    
-    # def project_image(self, preprocessed_images):
-    #     # print("projecting image")
-    #     preprocessed_images = preprocessed_images.to(self.device)
 
-    #     outputs = self.vision_model_with_projection(pixel_values=preprocessed_images)
 
-    #     return outputs.image_embeds
-    
     def tokenize_captions(self, captions):
         tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
@@ -106,9 +94,9 @@ class HFClip(ClipParent):
 
         tokenized_captions = tokenized_captions.to(self.device)
 
-        outputs = self.text_model_with_projection(**tokenized_captions)
+        text_features = self.model.get_text_features(**tokenized_captions)
 
-        return outputs.text_embeds
+        return text_features
     
     
     

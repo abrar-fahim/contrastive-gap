@@ -63,7 +63,7 @@ class Predictor(cog.BasePredictor):
         self.tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
         self.models = {}
-        self.prefix_length = 10
+        self.prefix_length = 10 # matches training
 
             
         for key, weights_path in WEIGHTS_PATHS.items():
@@ -183,6 +183,8 @@ class ClipCaptionModel(nn.Module):
         return out
 
     def __init__(self, prefix_length: int, prefix_size: int = 512):
+        # compared to training, this doesnt have: num_layers, mapping_type, clip_length
+        # clip_length and num_layers is only for transformer mapper
         super(ClipCaptionModel, self).__init__()
         self.prefix_length = prefix_length
         self.gpt = GPT2LMHeadModel.from_pretrained("gpt2")
@@ -318,6 +320,7 @@ def generate2(
             else:
                 if tokens is None:
                     tokens = torch.tensor(tokenizer.encode(prompt))
+                    # but prompt is None here 
                     tokens = tokens.unsqueeze(0).to(device)
 
                 generated = model.gpt.transformer.wte(tokens)
@@ -351,10 +354,20 @@ def generate2(
             # print('tokens.shape ', tokens.shape)
 
             # print('tokens ', tokens)
+            # print('tokens ', tokens.squeeze().shape)
 
-            output_list = list(tokens.squeeze().cpu().numpy())
+            # sometimes, tokens is empty, especially if model is garbage
+            # so, just return empty string
+           
+            if tokens.shape[1] > 1:
+                
+
+                output_list = list(tokens.squeeze().cpu().numpy())
+            else:
+                output_list = list(tokens.cpu().numpy()[0])
             output_text = tokenizer.decode(output_list)
             generated_list.append(output_text)
+
 
             # print('output text ', output_text)
 

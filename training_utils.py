@@ -20,7 +20,7 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
-        print('val caps ', val_captions[:15])
+        # print('val caps ', val_captions[:15])
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
@@ -35,7 +35,7 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
                 # plt.title(captions[i])
                 plt.axis("off")
                 
-                print(val_captions[i])
+                print(val_captions[i+5])
 
 
             plt.show()
@@ -49,9 +49,15 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # softmax on logits_per_image
         image_class_probs = F.softmax(logits_per_image, dim=-1) # shape: ([64, 64])
 
+        # print('image_class_probs ', image_class_probs)
+
+        
+
         # calculate accuracy
         # get indices of max values
         image_class_preds = image_class_probs.argmax(dim=-1) # shape: ([64])
+
+        
         # get indices of correct predictions
         image_class_labels = torch.arange(image_class_probs.shape[0], device=image_class_probs.device) # shape: ([64])
 
@@ -80,7 +86,8 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
 
 
         # Get 2nd highest cosine similarity for each image
-        top2_cosine_similarities = torch.topk(cosine_similarities, k=2, dim=-1).values # shape: [64, 2]
+        top2_cosine_similarities = torch.topk(logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
+        # print('top2_cosine_similarities ', top2_cosine_similarities.shape)
         # get median of 2nd highest cosine similarity for each image
         median_top2_cosine_similarity = torch.median(top2_cosine_similarities[:, 1])
 
@@ -101,6 +108,50 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
         # doing it just for images for now
         # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
         image_embeds = outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
+
+
+
+
+        '''
+        - Get text-text similarities
+        '''
+        print()
+        print(' --- TEXT-TEXT SIMILARITIES --- ')
+        print()
+
+        text_encoder_outputs = clip_model.encode_text(val_captions) # shape: ([batch_size, 512])
+
+        # normalize features
+        text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
+
+        # cosine similarities between text-text pairs
+        text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
+
+        # get median of elements that are in the upper triangle (excluding diagonal!!)
+        median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
+
+        print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
+
+        '''
+        - Get image-image similarities
+        '''
+
+        print()
+        print(' --- IMAGE-IMAGE SIMILARITIES --- ')
+        print()
+
+        image_encoder_outputs = clip_model.encode_image(val_imgs) # shape: ([batch_size, 512])
+
+        # normalize features
+        image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
+
+        # cosine similarities between image-image pairs
+        image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
+
+        # get median of elements that are not on the diagonal
+        median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
+
+        print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
 
 
         '''
@@ -190,49 +241,6 @@ def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
 
             
 
-
-
-
-
-
-
-
-
-
-
-        '''
-        - Get text-text similarities
-        '''
-
-        # text_encoder_outputs = clip_model.project_image(val_captions) # shape: ([batch_size, 512])
-
-        # # normalize features
-        # text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
-
-        # # cosine similarities between text-text pairs
-        # text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
-
-        # # get median of elements that are in the upper triangle (excluding diagonal!!)
-        # median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
-
-        # print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
-
-        # '''
-        # - Get image-image similarities
-        # '''
-
-        # image_encoder_outputs = clip_model.project_image(val_imgs) # shape: ([batch_size, 512])
-
-        # # normalize features
-        # image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
-
-        # # cosine similarities between image-image pairs
-        # image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
-
-        # # get median of elements that are not on the diagonal
-        # median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
-
-        # print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
 
 
 def collate_fn(batch):
