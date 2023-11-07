@@ -21,25 +21,33 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 # selected_clip_model = ClipModels.DEFAULT
 # selected_clip_model = ClipModels.FINETUNED
 
+'''
+    1. Training CLIP
+'''
 
 training_hyperparameters = {
     'batch_size': 16,
-    'grad_cache': False,
-    'grad_cache_multiplier': 32,
-    'n_epochs': 3,
+    'grad_cache': True,
+    'grad_cache_multiplier': 16,
+    'n_epochs': 5,
     'lr': 1e-5,
     'weight_decay': 0.2,
     'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'validation_dataset_size': 256,
     'validation_batch_size': 256,
     'do_checkpointing': True,
-    'start_new': False,
+    'start_new': True,
     'use_small_trainloader': True,
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     }
+
+
+'''
+2. Training CLIP caption model
+'''
 
 
 clip_caption_prev_checkpoint_epoch = 3

@@ -27,7 +27,7 @@ import clip
 import os
 import torchvision.datasets as dset
 
-from config import selected_clip_model, training_hyperparameters
+from config import *
 
 
 
@@ -186,6 +186,13 @@ def main():
     # training loop
     while epoch < n_epochs:
 
+        print(f'--- VALIDATION AT START OF EPOCH {epoch} ---')
+
+        clip_model.eval()
+        # do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+        do_validation(dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
+        clip_model.train()
+
 
         running_loss = 0.0
 
@@ -228,9 +235,12 @@ def main():
                 
                 if (step + 1) % training_hyperparameters['grad_cache_multiplier'] == 0:
 
+                    # print('cache x ', cache_x)
+                    # print('cache y ', cache_y)
+
                     loss = clip_model_grad_cache.contrastive_loss(cache_x, cache_y)
                     # print loss
-                    print('loss ', loss)
+                    # print('loss ', loss)
                     
                     loss.backward()
                 
@@ -251,8 +261,12 @@ def main():
 
                     print('[%d, %5d] loss: %.3f' %
                         (epoch + 1, i + 1, loss.item()))
+                    if i % 10 == 0:
+                        clip_model_grad_cache.clip_model.eval()
+                        do_validation(val_dataloader, clip_model_grad_cache.clip_model)
+                        clip_model_grad_cache.clip_model.train()
 
-                    do_validation(val_dataloader, clip_model_grad_cache.clip_model)
+                    
 
                     if i % 100 == 0 and training_hyperparameters['do_checkpointing']:
                         checkpoint_to_save = {
