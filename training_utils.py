@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from clip_caption_predict import Predictor as MLPPredictor
 from clip_caption_transformer_predict import Predictor as TransformerPredictor
 from evaluate import load as load_evaluator
-from config import selected_clip_model, ClipModels, ClipCaptionModelMapping, clip_caption_model_weight_paths, clip_caption_model_train_hyperparameters
+from config import *
 
 
 pca = None
@@ -16,9 +16,14 @@ pca = None
 
 def do_validation(val_dataloader, clip_model, index=0, captioning_model=False):
     with torch.no_grad():
+
         
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
+
+
+
+        
 
         # print('val caps ', val_captions[:15])
 
@@ -253,8 +258,15 @@ def collate_fn(batch):
 
     imgs, og_captions = zip(*batch)
 
-    # keep only first caption for each image
-    captions = [caption[0] for caption in og_captions]
+    if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+        captions = list(og_captions)
+    elif training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+
+
+        # keep only first caption for each image
+        captions = [caption[0] for caption in og_captions]
+
+    # captions = og_captions
 
     # caption2 = [caption[0] for caption in og_captions]
     # return (caption2, captions)

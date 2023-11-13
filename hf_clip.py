@@ -72,7 +72,7 @@ class HFClip(ClipParent):
 
 
     def tokenize_captions(self, captions):
-        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
+        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
 
         tokenized_captions = tokenized_captions.to(self.device)
 
@@ -92,9 +92,11 @@ class HFClip(ClipParent):
         # return pooled_output
 
         # assuming raw captions input, so need to tokenize and stuff
-        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
+        # tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
-        tokenized_captions = tokenized_captions.to(self.device)
+        # tokenized_captions = tokenized_captions.to(self.device)
+
+        tokenized_captions = self.tokenize_captions(captions)
 
         text_features = self.model.get_text_features(**tokenized_captions)
 

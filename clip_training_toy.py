@@ -66,18 +66,8 @@ def main():
     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
         def identity(x):
             return x['caption']
-        train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
+        train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000)
         # train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000).to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
-
-
-
-
-
-    # print('train_dataset[0] ', train_dataset[0])
-
-    for x in iter(train_dataset):
-        print('x ', x)
-        break
 
 
     # clip_model = MyClip().to(device)
@@ -144,9 +134,12 @@ def main():
             '''
 
 
-            train_data_subset = Subset(train_dataset, subset_indices)
+            if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+                train_data_subset = Subset(train_dataset, subset_indices)
 
-            train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+                train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+            else:
+                train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['small_train_loader_batch_size'], collate_fn=collate_fn, num_workers=0)
 
             '''
             display all subset indices images as small tiles
@@ -172,7 +165,10 @@ def main():
             # plt.show()
         else:
 
-            train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
+            if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+                train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
+            elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+                train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], collate_fn=collate_fn, num_workers=0)
 
     dataloader = train_dataloader
 
@@ -196,7 +192,14 @@ def main():
 
     val_data_subset = Subset(train_dataset, val_indices)
 
-    val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+
+        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+    else:
+        val_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, num_workers=0)
+        
+    # val_dataloader = DataLoader(train_dataset.batched(64), batch_size=None, collate_fn=collate_fn, num_workers=0)
+    
 
     # get_train_dataloader that is different from dataloader, to ensure that the same batch is used in validation every time
 
@@ -217,8 +220,8 @@ def main():
         print(f'--- VALIDATION AT START OF EPOCH {epoch} ---')
 
         clip_model.eval()
-        # do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
-        do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
+        do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+        # do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
         clip_model.train()
 
 
