@@ -38,6 +38,8 @@ class HFClip(ClipParent):
 
         print('selected clip model ', selected_clip_model.name)
 
+        print('starting true ', training_hyperparameters['start_new'])
+
         if selected_clip_model == ClipModels.FINETUNED_TEMP:
             # set temperature to zero
             # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))

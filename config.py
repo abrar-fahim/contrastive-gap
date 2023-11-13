@@ -16,6 +16,10 @@ class HFClipPretrainedModels(Enum):
     VIT = "openai/clip-vit-base-patch32",
     RN50 = "mlunar/clip-variants-resnet-50x4",
 
+class ClipDatasets(Enum):
+    MSCOCO = 'mscoco',
+    WIT400 = 'wit400'
+
 
 selected_clip_model = ClipModels.FINETUNED_TEMP
 # selected_clip_model = ClipModels.DEFAULT
@@ -26,6 +30,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
+    'dataset': ClipDatasets.WIT400,
     'batch_size': 16,
     'grad_cache': True,
     'grad_cache_multiplier': 16,

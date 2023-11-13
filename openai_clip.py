@@ -64,7 +64,7 @@ class OpenAIClip(ClipParent):
 
         logits_per_image, logits_per_text = self.model(preprocessed_images, tokenized_captions)
 
-        label_probabilities = softmax(logits, axis=1)
+        # label_probabilities = softmax(logits, axis=1)
 
         # logits_per_image, logits_per_text = logits_per_image / 100, logits_per_text / 100
 

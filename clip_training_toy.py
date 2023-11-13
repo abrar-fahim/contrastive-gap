@@ -26,6 +26,8 @@ from training_utils import do_validation, collate_fn
 import clip
 import os
 import torchvision.datasets as dset
+import webdataset as wds
+import random
 
 from config import *
 
@@ -35,10 +37,9 @@ from config import *
 
 def main():
 
-
-
     # set seed
     torch.manual_seed(42)
+    random.seed(42)
 
     training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
 
@@ -52,14 +53,31 @@ def main():
 
     model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
     # model, preprocess = clip.load("ViT-B/16", device=device)
-    train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
-                            annFile = 'datasets/mscoco/annotations/captions_val2014.json',
-                            # transform=[transforms.PILToTensor()])
-                            transform=preprocess,
-    )
+
+    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+
+        train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
+                                annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+                                # transform=[transforms.PILToTensor()])
+                                transform=preprocess,
+        )
+
+        print('Number of samples: ', len(train_dataset))
+    elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+        def identity(x):
+            return x['caption']
+        train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
+        # train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000).to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
 
 
-    print('Number of samples: ', len(train_dataset))
+
+
+
+    # print('train_dataset[0] ', train_dataset[0])
+
+    for x in iter(train_dataset):
+        print('x ', x)
+        break
 
 
     # clip_model = MyClip().to(device)
@@ -180,6 +198,16 @@ def main():
 
     val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
 
+    # get_train_dataloader that is different from dataloader, to ensure that the same batch is used in validation every time
+
+    # do this by sampling from subset indices
+    train_val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
+
+    train_val_subset = Subset(train_dataset, train_val_indices)
+
+
+    train_val_dataloader = DataLoader(train_val_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+
 
 
 
@@ -190,7 +218,7 @@ def main():
 
         clip_model.eval()
         # do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
-        do_validation(dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
+        do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
         clip_model.train()
 
 
@@ -222,9 +250,6 @@ def main():
                 if step % 5 == 0:
                     print('step: ', step)
 
-
-
-                
                 cache_x.append(r_imgs)
                 cache_y.append(r_txts)
                 closures_x.append(c_imgs)
@@ -263,7 +288,7 @@ def main():
                         (epoch + 1, i + 1, loss.item()))
                     if i % 10 == 0:
                         clip_model_grad_cache.clip_model.eval()
-                        do_validation(val_dataloader, clip_model_grad_cache.clip_model)
+                        # do_validation(val_dataloader, clip_model_grad_cache.clip_model)
                         clip_model_grad_cache.clip_model.train()
 
                     
@@ -293,7 +318,8 @@ def main():
                 
                 
                 if i % 10 == 0:
-                    do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+                    # do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+                    pass
                     
 
                 clip_model.train()  
