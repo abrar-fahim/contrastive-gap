@@ -66,7 +66,57 @@ def main():
     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
         def identity(x):
             return x['caption']
-        train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000)
+        
+        root_dir = '/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/'
+
+        
+
+        tar_count = 0
+
+
+        # count number of .tar files in root_dir
+        for root, dirs, files in os.walk(root_dir):
+            for filename in files:
+                if filename.endswith('.tar'):
+                    tar_count += 1
+
+
+        # setup 80/20 split
+        train_tar_count = int(0.8 * tar_count)
+        val_tar_count = tar_count - train_tar_count
+
+        train_paths = []
+        val_paths = []
+
+        tar_index = 0
+
+        for root, dirs, files in os.walk(root_dir): 
+            for filename in files:
+                if filename.endswith('.tar'):
+                    if tar_index < train_tar_count:
+                        train_paths.append(os.path.join(root, filename))
+                    else:
+                        val_paths.append(os.path.join(root, filename))
+                    tar_index += 1
+
+        train_dataset = wds.WebDataset(train_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000)
+
+        val_dataset = wds.WebDataset(val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(1000)
+        print()
+        print('--- TRAIN DATASET STATS ---')
+        print()
+
+
+        print('Number of train tar files: ', len(train_paths))
+        print('no of train samples: ', len(train_paths) * 9000)
+
+        print()
+        print('--- VAL DATASET STATS ---')
+        print()
+
+
+        print('Number of val tar files: ', len(val_paths))
+        print('no of val samples: ', len(val_paths) * 1000)
         # train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000).to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
 
 
@@ -180,25 +230,26 @@ def main():
     - This only works when using small train loader
     '''
 
-
-    # get 100 indices that are not in train_data_subset
-    val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
-    j = 0
-    while j < training_hyperparameters['validation_dataset_size']:
-        while val_indices[j] in subset_indices:
-            val_indices[j] = torch.randint(0, len(train_dataset) , (1,))
-        j += 1
-    print('j ', j)
-
-    val_data_subset = Subset(train_dataset, val_indices)
-
     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
 
+
+        # get 100 indices that are not in train_data_subset
+        val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
+        j = 0
+        while j < training_hyperparameters['validation_dataset_size']:
+            while val_indices[j] in subset_indices:
+                val_indices[j] = torch.randint(0, len(train_dataset) , (1,))
+            j += 1
+        print('j ', j)
+
+        val_data_subset = Subset(train_dataset, val_indices)
         val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
-    else:
-        val_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, num_workers=0)
+
+    elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+
+        # use val dataset defined at the beginning
+        val_dataloader = DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, num_workers=0)
         
-    # val_dataloader = DataLoader(train_dataset.batched(64), batch_size=None, collate_fn=collate_fn, num_workers=0)
     
 
     # get_train_dataloader that is different from dataloader, to ensure that the same batch is used in validation every time
