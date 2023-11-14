@@ -16,13 +16,12 @@
 - Setup toy dataset, MSCOCO for now
 '''
 
-from my_clip import MyClip, MyClipLoss
 from grad_cache_wrapper import GradCacheWrapper
 from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
-from training_utils import do_validation, collate_fn
+from training_utils import do_validation, collate_fn, get_checkpoint_path, init_stats_csv_file
 import clip
 import os
 import torchvision.datasets as dset
@@ -43,11 +42,7 @@ def main():
 
     training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
 
-
-
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
     print('device ', device)
 
@@ -67,17 +62,18 @@ def main():
         def identity(x):
             return x['caption']
         
-        root_dir = '/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/'
-
+        # root_dir = '/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/'
+        root_dir = './datasets/400m/laion400m-data/'
         
-
         tar_count = 0
+        # corrupt_files = ['00003.tar', '00002.tar', '00015.tar', '00001.tar', '00000.tar', '00014.tar']
+        corrupt_files = []
 
 
         # count number of .tar files in root_dir
         for root, dirs, files in os.walk(root_dir):
             for filename in files:
-                if filename.endswith('.tar'):
+                if filename.endswith('.tar') and filename not in corrupt_files:
                     tar_count += 1
 
 
@@ -92,16 +88,17 @@ def main():
 
         for root, dirs, files in os.walk(root_dir): 
             for filename in files:
-                if filename.endswith('.tar'):
+                if filename.endswith('.tar') and filename not in corrupt_files:
                     if tar_index < train_tar_count:
                         train_paths.append(os.path.join(root, filename))
                     else:
                         val_paths.append(os.path.join(root, filename))
                     tar_index += 1
 
-        train_dataset = wds.WebDataset(train_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000)
+        train_dataset = wds.WebDataset(train_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000 * len(train_paths))
 
-        val_dataset = wds.WebDataset(val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(1000)
+        val_dataset = wds.WebDataset(val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000 * len(val_paths))
+
         print()
         print('--- TRAIN DATASET STATS ---')
         print()
@@ -116,7 +113,7 @@ def main():
 
 
         print('Number of val tar files: ', len(val_paths))
-        print('no of val samples: ', len(val_paths) * 1000)
+        print('no of val samples: ', len(val_paths) * 9000)
         # train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000).to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
 
 
@@ -141,8 +138,6 @@ def main():
 
     optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
 
-    # setup loss function
-    clip_loss = MyClipLoss()
 
     n_epochs = training_hyperparameters['n_epochs']
 
@@ -153,15 +148,36 @@ def main():
     checkpointing stuff
     '''
 
+    print('continuting from checkpoint ', training_hyperparameters['continue_from_checkpoint'])
+
+    print('training from scratch ', training_hyperparameters['train_from_scratch'])
+
+    checkpoint_path = get_checkpoint_path()
+
 
     i_loaded_from_checkpoint = False
 
     subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
 
-    if os.path.exists(training_hyperparameters['model_path']) and not training_hyperparameters['start_new'] and training_hyperparameters['do_checkpointing']:
+    if training_hyperparameters['train_from_scratch']:
+        '''
+        By default clip model is initialized depending on selected_clip_model
+        '''
+
+        print()
+        print('--- TRAINING FROM SCRATCH ---')
+        print()
+        clip_model.reset_weights_to_random()
+
+    if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
+
+        print()
+        print('--- CONTINUING FROM CHECKPOINT ---')
+        print()
+
 
         # load checkpoint
-        checkpoint = torch.load(training_hyperparameters['model_path'], map_location=device)
+        checkpoint = torch.load(checkpoint_path, map_location=device)
         clip_model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
@@ -172,6 +188,13 @@ def main():
         i_loaded_from_checkpoint = True
 
     else:
+        '''
+        Goes here if I dont need to load from checkpoint
+        '''
+
+        print()
+        print('--- NOT LOADING FROM CHECKPOINT---')
+        print()
         epoch = 0
         i = 0
         losses = []
@@ -188,7 +211,7 @@ def main():
                 train_data_subset = Subset(train_dataset, subset_indices)
 
                 train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
-            else:
+            elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
                 train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['small_train_loader_batch_size'], collate_fn=collate_fn, num_workers=0)
 
             '''
@@ -262,7 +285,16 @@ def main():
 
     train_val_dataloader = DataLoader(train_val_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
 
+  
 
+
+    '''
+    create csv file
+    '''
+
+    if training_hyperparameters['save_losses'] and not training_hyperparameters['continue_from_checkpoint']:
+        # only create new csv file if we're not continuing from checkpoint
+        init_stats_csv_file(clip_model)
 
 
     # training loop
@@ -271,7 +303,7 @@ def main():
         print(f'--- VALIDATION AT START OF EPOCH {epoch} ---')
 
         clip_model.eval()
-        do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+        do_validation(val_dataloader, clip_model, index=i, epoch=epoch, captioning_model=False)
         # do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
         clip_model.train()
 
@@ -280,6 +312,9 @@ def main():
 
         if not i_loaded_from_checkpoint:
             i = 0
+
+        if training_hyperparameters['train_only_one_batch']:
+            torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
         if training_hyperparameters['grad_cache']:
             clip_model_grad_cache = GradCacheWrapper(clip_model)
@@ -345,6 +380,7 @@ def main():
                         # do_validation(val_dataloader, clip_model_grad_cache.clip_model)
                         clip_model_grad_cache.clip_model.train()
 
+
                     
 
                     if i % 100 == 0 and training_hyperparameters['do_checkpointing']:
@@ -353,16 +389,27 @@ def main():
                             'model_state_dict': clip_model_grad_cache.clip_model.state_dict(),
                             'optimizer_state_dict': optimizer.state_dict(),
                             'losses': losses,
-                            'train_dataloader': dataloader,
+                            # 'train_dataloader': dataloader,
                             'dataloader_enumerator_index': i,
                             'median_cosine_similarities': median_cosine_similarities
                             }
+                        
+                        print()
+                        print('saving checkpoint')
+                        print()
                         torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
+                    
                     i += 1
+
+                    if training_hyperparameters['train_only_one_batch']:
+                        break
 
         else:
 
             for (imgs, captions) in dataloader:
+
+                if i + 1 >= training_hyperparameters['max_steps']:
+                    break
 
                 # print('img ', img)
                 # print('caption ', caption)
@@ -372,7 +419,7 @@ def main():
                 
                 
                 if i % 10 == 0:
-                    # do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+                    do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
                     pass
                     
 
@@ -384,11 +431,6 @@ def main():
                 # caption WAS a list of tuples, where first tuple corresponds to first captions of all the images in the batch
 
                 # caption is now a list of 64 strings 
-
-
-
-                
-
                 # forward + backward + optimize
                 _, _, loss = clip_model(imgs, captions, output_loss=True)
                 # loss = clip_loss(*outputs)
@@ -413,13 +455,19 @@ def main():
                         'model_state_dict': clip_model.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
                         'losses': losses,
-                        'train_dataloader': dataloader,
+                        # 'train_dataloader': dataloader,
                         'dataloader_enumerator_index': i,
                         'median_cosine_similarities': median_cosine_similarities
                         }
                     # torch.save(checkpoint_to_save, training_hyperparameters['model_path'].split(".")[0] + str(epoch) + '_' + str(i) + '.pt')
+                    print()
+                    print('saving checkpoint')
+                    print()
                     torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
                 i += 1
+
+                if training_hyperparameters['train_only_one_batch']:
+                    break
         
         i_loaded_from_checkpoint = False
         epoch +=1

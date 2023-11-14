@@ -3,6 +3,7 @@ class ClipModels(Enum):
     DEFAULT = "clip_default"
     FINETUNED = 'clip_finetuned'
     FINETUNED_TEMP = 'clip_finetuned_temp'
+    WARM = 'clip_warm'
 
 class ClipCaptionModelMapping(Enum):
     MLP = 'mlp'
@@ -20,7 +21,7 @@ class ClipDatasets(Enum):
     MSCOCO = 'mscoco',
     WIT400 = 'wit400'
 
-
+selected_clip_model = ClipModels.WARM
 selected_clip_model = ClipModels.FINETUNED_TEMP
 # selected_clip_model = ClipModels.DEFAULT
 # selected_clip_model = ClipModels.FINETUNED
@@ -32,21 +33,27 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 training_hyperparameters = {
     'dataset': ClipDatasets.WIT400,
     'batch_size': 16,
-    'grad_cache': True,
+    'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 5,
+    'n_epochs': 1,
+    'max_steps': 100, # or None, in which case each epoch goes through all the data
     'lr': 1e-5,
+    'temperature': 0.1,
     'weight_decay': 0.2,
-    'model_path': 'checkpoints/my_clip_checkpoint.pt',
     'validation_dataset_size': 256,
     'validation_batch_size': 256,
     'do_checkpointing': True,
-    'start_new': True,
-    'use_small_trainloader': True,
+    'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
+    'train_from_scratch': False, # this randomly initializes weights
+    'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
+    'train_only_one_batch': False,
+    'save_losses': True,
+    'csv_path': 'stats/',
+    'loss_file_name_template': 'name_Ttemp_50' # can have name, temp as of now
     }
 
 

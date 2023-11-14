@@ -1,16 +1,12 @@
 import torch
-from torch import nn
-from transformers import ViTModel
 import numpy as np
-import torch.nn.functional as F
 from clip_parent import ClipParent
-import clip
-from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, CLIPTextModel, CLIPVisionModel, CLIPVisionModelWithProjection, CLIPTextModelWithProjection
-from PIL import Image
-import requests
-from enum import Enum
+from transformers import  CLIPModel, AutoTokenizer
+from training_utils import get_checkpoint_path
 
 from config import *
+import os
+
 
 
 
@@ -35,29 +31,73 @@ class HFClip(ClipParent):
         # self.vision_model_with_projection = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
 
         # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
+       
 
-        print('selected clip model ', selected_clip_model.name)
+        self.temperature = 0.01 # this is default temp
 
-        print('starting true ', training_hyperparameters['start_new'])
-
-        if selected_clip_model == ClipModels.FINETUNED_TEMP:
+        if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
             # set temperature to zero
             # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
 
             # logit scale = 2.3
             # Setting T = 0.1
-            self.model.logit_scale = torch.nn.Parameter(torch.tensor(2.3, requires_grad=False, device=self.device))
+
+            # now, just override everything and set temperature according to training hyperparameters
+
+            self.temperature = training_hyperparameters['temperature']
+
+            self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
+            # self.model.logit_scale = torch.nn.Parameter(torch.tensor(2.3, requires_grad=False, device=self.device))
 
             self.model.logit_scale.requires_grad = False
         
+        print()
+        print('--- HF CLIP MODEL ---')
+        print()
 
-        if not training_hyperparameters['start_new']:
-            if selected_clip_model == ClipModels.FINETUNED_TEMP:
-                self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned_temp.pt', map_location=self.device)['model_state_dict'])
-            elif selected_clip_model == ClipModels.FINETUNED:
-                self.load_state_dict(torch.load('checkpoints/my_clip_checkpoint_finetuned.pt', map_location=self.device)['model_state_dict'])
-            elif selected_clip_model == ClipModels.DEFAULT:
-                pass # no need to load, since hfclip already preloads the default model
+        print('selected clip model ', selected_clip_model.name)
+        print('temperature (T): ', self.temperature)
+  
+
+        print()
+
+        
+        
+
+        # if training_hyperparameters['train_from_scratch']:
+        #     # randomly initialize weights
+        #     self.model.init_weights()
+        
+
+        # if training_hyperparameters['continue_from_checkpoint']:
+        '''
+        load CLIP from respective checkpoint regardless of training mode
+        clip training toy and training loop will handle loading from scratch or loading from checkpoint
+        '''
+
+        checkpoint_path = get_checkpoint_path()
+
+        # check if checkpoint path exists
+        if os.path.exists(checkpoint_path):
+            loaded_checkpoint = torch.load(checkpoint_path, map_location=self.device)
+
+        
+            # this only makes sense if we're loading from a checkpoint
+            if not selected_clip_model == ClipModels.DEFAULT:
+                self.load_state_dict(loaded_checkpoint['model_state_dict'])
+
+        # if path doesnt exist, it means we're starting from pretrained model anyway
+
+        # no need to load state dict for default, since it's the same as the pretrained model
+
+
+    def reset_weights_to_random(self):
+        self.model.init_weights()
+        # self model is the only thing here thats trainable anyway
+
+    def reset_weights_to_default(self):
+        self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
+        
 
 
     def encode_image(self, preprocessed_images):
