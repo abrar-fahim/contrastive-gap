@@ -121,9 +121,7 @@ def main():
         clip_model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
-        losses = checkpoint['losses']
         i = checkpoint['dataloader_enumerator_index']
-        median_cosine_similarities = checkpoint['median_cosine_similarities']
         i_loaded_from_checkpoint = True
 
     else:
@@ -136,8 +134,6 @@ def main():
         print()
         epoch = 0
         i = 0
-        losses = []
-        median_cosine_similarities = []
 
         clip_model.reset_weights_to_default() # because CLIP loads from latest checkpoint in init for inference
 
@@ -246,10 +242,8 @@ def main():
                             'epoch': epoch,
                             'model_state_dict': clip_model_grad_cache.clip_model.state_dict(),
                             'optimizer_state_dict': optimizer.state_dict(),
-                            'losses': losses,
                             # 'train_dataloader': dataloader,
                             'dataloader_enumerator_index': i,
-                            'median_cosine_similarities': median_cosine_similarities
                             }
                         
                         print()
@@ -279,7 +273,7 @@ def main():
                 if i % 10 == 0:
 
                     do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
-                    
+
                 clip_model.train()  
 
                 # zero the parameter gradients
@@ -312,10 +306,8 @@ def main():
                         'epoch': epoch,
                         'model_state_dict': clip_model.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
-                        'losses': losses,
                         # 'train_dataloader': dataloader,
                         'dataloader_enumerator_index': i,
-                        'median_cosine_similarities': median_cosine_similarities
                         }
                     # torch.save(checkpoint_to_save, training_hyperparameters['model_path'].split(".")[0] + str(epoch) + '_' + str(i) + '.pt')
                     print()
