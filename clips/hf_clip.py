@@ -37,13 +37,6 @@ class HFClip(ClipParent):
 
         self.reset_weights_to_default() # sets the logit scale param 
 
-        
-        
-     
-
-        
-        
-
         # if training_hyperparameters['train_from_scratch']:
         #     # randomly initialize weights
         #     self.model.init_weights()
