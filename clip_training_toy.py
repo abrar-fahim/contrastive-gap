@@ -49,12 +49,15 @@ def main():
     model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
     # model, preprocess = clip.load("ViT-B/16", device=device)
 
+    print("DATASET ", training_hyperparameters['dataset'].value)
+
     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
 
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
                                 annFile = 'datasets/mscoco/annotations/captions_val2014.json',
                                 # transform=[transforms.PILToTensor()])
                                 transform=preprocess,
+
         )
 
         print('Number of samples: ', len(train_dataset))
@@ -66,8 +69,7 @@ def main():
         root_dir = './datasets/400m/laion400m-data/'
         
         tar_count = 0
-        # corrupt_files = ['00003.tar', '00002.tar', '00015.tar', '00001.tar', '00000.tar', '00014.tar']
-        corrupt_files = []
+        corrupt_files = ['00000.tar','00002.tar', '00004.tar', '00007.tar', '00006.tar', '00008.tar', '00009.tar', '00010.tar', '00011.tar', '00012.tar', '00013.tar',  '00014.tar', '00015.tar']
 
 
         # count number of .tar files in root_dir
@@ -200,6 +202,8 @@ def main():
         losses = []
         median_cosine_similarities = []
 
+        clip_model.reset_weights_to_default() # because CLIP loads from latest checkpoint in init for inference
+
         if training_hyperparameters['use_small_trainloader']:
 
             '''
@@ -211,6 +215,8 @@ def main():
                 train_data_subset = Subset(train_dataset, subset_indices)
 
                 train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+
+
             elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
                 train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['small_train_loader_batch_size'], collate_fn=collate_fn, num_workers=0)
 
@@ -245,9 +251,6 @@ def main():
 
     dataloader = train_dataloader
 
-
-
-
     '''
     Build validation dataset
     - This only works when using small train loader
@@ -275,6 +278,8 @@ def main():
         
     
 
+
+
     # get_train_dataloader that is different from dataloader, to ensure that the same batch is used in validation every time
 
     # do this by sampling from subset indices
@@ -286,7 +291,20 @@ def main():
     train_val_dataloader = DataLoader(train_val_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
 
   
+    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+        # print dataset stats since I didnt print it earlier
+        print()
+        print('--- TRAIN DATASET STATS ---')
+        print()
 
+        print('no of train samples: ', len(train_data_subset))
+
+        print()
+        print('--- VAL DATASET STATS ---')
+        print()
+
+
+        print('no of val samples: ', len(val_data_subset))
 
     '''
     create csv file
@@ -303,7 +321,11 @@ def main():
         print(f'--- VALIDATION AT START OF EPOCH {epoch} ---')
 
         clip_model.eval()
-        do_validation(val_dataloader, clip_model, index=i, epoch=epoch, captioning_model=False)
+
+        if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+            do_validation(val_data_subset, train_data_subset, clip_model, index=i, epoch=epoch, captioning_model=False)
+        elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+            do_validation(val_dataset, train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
         # do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
         clip_model.train()
 
@@ -408,7 +430,7 @@ def main():
 
             for (imgs, captions) in dataloader:
 
-                if i + 1 >= training_hyperparameters['max_steps']:
+                if training_hyperparameters['max_steps'] is not None and i + 1 >= training_hyperparameters['max_steps']:
                     break
 
                 # print('img ', img)
@@ -419,7 +441,10 @@ def main():
                 
                 
                 if i % 10 == 0:
-                    do_validation(val_dataloader, clip_model, index=i, captioning_model=False)
+                    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+                        do_validation(val_data_subset, train_data_subset, clip_model, index=i, captioning_model=False)
+                    elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+                        do_validation(val_dataset, train_dataset, clip_model, index=i, captioning_model=False)
                     pass
                     
 

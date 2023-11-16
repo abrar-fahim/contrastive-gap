@@ -31,12 +31,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
-    'dataset': ClipDatasets.WIT400,
-    'batch_size': 16,
+    'dataset': ClipDatasets.MSCOCO,
+    'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 1,
-    'max_steps': 100, # or None, in which case each epoch goes through all the data
+    'n_epochs': 3,
+    'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1e-5,
     'temperature': 0.1,
     'weight_decay': 0.2,

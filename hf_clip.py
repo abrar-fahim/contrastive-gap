@@ -35,31 +35,11 @@ class HFClip(ClipParent):
 
         self.temperature = 0.01 # this is default temp
 
-        if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
-            # set temperature to zero
-            # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+        self.reset_weights_to_default() # sets the logit scale param 
 
-            # logit scale = 2.3
-            # Setting T = 0.1
-
-            # now, just override everything and set temperature according to training hyperparameters
-
-            self.temperature = training_hyperparameters['temperature']
-
-            self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
-            # self.model.logit_scale = torch.nn.Parameter(torch.tensor(2.3, requires_grad=False, device=self.device))
-
-            self.model.logit_scale.requires_grad = False
         
-        print()
-        print('--- HF CLIP MODEL ---')
-        print()
-
-        print('selected clip model ', selected_clip_model.name)
-        print('temperature (T): ', self.temperature)
-  
-
-        print()
+        
+     
 
         
         
@@ -88,6 +68,17 @@ class HFClip(ClipParent):
 
         # if path doesnt exist, it means we're starting from pretrained model anyway
 
+        print()
+        print('--- HF CLIP MODEL ---')
+        print()
+
+        print('selected clip model ', selected_clip_model.name)
+        # print('logit scale: ', self.model.logit_scale)
+        print('temperature (T): ', self.temperature)
+  
+
+        print()
+
         # no need to load state dict for default, since it's the same as the pretrained model
 
 
@@ -97,6 +88,24 @@ class HFClip(ClipParent):
 
     def reset_weights_to_default(self):
         self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
+
+        if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
+            # set temperature to zero
+            # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
+
+            # logit scale = 2.3
+            # Setting T = 0.1
+
+            # now, just override everything and set temperature according to training hyperparameters
+
+            self.temperature = training_hyperparameters['temperature']
+
+            self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
+            # self.model.logit_scale = torch.nn.Parameter(torch.tensor(2.3, requires_grad=False, device=self.device))
+
+            self.model.logit_scale.requires_grad = False
+
+        self.to(self.device)
         
 
 

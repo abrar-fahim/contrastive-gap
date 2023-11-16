@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from evaluate import load as load_evaluator
 from config import *
+from torch.utils.data import RandomSampler
 
 
 pca = None
@@ -12,7 +13,7 @@ pca = None
 
 
 
-def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model=False):
+def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
 
     from clip_caption_predict import Predictor as MLPPredictor
     from clip_caption_transformer_predict import Predictor as TransformerPredictor
@@ -21,17 +22,22 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
     Report text-text and image-image cosine similarities
     Dump numbers to csv file
     '''
-    with torch.no_grad():
 
-        
+    # create seperate dataloaders for val and train dataset, seperate from the ones used in training, so that I get same train and val batch each time this runs
+
+
+
+    # create dataloader for validation set
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+
+    # create dataloader for train set
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+
+    with torch.no_grad():
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
-
-
         
-
-        # print('val caps ', val_captions[:15])
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
@@ -52,35 +58,46 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
             plt.show()
 
 
-        outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
-        logits_per_image = outputs.logits_per_image # shape of both: ([64, 64])
+        val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
+        val_logits_per_image = val_outputs.logits_per_image # shape of both: ([64, 64])
 
-        logits_per_text = outputs.logits_per_text # shape of both: ([64, 64])
+        logits_per_text = val_outputs.logits_per_text # shape of both: ([64, 64])
 
         # softmax on logits_per_image
-        image_class_probs = F.softmax(logits_per_image, dim=-1) # shape: ([64, 64])
-
-        # print('image_class_probs ', image_class_probs)
-
-        
+        val_image_class_probs = F.softmax(val_logits_per_image, dim=-1) # shape: ([64, 64])
+       
 
         # calculate accuracy
         # get indices of max values
-        image_class_preds = image_class_probs.argmax(dim=-1) # shape: ([64])
+        val_image_class_preds = val_image_class_probs.argmax(dim=-1) # shape: ([64])
 
         
         # get indices of correct predictions
-        image_class_labels = torch.arange(image_class_probs.shape[0], device=image_class_probs.device) # shape: ([64])
+        val_image_class_labels = torch.arange(val_image_class_probs.shape[0], device=val_image_class_probs.device) # shape: ([64])
 
         # calculate accuracy
-        image_accuracy = (image_class_preds == image_class_labels).float().mean()
+        val_image_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+        (train_imgs, train_captions) = next(iter(train_dataloader))
+        train_outputs = clip_model(train_imgs, train_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
+        train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
+        train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
+        train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
+        train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
+        train_image_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
+
+
+
+        
 
         print('--- ACCURACY STUFF --- ')
 
         # print('image preds ', image_class_preds)
         # print('image labels ', image_class_labels)
 
-        print('image_accuracy ', image_accuracy.item())
+        print('validation image_accuracy ', val_image_accuracy.item())
+        print('train image_accuracy ', train_image_accuracy.item())
+
 
         print('--- IMAGE-TEXT SIMILARITIES --- ')
 
@@ -90,14 +107,14 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
 
         # print logits per image for first 5 images
         # print('logits_per_image ', logits_per_image[:5, :5])
-        cosine_similarities = logits_per_image.diag() # shape: [64]
+        cosine_similarities = val_logits_per_image.diag() # shape: [64]
         # get median cosine similarity
         median_cosine_similarity = torch.median(cosine_similarities)
         print('median cosine similarity ', median_cosine_similarity.item())
 
 
         # Get 2nd highest cosine similarity for each image
-        top2_cosine_similarities = torch.topk(logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
+        top2_cosine_similarities = torch.topk(val_logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
         # print('top2_cosine_similarities ', top2_cosine_similarities.shape)
         # get median of 2nd highest cosine similarity for each image
         median_top2_cosine_similarity = torch.median(top2_cosine_similarities[:, 1])
@@ -105,7 +122,7 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
         # print('median_top2_cosine_similarity ', median_top2_cosine_similarity)
 
         # get median of elements that are not on the diagonal
-        non_similar_median_cosine_similarity = logits_per_image[~torch.eye(logits_per_image.shape[0], dtype=bool)].median()
+        non_similar_median_cosine_similarity = val_logits_per_image[~torch.eye(val_logits_per_image.shape[0], dtype=bool)].median()
         # print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
 
         # print temperature
@@ -118,7 +135,7 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
 
         # doing it just for images for now
         # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
-        image_embeds = outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
+        image_embeds = val_outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
 
 
 
@@ -168,7 +185,10 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
         Calculate cosine similarity quality metric
         '''
 
-        cosine_sim_metric = median_cosine_similarity / (non_similar_median_cosine_similarity ** 2 * median_text_text_cosine_similarity * median_image_image_cosine_similarity)
+        cosine_sim_metric = (median_cosine_similarity+1) / (((non_similar_median_cosine_similarity+1) ** 2 * (median_text_text_cosine_similarity+1) * (median_image_image_cosine_similarity+1)) + (median_cosine_similarity+1))
+        # adding +1 to handle negative cosine sims more easily
+        # adding median cosine sim in denominator prevent divide by zero
+        # seems like it varies from 0 (worst) to 1 (best) for now.
 
         print()
         print('cosine_sim_metric ', cosine_sim_metric.item())
@@ -187,7 +207,7 @@ def do_validation(val_dataloader, clip_model, index=0, epoch=0, captioning_model
             
             # save to csv file
             with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'a') as f:
-                f.write(str(epoch) + ',' + str(index) + ',' + str(image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
+                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_accuracy.item()) + ',' + str(train_image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
 
 
         '''
@@ -314,7 +334,7 @@ def init_stats_csv_file(clip_model):
             for key, value in training_hyperparameters.items():
                 f.write(f'{key}: {value}\n')
             f.write('\n')
-            f.write('epoch,index,image_accuracy, cosine_similarity_metric, median_cosine_similarity,non_similar_median_cosine_similarity,median_text_text_cosine_similarity,median_image_image_cosine_similarity\n')    
+            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, median_cosine_similarity,non_similar_median_cosine_similarity,median_text_text_cosine_similarity,median_image_image_cosine_similarity\n')    
 
 def get_checkpoint_path():
     '''
