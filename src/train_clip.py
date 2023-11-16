@@ -39,6 +39,7 @@ import random
 
 from src.config import *
 from dataset_processors.mscoco_processor import MSCOCOProcessor
+from dataset_processors.wit_processor import WITProcessor
 
 
 
@@ -62,68 +63,7 @@ def main():
     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
         dataset_processor = MSCOCOProcessor()
     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-        # dataset_processor = WIT400Processor()
-        pass
-
-    
-
-    
-    if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-        def identity(x):
-            return x['caption']
-        
-        # root_dir = '/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/'
-        root_dir = './datasets/400m/laion400m-data/'
-        
-        tar_count = 0
-        corrupt_files = ['00000.tar','00002.tar', '00004.tar', '00007.tar', '00006.tar', '00008.tar', '00009.tar', '00010.tar', '00011.tar', '00012.tar', '00013.tar',  '00014.tar', '00015.tar']
-
-
-        # count number of .tar files in root_dir
-        for root, dirs, files in os.walk(root_dir):
-            for filename in files:
-                if filename.endswith('.tar') and filename not in corrupt_files:
-                    tar_count += 1
-
-
-        # setup 80/20 split
-        train_tar_count = int(0.8 * tar_count)
-        val_tar_count = tar_count - train_tar_count
-
-        train_paths = []
-        val_paths = []
-
-        tar_index = 0
-
-        for root, dirs, files in os.walk(root_dir): 
-            for filename in files:
-                if filename.endswith('.tar') and filename not in corrupt_files:
-                    if tar_index < train_tar_count:
-                        train_paths.append(os.path.join(root, filename))
-                    else:
-                        val_paths.append(os.path.join(root, filename))
-                    tar_index += 1
-
-        train_dataset = wds.WebDataset(train_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000 * len(train_paths))
-
-        val_dataset = wds.WebDataset(val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(preprocess, identity).with_length(9000 * len(val_paths))
-
-        print()
-        print('--- TRAIN DATASET STATS ---')
-        print()
-
-
-        print('Number of train tar files: ', len(train_paths))
-        print('no of train samples: ', len(train_paths) * 9000)
-
-        print()
-        print('--- VAL DATASET STATS ---')
-        print()
-
-
-        print('Number of val tar files: ', len(val_paths))
-        print('no of val samples: ', len(val_paths) * 9000)
-        # train_dataset = wds.WebDataset('/Volumes/SanDisk Extreme SSD Media/UofA/Research/dataset/400m/laion400m-data/00001.tar').shuffle(1000).to_tuple("jpg;png", "json").map_tuple(preprocess, identity)
+        dataset_processor = WITProcessor()
 
 
     # clip_model = MyClip().to(device)
@@ -201,27 +141,6 @@ def main():
 
         clip_model.reset_weights_to_default() # because CLIP loads from latest checkpoint in init for inference
 
-        if training_hyperparameters['use_small_trainloader']:
- 
-
-            if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-                train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['small_train_loader_batch_size'], collate_fn=collate_fn, num_workers=0)
-
-            '''
-            display all subset indices images as small tiles
-            '''
-        else:
-
-            if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-                train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], collate_fn=collate_fn, num_workers=0)
-
-
-    if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-
-        # use val dataset defined at the beginning
-        val_dataloader = DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, num_workers=0)
-        
-
 
     dataset_processor.print_dataset_stats()
 
@@ -241,11 +160,9 @@ def main():
 
         clip_model.eval()
 
-        if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-            do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
-        elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-            do_validation(val_dataset, train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
-        # do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
+        
+        do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+
         clip_model.train()
 
 
@@ -360,13 +277,9 @@ def main():
                 
                 
                 if i % 10 == 0:
-                    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-                        do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
-                    elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-                        do_validation(val_dataset, train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
-                    pass
-                    
 
+                    do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+                    
                 clip_model.train()  
 
                 # zero the parameter gradients
