@@ -38,6 +38,7 @@ import webdataset as wds
 import random
 
 from src.config import *
+from dataset_processors.mscoco_processor import MSCOCOProcessor
 
 
 
@@ -56,19 +57,18 @@ def main():
     model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
     # model, preprocess = clip.load("ViT-B/16", device=device)
 
-    
+    dataset_processor = None
 
     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-
-        train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
-                                annFile = 'datasets/mscoco/annotations/captions_val2014.json',
-                                # transform=[transforms.PILToTensor()])
-                                transform=preprocess,
-
-        )
-
-        print('Number of samples: ', len(train_dataset))
+        dataset_processor = MSCOCOProcessor()
     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+        # dataset_processor = WIT400Processor()
+        pass
+
+    
+
+    
+    if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
         def identity(x):
             return x['caption']
         
@@ -159,10 +159,6 @@ def main():
 
     i_loaded_from_checkpoint = False
 
-    subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
-
-    # subset_indices only used in mscoco
-
     if training_hyperparameters['train_from_scratch']:
         '''
         By default clip model is initialized depending on selected_clip_model
@@ -186,7 +182,6 @@ def main():
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
         losses = checkpoint['losses']
-        train_dataloader = checkpoint['train_dataloader']
         i = checkpoint['dataloader_enumerator_index']
         median_cosine_similarities = checkpoint['median_cosine_similarities']
         i_loaded_from_checkpoint = True
@@ -207,106 +202,28 @@ def main():
         clip_model.reset_weights_to_default() # because CLIP loads from latest checkpoint in init for inference
 
         if training_hyperparameters['use_small_trainloader']:
+ 
 
-            '''
-            Prepare subset of training dataset
-            '''
-
-
-            if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-                train_data_subset = Subset(train_dataset, subset_indices)
-
-                train_dataloader = DataLoader(train_data_subset, batch_size=training_hyperparameters['small_train_loader_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
-
-
-            elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+            if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
                 train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['small_train_loader_batch_size'], collate_fn=collate_fn, num_workers=0)
 
             '''
             display all subset indices images as small tiles
             '''
-
-            # plt.figure()
-
-            # #subplot(r,c) provide the no. of rows and columns
-            # f, axarr = plt.subplots(10,10) 
-            # # hide axis labels and numbers
-            # for ax in axarr:
-            #     for axi in ax:
-            #         axi.axis('off')
-
-            # # reduce space between subplots
-            # f.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
-
-            # for i in range(10):
-            #     for j in range(10):
-            #         img, target = train_dataset[subset_indices[i * 10 + j]]
-            #         axarr[i][j].imshow(img.permute(1, 2, 0))
-
-            # plt.show()
         else:
 
-            if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-                train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, collate_fn=collate_fn)
-            elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+            if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
                 train_dataloader = DataLoader(train_dataset, batch_size=training_hyperparameters['batch_size'], collate_fn=collate_fn, num_workers=0)
 
-    dataloader = train_dataloader
 
-    '''
-    Build validation dataset
-    - This only works when using small train loader
-    '''
-
-    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-
-
-        # get 100 indices that are not in train_data_subset
-        val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
-        j = 0
-        while j < training_hyperparameters['validation_dataset_size']:
-            while val_indices[j] in subset_indices:
-                val_indices[j] = torch.randint(0, len(train_dataset) , (1,))
-            j += 1
-        print('j ', j)
-
-        val_data_subset = Subset(train_dataset, val_indices)
-        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
-
-    elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+    if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
 
         # use val dataset defined at the beginning
         val_dataloader = DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, num_workers=0)
         
-    
 
 
-
-    # get_train_dataloader that is different from dataloader, to ensure that the same batch is used in validation every time
-
-    # do this by sampling from subset indices
-    train_val_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['validation_dataset_size'],))
-
-    train_val_subset = Subset(train_dataset, train_val_indices)
-
-
-    train_val_dataloader = DataLoader(train_val_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
-
-  
-    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-        # print dataset stats since I didnt print it earlier
-        print()
-        print('--- TRAIN DATASET STATS ---')
-        print()
-
-        print('no of train samples: ', len(train_data_subset))
-
-        print()
-        print('--- VAL DATASET STATS ---')
-        print()
-
-
-        print('no of val samples: ', len(val_data_subset))
+    dataset_processor.print_dataset_stats()
 
     '''
     create csv file
@@ -325,7 +242,7 @@ def main():
         clip_model.eval()
 
         if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-            do_validation(val_data_subset, train_data_subset, clip_model, index=i, epoch=epoch, captioning_model=False)
+            do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
         elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
             do_validation(val_dataset, train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
         # do_validation(train_val_dataloader, clip_model, index=i, captioning_model=False) # using training dataset for validation
@@ -350,7 +267,7 @@ def main():
             closures_x = []
             closures_y = []
 
-            for step, sub_batch in enumerate(dataloader):  
+            for step, sub_batch in enumerate(dataset_processor.train_dataloader):  
                 imgs, captions = sub_batch
                 r_imgs, c_imgs = clip_model_grad_cache.get_image_projections(imgs)
 
@@ -430,7 +347,7 @@ def main():
 
         else:
 
-            for (imgs, captions) in dataloader:
+            for (imgs, captions) in dataset_processor.train_dataloader:
 
                 if training_hyperparameters['max_steps'] is not None and i + 1 >= training_hyperparameters['max_steps']:
                     break
@@ -444,7 +361,7 @@ def main():
                 
                 if i % 10 == 0:
                     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-                        do_validation(val_data_subset, train_data_subset, clip_model, index=i, epoch=epoch, captioning_model=False)
+                        do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
                     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
                         do_validation(val_dataset, train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
                     pass

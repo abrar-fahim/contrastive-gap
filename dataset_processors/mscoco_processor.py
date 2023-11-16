@@ -4,9 +4,11 @@ import torch
 from src.config import *
 import random
 from torch.utils.data import DataLoader, Subset
-from src.utils import collate_fn
+from src.utils import collate_fn, get_checkpoint_path
+from dataset_processors.dataset_processor_parent import DatasetProcessorParent
+import os
 
-class MSCOCOProcessor:
+class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self) -> None:
         self.train_dataset = None
@@ -23,6 +25,9 @@ class MSCOCOProcessor:
         torch.manual_seed(42)
         random.seed(42)
 
+        self.load_train_dataset()
+        self.load_val_dataset()
+
     def load_train_dataset(self):
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
@@ -31,10 +36,30 @@ class MSCOCOProcessor:
         )
 
         subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 
+        # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
 
         dataset_to_use = None
         batch_size = None
+        dataloader_to_use = None
 
+        checkpoint_path = get_checkpoint_path()
+
+        if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
+
+            '''
+            Load from checkpoint
+            '''
+            print('Loading dataloader from checkpoint...')
+
+            checkpoint = torch.load(checkpoint_path)
+            self.train_dataloader = checkpoint['train_dataloader']
+            # keep self.train_dataset same as in init, since it doesnt matter
+            return
+
+        
+        '''
+        Not loading from checkpoint, so prepare new dataloader
+        '''
         if training_hyperparameters['use_small_trainloader']:
 
             '''
@@ -51,7 +76,7 @@ class MSCOCOProcessor:
         
 
         # set class variables
-        self.train_dataset = train_dataset
+        self.train_dataset = dataset_to_use
         self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
         self.train_subset_indices = subset_indices
 
