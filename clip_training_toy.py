@@ -419,7 +419,7 @@ def main():
                         print()
                         print('saving checkpoint')
                         print()
-                        torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
+                        torch.save(checkpoint_to_save, get_checkpoint_path())
                     
                     i += 1
 
@@ -442,9 +442,9 @@ def main():
                 
                 if i % 10 == 0:
                     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-                        do_validation(val_data_subset, train_data_subset, clip_model, index=i, captioning_model=False)
+                        do_validation(val_data_subset, train_data_subset, clip_model, index=i, epoch=epoch, captioning_model=False)
                     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-                        do_validation(val_dataset, train_dataset, clip_model, index=i, captioning_model=False)
+                        do_validation(val_dataset, train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
                     pass
                     
 
@@ -459,6 +459,7 @@ def main():
                 # forward + backward + optimize
                 _, _, loss = clip_model(imgs, captions, output_loss=True)
                 # loss = clip_loss(*outputs)
+                print('loss ', loss )
                 loss.backward()
 
                 optimizer.step()
@@ -488,7 +489,7 @@ def main():
                     print()
                     print('saving checkpoint')
                     print()
-                    torch.save(checkpoint_to_save, training_hyperparameters['model_path'])
+                    torch.save(checkpoint_to_save, get_checkpoint_path())
                 i += 1
 
                 if training_hyperparameters['train_only_one_batch']:
@@ -496,16 +497,6 @@ def main():
         
         i_loaded_from_checkpoint = False
         epoch +=1
-
-    # # plot losses and similarities
-    # import matplotlib.pyplot as plt
-    # plt.plot(losses)
-    # plt.plot(median_cosine_similarities)
-    # plt.title('losses')
-    # plt.show()
-
-
-
 
 if __name__ == '__main__':
     main()

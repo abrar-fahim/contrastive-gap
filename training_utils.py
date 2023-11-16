@@ -348,6 +348,8 @@ def get_checkpoint_path():
         return 'checkpoints/my_clip_checkpoint_default.pt'
     elif selected_clip_model == ClipModels.WARM:
         return 'checkpoints/my_clip_checkpoint_warm.pt'
+    
+    # training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
 
 
 def collate_fn(batch):
