@@ -16,19 +16,28 @@
 - Setup toy dataset, MSCOCO for now
 '''
 
+import sys
+import os
+
+# add parent directory to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# add sibling directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from clips.hf_clip import HFClip
 from grad_cache_wrapper import GradCacheWrapper
-from hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
-from training_utils import do_validation, collate_fn, get_checkpoint_path, init_stats_csv_file
+from src.utils import do_validation, collate_fn, get_checkpoint_path, init_stats_csv_file
 import clip
 import os
 import torchvision.datasets as dset
 import webdataset as wds
 import random
 
-from config import *
+from src.config import *
 
 
 
@@ -40,8 +49,6 @@ def main():
     torch.manual_seed(42)
     random.seed(42)
 
-    training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     print('device ', device)
@@ -49,7 +56,7 @@ def main():
     model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
     # model, preprocess = clip.load("ViT-B/16", device=device)
 
-    print("DATASET ", training_hyperparameters['dataset'].value)
+    
 
     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
 
@@ -125,13 +132,6 @@ def main():
     clip_model = HFClip().to(device)
 
 
-
-    # print parameters that are trainable
-    # for name, param in clip_model.named_parameters():
-    #     if param.requires_grad:
-    #         print(name)
-
-
     '''
     - Setup training loop
     '''
@@ -160,6 +160,8 @@ def main():
     i_loaded_from_checkpoint = False
 
     subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
+
+    # subset_indices only used in mscoco
 
     if training_hyperparameters['train_from_scratch']:
         '''
