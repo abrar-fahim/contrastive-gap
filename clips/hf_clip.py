@@ -14,35 +14,15 @@ class HFClip(ClipParent):
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # self.model, self.preprocess = clip.load("ViT-B/16", device=self.device)
 
-
-
-        # self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32", )
-        self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
-        # self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
         self.tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
-
-        # self.text_model = CLIPTextModel.from_pretrained("openai/clip-vit-base-patch32")
-
-        # self.vision_model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
-
-        # self.vision_model_with_projection = CLIPVisionModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
-
-        # self.text_model_with_projection = CLIPTextModelWithProjection.from_pretrained("openai/clip-vit-base-patch32")
        
 
         self.temperature = 0.01 # this is default temp
 
-        self.reset_weights_to_default() # sets the logit scale param 
+        self.reset_weights_to_default() # loads clip model and sets the logit scale param 
 
-        # if training_hyperparameters['train_from_scratch']:
-        #     # randomly initialize weights
-        #     self.model.init_weights()
-        
-
-        # if training_hyperparameters['continue_from_checkpoint']:
         '''
         load CLIP from respective checkpoint regardless of training mode
         clip training toy and training loop will handle loading from scratch or loading from checkpoint
@@ -82,19 +62,15 @@ class HFClip(ClipParent):
     def reset_weights_to_default(self):
         self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
 
+        # set model parameters requires_grad to True
+        for param in self.model.parameters():
+            param.requires_grad = True
+
         if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
-            # set temperature to zero
-            # self.model.logit_scale = torch.nn.Parameter(torch.zeros(1, requires_grad=False, device=self.device))
-
-            # logit scale = 2.3
-            # Setting T = 0.1
-
-            # now, just override everything and set temperature according to training hyperparameters
 
             self.temperature = training_hyperparameters['temperature']
 
             self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
-            # self.model.logit_scale = torch.nn.Parameter(torch.tensor(2.3, requires_grad=False, device=self.device))
 
             self.model.logit_scale.requires_grad = False
 
@@ -145,17 +121,7 @@ class HFClip(ClipParent):
         return text_features
     
     
-    
-    # def project_text(self, captions):
-    #     # assuming raw captions input, so need to tokenize and stuff
-    #     tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
-
-    #     tokenized_captions = tokenized_captions.to(self.device)
-
-    #     outputs = self.text_model_with_projection(**tokenized_captions)
-
-    #     return outputs.text_embeds
-    
+  
     def forward(self, preprocessed_images, captions, output_loss=True, return_all=False):
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)

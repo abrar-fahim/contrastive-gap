@@ -21,7 +21,7 @@ class ClipDatasets(Enum):
     MSCOCO = 'mscoco',
     WIT400 = 'wit400'
 
-selected_clip_model = ClipModels.WARM
+# selected_clip_model = ClipModels.WARM
 selected_clip_model = ClipModels.FINETUNED_TEMP
 # selected_clip_model = ClipModels.DEFAULT
 # selected_clip_model = ClipModels.FINETUNED
@@ -46,7 +46,7 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 32,
+    'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],

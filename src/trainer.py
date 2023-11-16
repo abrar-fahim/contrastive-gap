@@ -26,7 +26,9 @@ class TrainerParent(ABC):
     def save_checkpoint_and_validate(self, clip_model, train_dataloader, optimizer, epoch, i):
 
         clip_model.eval()
+        print()
         print('--- VALIDATING ---')
+        print()
 
         do_validation(self.val_dataset, self.train_dataset,clip_model, i, epoch, captioning_model=False)
 
@@ -152,13 +154,17 @@ class Trainer(TrainerParent):
 
             optimizer.zero_grad()
 
-
             # captions is a list of batch_size strings 
 
             _, _, loss = clip_model(imgs, captions, output_loss=True)
 
             loss.backward()
+
+            
             optimizer.step()
+
+            
+                    
 
             # print statistics
             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))

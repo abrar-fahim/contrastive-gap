@@ -56,9 +56,6 @@ def main():
 
     print('device ', device)
 
-    model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
-    # model, preprocess = clip.load("ViT-B/16", device=device)
-
     dataset_processor = None
 
     if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
@@ -77,9 +74,6 @@ def main():
     - Setup training loop
     '''
 
-    # setup adamW optimizer
-
-    optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
 
 
     n_epochs = training_hyperparameters['n_epochs']
@@ -110,7 +104,15 @@ def main():
         print()
         clip_model.reset_weights_to_random()
 
+
+    
+    
+
     if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
+
+        # setup adamW optimizer
+
+        optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
 
         print()
         print('--- CONTINUING FROM CHECKPOINT ---')
@@ -138,6 +140,10 @@ def main():
 
         clip_model.reset_weights_to_default() # because CLIP loads from latest checkpoint in init for inference
 
+        # setup adamW optimizer
+
+        optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
+
 
     dataset_processor.print_dataset_stats()
 
@@ -158,7 +164,9 @@ def main():
         trainer = Trainer(dataset_processor.train_dataset, dataset_processor.val_dataset)
 
 
+    print()
     print(f'--- VALIDATING BEFORE TRAINING BEGINS ---')
+    print()
 
     clip_model.eval()
 
@@ -177,6 +185,8 @@ def main():
 
         i_loaded_from_checkpoint = False
         epoch +=1
+
+    clip_model.train()
 
 if __name__ == '__main__':
     main()

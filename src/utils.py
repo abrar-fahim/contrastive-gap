@@ -57,7 +57,7 @@ def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, capt
             plt.show()
 
 
-        val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
+        val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
         val_logits_per_image = val_outputs.logits_per_image # shape of both: ([64, 64])
 
         logits_per_text = val_outputs.logits_per_text # shape of both: ([64, 64])
@@ -183,6 +183,13 @@ def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, capt
         '''
         Calculate cosine similarity quality metric
         '''
+
+        # first, scale the cosine similarities by temperature
+        median_cosine_similarity = median_cosine_similarity * clip_model.temperature
+        non_similar_median_cosine_similarity = non_similar_median_cosine_similarity * clip_model.temperature
+        median_text_text_cosine_similarity = median_text_text_cosine_similarity * clip_model.temperature
+        median_image_image_cosine_similarity = median_image_image_cosine_similarity * clip_model.temperature
+        
 
         cosine_sim_metric = (median_cosine_similarity+1) / (((non_similar_median_cosine_similarity+1) ** 2 * (median_text_text_cosine_similarity+1) * (median_image_image_cosine_similarity+1)) + (median_cosine_similarity+1))
         # adding +1 to handle negative cosine sims more easily

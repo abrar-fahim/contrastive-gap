@@ -40,7 +40,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         dataset_to_use = None
         batch_size = None
-        dataloader_to_use = None
 
         checkpoint_path = get_checkpoint_path()
 
