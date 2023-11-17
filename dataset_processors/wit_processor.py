@@ -100,7 +100,7 @@ class WITProcessor(DatasetProcessorParent):
         else:
             batch_size = training_hyperparameters['batch_size']
         
-        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=0, collate_fn=self.collate_fn)
+        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=training_hyperparameters['num_workers'], collate_fn=self.collate_fn)
 
 
 
@@ -108,7 +108,7 @@ class WITProcessor(DatasetProcessorParent):
         
         self.val_dataset = wds.WebDataset(self.val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(self.preprocess, self.json_to_caption).with_length(9000 * len(self.val_paths))
 
-        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=self.collate_fn, num_workers=0)
+        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'])
 
     def print_dataset_stats(self):
         print()

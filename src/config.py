@@ -48,6 +48,7 @@ training_hyperparameters = {
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 16,
     'small_train_loader_dataset_size': 30000,
+    'num_workers': 3,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     'train_only_one_batch': False,

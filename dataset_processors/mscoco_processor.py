@@ -38,6 +38,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         caption is a tuple of strings
         '''
 
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         imgs, og_captions = zip(*batch)
 
         # keep only first caption for each image
@@ -49,9 +51,12 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
             # return (torch.stack(imgs), captions)
-            return (imgs, captions)     
+            return (imgs, captions)   
+
+        stacked_images = torch.stack(imgs)
+        # stacked_images = stacked_images.to(device)
         
-        return (torch.stack(imgs), tokenized_captions)
+        return (stacked_images, tokenized_captions)
 
     
 
@@ -103,7 +108,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=self.collate_fn)
+        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'])
         self.train_subset_indices = subset_indices
 
 
@@ -124,7 +129,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         val_data_subset = Subset(self.train_dataset, val_indices)
-        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=0)
+        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'])
 
         # set class variables
         self.val_dataset = val_data_subset

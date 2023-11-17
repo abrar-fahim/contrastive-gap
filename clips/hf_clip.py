@@ -96,7 +96,7 @@ class HFClip(ClipParent):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         tokenized_captions = HFClip.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
 
-        tokenized_captions = tokenized_captions.to(device)
+        # tokenized_captions = tokenized_captions.to(device)
 
         return tokenized_captions
 
@@ -138,20 +138,15 @@ class HFClip(ClipParent):
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
 
-        preprocessed_images = preprocessed_images.to(self.device)
-
         # tokenized_captions = self.tokenize_captions(captions)
 
-        tokenized_captions = captions
+        tokenized_captions = captions.to(self.device)
+        preprocessed_images = preprocessed_images.to(self.device)
 
 
 
 
         outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)
-
-
-
-        
 
         if return_all:
             return outputs
