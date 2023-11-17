@@ -170,7 +170,7 @@ def main():
 
     clip_model.eval()
 
-    # do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+    do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()
 
