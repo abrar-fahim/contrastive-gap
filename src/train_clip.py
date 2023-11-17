@@ -30,7 +30,7 @@ from grad_cache_wrapper import GradCacheWrapper
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
-from src.utils import do_validation, collate_fn, get_checkpoint_path, init_stats_csv_file
+from src.utils import do_validation, get_checkpoint_path, init_stats_csv_file
 import clip
 import os
 import torchvision.datasets as dset
@@ -170,7 +170,7 @@ def main():
 
     clip_model.eval()
 
-    do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+    # do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()
 

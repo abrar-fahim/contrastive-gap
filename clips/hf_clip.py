@@ -11,6 +11,8 @@ import os
 
 
 class HFClip(ClipParent):
+
+    tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -87,6 +89,16 @@ class HFClip(ClipParent):
 
         # return pooled_output AFTER projection
         return image_features
+    
+    @staticmethod
+    def static_tokenize_captions(captions):
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        tokenized_captions = HFClip.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
+
+        tokenized_captions = tokenized_captions.to(device)
+
+        return tokenized_captions
 
 
     def tokenize_captions(self, captions):
@@ -128,12 +140,14 @@ class HFClip(ClipParent):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
-        tokenized_captions = self.tokenize_captions(captions)
+        # tokenized_captions = self.tokenize_captions(captions)
+
+        tokenized_captions = captions
 
 
 
 
-        outputs = self.model(input_ids=tokenized_captions['input_ids'].to(self.device), attention_mask=tokenized_captions['attention_mask'].to(self.device), pixel_values=preprocessed_images, return_loss=output_loss)
+        outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)
 
 
 

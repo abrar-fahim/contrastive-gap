@@ -358,33 +358,6 @@ def get_checkpoint_path():
     # training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
 
 
-def collate_fn(batch):
-    '''
-    batch is a list of tuples?
-    each tuple is of the form (image, caption)
-    image is a tensor of shape [3, 224, 224]
-    caption is a tuple of strings
-    '''
-
-    imgs, og_captions = zip(*batch)
-
-    if training_hyperparameters['dataset'] == ClipDatasets.WIT400:
-        captions = list(og_captions)
-    elif training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
-
-
-        # keep only first caption for each image
-        captions = [caption[0] for caption in og_captions]
-
-    # captions = og_captions
-
-    # caption2 = [caption[0] for caption in og_captions]
-    # return (caption2, captions)
-    if clip_caption_model_train_hyperparameters['show_real_images']:
-        # return (torch.stack(imgs), captions)
-        return (imgs, captions)     
-    return (torch.stack(imgs), captions)
-
 def write_pca_plots_to_file(image_projections, text_projections, index, output_dir):
     '''
     write PCA plot coordinates of image and text projections, AFTER the linear projection, to file in output_dir

@@ -3,10 +3,11 @@ import torch
 from src.config import *
 import random
 from torch.utils.data import DataLoader, Subset
-from src.utils import collate_fn, get_checkpoint_path
+from src.utils import get_checkpoint_path
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 import os
 import webdataset as wds
+from clips.hf_clip import HFClip
 
 class WITProcessor(DatasetProcessorParent):
 
@@ -64,6 +65,29 @@ class WITProcessor(DatasetProcessorParent):
 
         pass
 
+    @staticmethod
+    def collate_fn(batch):
+        '''
+        batch is a list of tuples?
+        each tuple is of the form (image, caption)
+        image is a tensor of shape [3, 224, 224]
+        caption is a tuple of strings
+        '''
+
+        imgs, og_captions = zip(*batch)
+
+        captions = list(og_captions)
+
+        
+        # tokenize captions and return tokens directly
+        tokenized_captions = HFClip.static_tokenize_captions(captions)
+
+        if clip_caption_model_train_hyperparameters['show_real_images']:
+            # return (torch.stack(imgs), captions)
+            return (imgs, captions)     
+        
+        return (torch.stack(imgs), tokenized_captions)
+
     def json_to_caption(json):
         return json['caption']
 
@@ -76,7 +100,7 @@ class WITProcessor(DatasetProcessorParent):
         else:
             batch_size = training_hyperparameters['batch_size']
         
-        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=0, collate_fn=collate_fn)
+        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=0, collate_fn=self.collate_fn)
 
 
 
@@ -84,7 +108,7 @@ class WITProcessor(DatasetProcessorParent):
         
         self.val_dataset = wds.WebDataset(self.val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(self.preprocess, self.json_to_caption).with_length(9000 * len(self.val_paths))
 
-        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, num_workers=0)
+        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=self.collate_fn, num_workers=0)
 
     def print_dataset_stats(self):
         print()

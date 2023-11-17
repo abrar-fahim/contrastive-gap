@@ -4,9 +4,10 @@ import torch
 from src.config import *
 import random
 from torch.utils.data import DataLoader, Subset
-from src.utils import collate_fn, get_checkpoint_path
+from src.utils import  get_checkpoint_path
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 import os
+from clips.hf_clip import HFClip
 
 class MSCOCOProcessor(DatasetProcessorParent):
 
@@ -27,6 +28,32 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.load_train_dataset()
         self.load_val_dataset()
+
+    @staticmethod
+    def collate_fn(batch):
+        '''
+        batch is a list of tuples?
+        each tuple is of the form (image, caption)
+        image is a tensor of shape [3, 224, 224]
+        caption is a tuple of strings
+        '''
+
+        imgs, og_captions = zip(*batch)
+
+        # keep only first caption for each image
+        captions = [caption[0] for caption in og_captions]
+
+        
+        # tokenize captions and return tokens directly
+        tokenized_captions = HFClip.static_tokenize_captions(captions)
+
+        if clip_caption_model_train_hyperparameters['show_real_images']:
+            # return (torch.stack(imgs), captions)
+            return (imgs, captions)     
+        
+        return (torch.stack(imgs), tokenized_captions)
+
+    
 
     def load_train_dataset(self):
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
@@ -76,10 +103,14 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=self.collate_fn)
         self.train_subset_indices = subset_indices
 
-    
+
+
+
+
+
     def load_val_dataset(self):
 
         val_indices = torch.randint(0, len(self.train_dataset) , (training_hyperparameters['validation_dataset_size'],))
@@ -93,7 +124,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         val_data_subset = Subset(self.train_dataset, val_indices)
-        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=collate_fn, num_workers=0)
+        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=0)
 
         # set class variables
         self.val_dataset = val_data_subset

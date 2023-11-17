@@ -170,7 +170,8 @@ class Trainer(TrainerParent):
             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
 
             if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
-                self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, i)
+                # self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, i)
+                pass
             
             i += 1
 
