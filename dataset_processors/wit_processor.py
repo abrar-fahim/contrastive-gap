@@ -8,6 +8,7 @@ from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 import os
 import webdataset as wds
 from clips.hf_clip import HFClip
+import numpy as np
 
 class WITProcessor(DatasetProcessorParent):
 
@@ -55,6 +56,9 @@ class WITProcessor(DatasetProcessorParent):
         self.train_tar_count = train_tar_count
         self.val_tar_count = val_tar_count
 
+        self.torch_generator = torch.Generator()
+        self.torch_generator.manual_seed(42)
+
         
 
 
@@ -90,6 +94,12 @@ class WITProcessor(DatasetProcessorParent):
 
     def json_to_caption(json):
         return json['caption']
+    
+    @staticmethod
+    def seed_dataloader_worker(worker_id):
+        worker_seed = torch.initial_seed() % 2**32
+        np.random.seed(worker_seed)
+        random.seed(worker_seed)
 
     def load_train_dataset(self):
 
@@ -100,7 +110,7 @@ class WITProcessor(DatasetProcessorParent):
         else:
             batch_size = training_hyperparameters['batch_size']
         
-        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=training_hyperparameters['num_workers'], collate_fn=self.collate_fn)
+        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=training_hyperparameters['num_workers'], collate_fn=self.collate_fn, worker_init_fn=self.seed_dataloader_worker)
 
 
 
@@ -108,7 +118,7 @@ class WITProcessor(DatasetProcessorParent):
         
         self.val_dataset = wds.WebDataset(self.val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(self.preprocess, self.json_to_caption).with_length(9000 * len(self.val_paths))
 
-        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'])
+        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
 
     def print_dataset_stats(self):
         print()

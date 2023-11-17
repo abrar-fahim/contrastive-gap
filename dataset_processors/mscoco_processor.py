@@ -8,6 +8,7 @@ from src.utils import  get_checkpoint_path
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 import os
 from clips.hf_clip import HFClip
+import numpy as np
 
 class MSCOCOProcessor(DatasetProcessorParent):
 
@@ -21,6 +22,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.train_subset_indices = None
         self.val_dataset = None
         self.val_dataloader = None
+
+        self.torch_generator = torch.Generator()
+        self.torch_generator.manual_seed(42)
 
         # set seed
         torch.manual_seed(42)
@@ -59,6 +63,12 @@ class MSCOCOProcessor(DatasetProcessorParent):
         return (stacked_images, tokenized_captions)
 
     
+    @staticmethod
+    def seed_dataloader_worker(worker_id):
+        worker_seed = torch.initial_seed() % 2**32
+        np.random.seed(worker_seed)
+        random.seed(worker_seed)
+
 
     def load_train_dataset(self):
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
@@ -108,12 +118,12 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'])
+        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
         self.train_subset_indices = subset_indices
 
 
 
-
+    
 
 
     def load_val_dataset(self):
@@ -129,7 +139,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         val_data_subset = Subset(self.train_dataset, val_indices)
-        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'])
+        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
 
         # set class variables
         self.val_dataset = val_data_subset
