@@ -12,7 +12,8 @@ pca = None
 
 
 
-def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
+# def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
+def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False):
 
     from clip_caption.clip_caption_predict import Predictor as MLPPredictor
     from clip_caption.clip_caption_transformer_predict import Predictor as TransformerPredictor
@@ -23,6 +24,10 @@ def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, capt
     '''
 
     # create seperate dataloaders for val and train dataset, seperate from the ones used in training, so that I get same train and val batch each time this runs
+
+    val_dataset = dataset_processor.val_dataset
+    train_dataset = dataset_processor.train_dataset
+    collate_fn = dataset_processor.collate_fn
 
 
 

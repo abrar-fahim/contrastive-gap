@@ -159,9 +159,9 @@ def main():
     # setup trainer
 
     if training_hyperparameters['grad_cache']:
-        trainer = GradCacheTrainer(dataset_processor.train_dataset, dataset_processor.val_dataset)
+        trainer = GradCacheTrainer(dataset_processor)
     else:
-        trainer = Trainer(dataset_processor.train_dataset, dataset_processor.val_dataset)
+        trainer = Trainer(dataset_processor)
 
 
     print()
@@ -170,7 +170,8 @@ def main():
 
     clip_model.eval()
 
-    do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+    # do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()
 

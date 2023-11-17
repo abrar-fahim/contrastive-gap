@@ -19,6 +19,15 @@ class TrainerParent(ABC):
         self.val_dataset = val_dataset
         pass
 
+    def __init__(self, dataset_processor) -> None:
+        '''
+        dataset_processor needed to do validation
+        '''
+        self.train_dataset = dataset_processor.train_dataset
+        self.val_dataset = dataset_processor.val_dataset
+        self.dataset_processor = dataset_processor
+        pass
+
     @abstractmethod
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
         pass
@@ -30,7 +39,7 @@ class TrainerParent(ABC):
         print('--- VALIDATING ---')
         print()
 
-        do_validation(self.val_dataset, self.train_dataset,clip_model, i, epoch, captioning_model=False)
+        do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False)
 
         clip_model.train()
 
@@ -53,8 +62,11 @@ class GradCacheTrainer(TrainerParent):
     This handles operations of one epoch
     This class does NOT care about maintaining states of dataloders, optimizers, schedulers, etc.
     '''
-    def __init__(self, train_dataset, val_dataset, use_grad_cache=True) -> None:
+    def __init__(self, train_dataset, val_dataset) -> None:
         super().__init__(train_dataset, val_dataset)
+
+    def __init__(self, dataset_processor) -> None:
+        super().__init__(dataset_processor)
     
 
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
@@ -137,7 +149,8 @@ class Trainer(TrainerParent):
     def __init__(self, train_dataset, val_dataset) -> None:
         super().__init__(train_dataset, val_dataset)
 
-
+    def __init__(self, dataset_processor) -> None:
+        super().__init__(dataset_processor)
 
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
         '''
