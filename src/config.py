@@ -46,9 +46,10 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 16,
+    'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000,
     'num_workers': 4,
+    'save_every': 25,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     'train_only_one_batch': False,
