@@ -83,12 +83,14 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         val_image_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
 
         (train_imgs, train_captions) = next(iter(train_dataloader))
-        train_outputs = clip_model(train_imgs, train_captions, output_loss=False, return_all=True) # so tha I get cosine similarities directly
+        train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True) # so tha I get cosine similarities directly
         train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
         train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
         train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
         train_image_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
+
+        loss = train_outputs.loss.item()
 
 
 
@@ -218,7 +220,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             
             # save to csv file
             with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'a') as f:
-                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_accuracy.item()) + ',' + str(train_image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
+                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_accuracy.item()) + ',' + str(train_image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(loss) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
 
 
         '''
@@ -349,7 +351,7 @@ def init_stats_csv_file(clip_model):
             for key, value in training_hyperparameters.items():
                 f.write(f'{key}: {value}\n')
             f.write('\n')
-            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, median_cosine_similarity,non_similar_median_cosine_similarity,median_text_text_cosine_similarity,median_image_image_cosine_similarity\n')    
+            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, median_cosine_similarity,non_similar_median_cosine_similarity,median_text_text_cosine_similarity,median_image_image_cosine_similarity\n')    
 
 def get_checkpoint_path():
     '''
