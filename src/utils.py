@@ -319,6 +319,10 @@ def generate_csv_file_name(clip_model):
 
         elif 'name' in part:
             new_part = part.replace('name', str(selected_clip_model.value))
+        elif 'iweight' in part:
+            new_part = part.replace('iweight', str(training_hyperparameters['loss_weights']['image_to_text_weight']))
+        elif 'tweight' in part:
+            new_part = part.replace('tweight', str(training_hyperparameters['loss_weights']['text_to_image_weight']))
         else:
             new_part = part
 

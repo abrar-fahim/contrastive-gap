@@ -1,8 +1,10 @@
 import torch
 import numpy as np
 from clips.clip_parent import ClipParent
-from transformers import  CLIPModel, AutoTokenizer
+from transformers import CLIPModel, AutoTokenizer
 from src.utils import get_checkpoint_path
+
+from transformers.models.clip.modeling_clip import CLIPOutput
 
 from src.config import *
 import os
@@ -13,6 +15,7 @@ import os
 class HFClip(ClipParent):
 
     tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
+
     def __init__(self):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,7 +44,12 @@ class HFClip(ClipParent):
             if not selected_clip_model == ClipModels.DEFAULT:
                 self.load_state_dict(loaded_checkpoint['model_state_dict'])
 
+
+
         # if path doesnt exist, it means we're starting from pretrained model anyway
+
+        # defining loss incase weights are not 0.5, 0.5
+        self.loss = torch.nn.CrossEntropyLoss()
 
         print()
         print('--- HF CLIP MODEL ---')
@@ -143,24 +151,59 @@ class HFClip(ClipParent):
         tokenized_captions = captions.to(self.device)
         preprocessed_images = preprocessed_images.to(self.device)
 
-
-
-
         outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)
+
+        if training_hyperparameters['loss_weights']['image_to_text_weight'] == 0.5 and training_hyperparameters['loss_weights']['text_to_image_weight'] == 0.5:
+            # dont technically need this if statement, remove later maybe
+
+            loss = outputs.loss
+            
+        else:
+            # this is exactly the same code (although I wrote it) as huggingface clip's loss as in https://github.dev/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
+
+
+            # normalize features
+            image_embeds = outputs.image_embeds
+            text_embeds = outputs.text_embeds
+
+            # normalized features
+            image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
+            text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
+
+            logits_per_image = outputs.logits_per_image
+            logits_per_text = outputs.logits_per_text
+
+            labels = torch.arange(logits_per_image.shape[0]).to(self.device)
+
+            image_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
+            text_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
+
+
+            loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight
+
+            outputs = CLIPOutput(
+                loss=loss,
+                logits_per_image= logits_per_image,
+                logits_per_text= logits_per_text,
+                text_embeds= text_embeds,
+                image_embeds= image_embeds,
+            )
+
 
         if return_all:
             return outputs
         
         logits_per_image = outputs.logits_per_image
         logits_per_text = outputs.logits_per_text
-
-        
-
         if output_loss:
-            loss = outputs.loss
+            
             return logits_per_image, logits_per_text, loss
         else:
             return logits_per_image, logits_per_text
+
+            
+
+        
 
     def forward_1(self, preprocessed_images, captions, scale=False):
 
