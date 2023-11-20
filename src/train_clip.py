@@ -41,12 +41,19 @@ from src.config import *
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.wit_processor import WITProcessor
 from trainer import Trainer, GradCacheTrainer
+import wandb
 
 
 
 
 
 def main():
+
+    wandb.init(
+        project="clipverse", 
+        # track hyperparameters and run metadata
+        config=training_hyperparameters
+        )
 
     # set seed
     torch.manual_seed(42)
@@ -159,9 +166,9 @@ def main():
     # setup trainer
 
     if training_hyperparameters['grad_cache']:
-        trainer = GradCacheTrainer(dataset_processor)
+        trainer = GradCacheTrainer(dataset_processor, wandb)
     else:
-        trainer = Trainer(dataset_processor)
+        trainer = Trainer(dataset_processor, wandb)
 
 
     print()

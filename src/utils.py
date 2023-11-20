@@ -13,7 +13,7 @@ pca = None
 
 
 # def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
-def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False):
+def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False, wandb=None):
 
     from clip_caption.clip_caption_predict import Predictor as MLPPredictor
     from clip_caption.clip_caption_transformer_predict import Predictor as TransformerPredictor
@@ -83,6 +83,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         val_image_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
 
         (train_imgs, train_captions) = next(iter(train_dataloader))
+
+        print('train caps ', train_captions[0].ids)
         train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True) # so tha I get cosine similarities directly
         train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
@@ -90,7 +92,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
         train_image_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
 
-        loss = train_outputs.loss.item()
+        train_loss = train_outputs.loss.item()
 
 
 
@@ -220,7 +222,23 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             
             # save to csv file
             with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'a') as f:
-                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_accuracy.item()) + ',' + str(train_image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(loss) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
+                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_accuracy.item()) + ',' + str(train_image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(train_loss) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
+
+        '''
+        log to wandb
+        '''
+
+        if wandb is not None:
+            wandb.log(
+                {
+                    'val_image_accuracy': val_image_accuracy.item(),
+                    'train_image_accuracy': train_image_accuracy.item(),
+                    'cosine_sim_metric': cosine_sim_metric.item(),
+                    'train_loss': train_loss,
+                }
+            )
+
+
 
 
         '''

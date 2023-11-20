@@ -10,22 +10,25 @@ from abc import ABC, abstractmethod
 
 
 
+
 class TrainerParent(ABC):
-    def __init__(self, train_dataset, val_dataset) -> None:
+    def __init__(self, train_dataset, val_dataset, wandb) -> None:
         '''
         train_dataset and val_dataset needed to do validation
         '''
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
+        self.wandb = wandb
         pass
 
-    def __init__(self, dataset_processor) -> None:
+    def __init__(self, dataset_processor, wandb) -> None:
         '''
         dataset_processor needed to do validation
         '''
         self.train_dataset = dataset_processor.train_dataset
         self.val_dataset = dataset_processor.val_dataset
         self.dataset_processor = dataset_processor
+        self.wandb = wandb
         pass
 
     @abstractmethod
@@ -39,7 +42,7 @@ class TrainerParent(ABC):
         print('--- VALIDATING ---')
         print()
 
-        do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False)
+        do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False, wandb=self.wandb)
 
         clip_model.train()
 
@@ -62,11 +65,11 @@ class GradCacheTrainer(TrainerParent):
     This handles operations of one epoch
     This class does NOT care about maintaining states of dataloders, optimizers, schedulers, etc.
     '''
-    def __init__(self, train_dataset, val_dataset) -> None:
-        super().__init__(train_dataset, val_dataset)
+    def __init__(self, train_dataset, val_dataset, wandb) -> None:
+        super().__init__(train_dataset, val_dataset, wandb)
 
-    def __init__(self, dataset_processor) -> None:
-        super().__init__(dataset_processor)
+    def __init__(self, dataset_processor, wandb) -> None:
+        super().__init__(dataset_processor, wandb)
     
 
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
@@ -146,11 +149,11 @@ class GradCacheTrainer(TrainerParent):
 
 class Trainer(TrainerParent):
 
-    def __init__(self, train_dataset, val_dataset) -> None:
-        super().__init__(train_dataset, val_dataset)
+    def __init__(self, train_dataset, val_dataset, wandb) -> None:
+        super().__init__(train_dataset, val_dataset, wandb)
 
-    def __init__(self, dataset_processor) -> None:
-        super().__init__(dataset_processor)
+    def __init__(self, dataset_processor, wandb) -> None:
+        super().__init__(dataset_processor, wandb)
 
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
         '''

@@ -30,6 +30,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         torch.manual_seed(42)
         random.seed(42)
 
+        # always need to first load train then load val dataset. Fix this confusing requirement later
         self.load_train_dataset()
         self.load_val_dataset()
 
@@ -144,6 +145,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # set class variables
         self.val_dataset = val_data_subset
         self.val_dataloader = val_dataloader
+
+        # most likely not using this val_dataloader anywhere
 
     def print_dataset_stats(self):
 

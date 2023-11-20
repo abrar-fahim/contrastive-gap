@@ -1,0 +1,119 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.21
+    framework: huggingface
+    huggingface_version: 4.34.0
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.10.7
+    start_time: 1700445405
+    t:
+      1:
+      - 1
+      - 5
+      - 11
+      - 41
+      - 49
+      - 51
+      - 53
+      - 55
+      2:
+      - 1
+      - 5
+      - 11
+      - 41
+      - 49
+      - 51
+      - 53
+      - 55
+      3:
+      - 16
+      4: 3.10.7
+      5: 0.12.21
+      6: 4.34.0
+      8:
+      - 4
+      - 5
+batch_size:
+  desc: null
+  value: 256
+continue_from_checkpoint:
+  desc: null
+  value: false
+csv_path:
+  desc: null
+  value: stats/
+dataset:
+  desc: null
+  value: ClipDatasets.MSCOCO
+do_checkpointing:
+  desc: null
+  value: true
+grad_cache:
+  desc: null
+  value: false
+grad_cache_multiplier:
+  desc: null
+  value: 16
+hf_clip_model:
+  desc: null
+  value: openai/clip-vit-base-patch32
+loss_file_name_template:
+  desc: null
+  value: name_Ttemp_Wiweight_tweight
+loss_weights:
+  desc: null
+  value:
+    image_to_text_weight: 0.5
+    text_to_image_weight: 0.5
+lr:
+  desc: null
+  value: 1.0e-05
+max_steps:
+  desc: null
+  value: 5
+n_epochs:
+  desc: null
+  value: 1
+num_workers:
+  desc: null
+  value: 4
+openai_clip_model:
+  desc: null
+  value: ViT-B/32
+save_every:
+  desc: null
+  value: 1
+save_losses:
+  desc: null
+  value: true
+small_train_loader_batch_size:
+  desc: null
+  value: 16
+small_train_loader_dataset_size:
+  desc: null
+  value: 30000
+temperature:
+  desc: null
+  value: 0.1
+train_from_scratch:
+  desc: null
+  value: false
+train_only_one_batch:
+  desc: null
+  value: false
+use_small_trainloader:
+  desc: null
+  value: true
+validation_batch_size:
+  desc: null
+  value: 256
+validation_dataset_size:
+  desc: null
+  value: 256
+weight_decay:
+  desc: null
+  value: 0.2

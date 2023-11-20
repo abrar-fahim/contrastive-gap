@@ -1,0 +1,22 @@
+{
+    "os": "macOS-14.0-arm64-arm-64bit",
+    "python": "3.10.7",
+    "heartbeatAt": "2023-11-20T01:23:27.337729",
+    "startedAt": "2023-11-20T01:23:26.491732",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/Users/abrarfahim/Documents/UofA/CLIP/clipverse/src/train_clip.py",
+    "codePath": "src/train_clip.py",
+    "git": {
+        "remote": "https://github.com/abrar-fahim/CLIP-embeddings.git",
+        "commit": "849e90068a9296da780efb58bd10f7a5c7749d8a"
+    },
+    "email": "abrar9597@gmail.com",
+    "root": "/Users/abrarfahim/Documents/UofA/CLIP/clipverse",
+    "host": "Abrars-MacBook-Air.local",
+    "username": "abrarfahim",
+    "executable": "/Users/abrarfahim/Documents/UofA/CLIP/clipverse/.venv/bin/python"
+}
