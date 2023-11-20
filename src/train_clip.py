@@ -49,11 +49,7 @@ import wandb
 
 def main():
 
-    wandb.init(
-        project="clipverse", 
-        # track hyperparameters and run metadata
-        config=training_hyperparameters,
-        )
+    
 
     # set seed
     torch.manual_seed(42)
@@ -165,7 +161,12 @@ def main():
 
     # setup trainer
 
-    wandb.name = generate_csv_file_name(clip_model)
+    wandb.init(
+        project="clipverse", 
+        # track hyperparameters and run metadata
+        config=training_hyperparameters,
+        name=generate_csv_file_name(clip_model)
+    )
 
     if training_hyperparameters['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, wandb)
