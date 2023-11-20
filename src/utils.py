@@ -238,8 +238,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'train_loss': train_loss,
                     
                 },
-                # step= int(epoch * len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size'] + index) # this may not work with WIT dataset, check later
-                step= int(epoch * len(dataset_processor.train_dataloader) // 100 + index) # by 100 to maintain fair comparison with existing runs data
+                # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
+                step= int(epoch * 100 + index) # by 100 to maintain fair comparison with existing runs data
 
             )
 
