@@ -1,8 +1,13 @@
+'''
+Must remove config stuff at beginning of csv for this to work
+Need to set config and name manually in wandb
+'''
+
 import wandb
 import pandas as pd
-
 import sys
 import os
+
 
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -14,8 +19,6 @@ from src.config import training_hyperparameters
 
 FILENAME = "experiments.csv"
 loaded_experiment_df = pd.read_csv(FILENAME)
-
-start_line = 29
 
 
 
