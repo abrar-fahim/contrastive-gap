@@ -171,3 +171,4 @@ pca_plots/
 arithmetic_images/
 
 stats/
+wandb/
