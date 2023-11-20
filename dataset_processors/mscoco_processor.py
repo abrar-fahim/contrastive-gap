@@ -23,9 +23,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.val_dataset = None
         self.val_dataloader = None
 
-        self.torch_generator = torch.Generator()
-        self.torch_generator.manual_seed(42)
-
         # set seed
         torch.manual_seed(42)
         random.seed(42)

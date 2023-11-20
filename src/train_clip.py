@@ -30,7 +30,7 @@ from grad_cache_wrapper import GradCacheWrapper
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
-from src.utils import do_validation, get_checkpoint_path, init_stats_csv_file
+from src.utils import do_validation, get_checkpoint_path, init_stats_csv_file, generate_csv_file_name
 import clip
 import os
 import torchvision.datasets as dset
@@ -52,7 +52,7 @@ def main():
     wandb.init(
         project="clipverse", 
         # track hyperparameters and run metadata
-        config=training_hyperparameters
+        config=training_hyperparameters,
         )
 
     # set seed
@@ -164,6 +164,8 @@ def main():
 
 
     # setup trainer
+
+    wandb.name = generate_csv_file_name(clip_model)
 
     if training_hyperparameters['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, wandb)

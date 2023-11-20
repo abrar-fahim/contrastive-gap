@@ -51,8 +51,8 @@ training_hyperparameters = {
     'num_workers': 4,
     'save_every': 25,
     'loss_weights': {
-        'image_to_text_weight': 0.5,
-        'text_to_image_weight': 0.5,
+        'image_to_text_weight': 0,
+        'text_to_image_weight': 1,
     },
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],

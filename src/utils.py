@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from evaluate import load as load_evaluator
 from src.config import *
+import wandb
 
 
 pca = None
@@ -13,7 +14,7 @@ pca = None
 
 
 # def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
-def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False, wandb=None):
+def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False, wandb=wandb):
 
     from clip_caption.clip_caption_predict import Predictor as MLPPredictor
     from clip_caption.clip_caption_transformer_predict import Predictor as TransformerPredictor
@@ -230,12 +231,15 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         if wandb is not None:
             wandb.log(
-                {
+                data={
                     'val_image_accuracy': val_image_accuracy.item(),
                     'train_image_accuracy': train_image_accuracy.item(),
                     'cosine_sim_metric': cosine_sim_metric.item(),
                     'train_loss': train_loss,
-                }
+                    
+                },
+                step= epoch * len(dataset_processor.train_dataloader) / training_hyperparameters['batch_size'] + index, # this may not work with WIT dataset, check later
+
             )
 
 
