@@ -38,7 +38,7 @@ training_hyperparameters = {
     'n_epochs': 3,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1e-5,
-    'temperature': 0.1,
+    'temperature': 0.01,
     'weight_decay': 0.2,
     'validation_dataset_size': 256,
     'validation_batch_size': 256,
@@ -51,9 +51,10 @@ training_hyperparameters = {
     'num_workers': 4,
     'save_every': 25,
     'loss_weights': {
-        'image_to_text_weight': 0,
-        'text_to_image_weight': 1,
+        'image_to_text_weight': 0.5,
+        'text_to_image_weight': 0.5,
     },
+    'intra_modality_loss': False,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     'train_only_one_batch': False,

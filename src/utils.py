@@ -84,8 +84,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         val_image_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
 
         (train_imgs, train_captions) = next(iter(train_dataloader))
-
-        print('train caps ', train_captions[0].ids)
+        
         train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True) # so tha I get cosine similarities directly
         train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])

@@ -48,7 +48,6 @@ class HFClip(ClipParent):
 
         # if path doesnt exist, it means we're starting from pretrained model anyway
 
-        # defining loss incase weights are not 0.5, 0.5
         self.loss = torch.nn.CrossEntropyLoss()
 
         print()
@@ -153,41 +152,50 @@ class HFClip(ClipParent):
 
         outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)
 
-        if training_hyperparameters['loss_weights']['image_to_text_weight'] == 0.5 and training_hyperparameters['loss_weights']['text_to_image_weight'] == 0.5:
-            # dont technically need this if statement, remove later maybe
 
-            loss = outputs.loss
-            
+        # this is exactly the same code (although I wrote it) as huggingface clip's loss as in https://github.dev/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
+
+
+        # normalize features
+        image_embeds = outputs.image_embeds
+        text_embeds = outputs.text_embeds
+
+        # normalized features
+        image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
+        text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
+
+        logits_per_image = outputs.logits_per_image
+        logits_per_text = outputs.logits_per_text
+
+        labels = torch.arange(logits_per_image.shape[0]).to(self.device)
+
+        image_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
+        text_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
+
+        if training_hyperparameters['intra_modality_loss']:
+            # find cosine similarities between image embeddings themselves
+            scaled_image_image_similarity = image_embeds @ image_embeds.t() * self.model.logit_scale.exp()
+
+            # find cosine similarities between text embeddings themselves
+            scaled_image_image_similarity = text_embeds @ text_embeds.t() * self.model.logit_scale.exp()
+
+            intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_image_image_similarity, labels) * text_weight
+
+
+        intermodality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
+
+        if training_hyperparameters['intra_modality_loss']:
+            loss = (intra_modality_loss + intermodality_loss) / 2
         else:
-            # this is exactly the same code (although I wrote it) as huggingface clip's loss as in https://github.dev/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
+            loss = intermodality_loss
 
-
-            # normalize features
-            image_embeds = outputs.image_embeds
-            text_embeds = outputs.text_embeds
-
-            # normalized features
-            image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
-            text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
-
-            logits_per_image = outputs.logits_per_image
-            logits_per_text = outputs.logits_per_text
-
-            labels = torch.arange(logits_per_image.shape[0]).to(self.device)
-
-            image_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
-            text_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
-
-
-            loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight
-
-            outputs = CLIPOutput(
-                loss=loss,
-                logits_per_image= logits_per_image,
-                logits_per_text= logits_per_text,
-                text_embeds= text_embeds,
-                image_embeds= image_embeds,
-            )
+        outputs = CLIPOutput(
+            loss=loss,
+            logits_per_image= logits_per_image,
+            logits_per_text= logits_per_text,
+            text_embeds= text_embeds,
+            image_embeds= image_embeds,
+        )
 
 
         if return_all:
