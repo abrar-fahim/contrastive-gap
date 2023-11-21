@@ -84,7 +84,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         val_image_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
 
         (train_imgs, train_captions) = next(iter(train_dataloader))
-        
+
         train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True) # so tha I get cosine similarities directly
         train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
@@ -196,8 +196,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # first, scale the cosine similarities by temperature
         median_cosine_similarity = median_cosine_similarity * clip_model.temperature
         non_similar_median_cosine_similarity = non_similar_median_cosine_similarity * clip_model.temperature
-        median_text_text_cosine_similarity = median_text_text_cosine_similarity * clip_model.temperature
-        median_image_image_cosine_similarity = median_image_image_cosine_similarity * clip_model.temperature
+        median_text_text_cosine_similarity = median_text_text_cosine_similarity
+        median_image_image_cosine_similarity = median_image_image_cosine_similarity
         
 
         cosine_sim_metric = (median_cosine_similarity+1) / (((non_similar_median_cosine_similarity+1) ** 2 * (median_text_text_cosine_similarity+1) * (median_image_image_cosine_similarity+1)) + (median_cosine_similarity+1))
@@ -347,6 +347,12 @@ def generate_csv_file_name(clip_model):
             new_part = part.replace('iweight', str(training_hyperparameters['loss_weights']['image_to_text_weight']))
         elif 'tweight' in part:
             new_part = part.replace('tweight', str(training_hyperparameters['loss_weights']['text_to_image_weight']))
+        elif 'loss' in part:
+
+            if training_hyperparameters['intra_modality_loss']:
+                new_part = part.replace('loss', str(training_hyperparameters['Lit']))
+            else:
+                new_part = part.replace('loss', str(training_hyperparameters['Lit_ii_tt']))
         else:
             new_part = part
 
