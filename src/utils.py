@@ -235,6 +235,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'train_image_accuracy': train_image_accuracy.item(),
                     'cosine_sim_metric': cosine_sim_metric.item(),
                     'train_loss': train_loss,
+                    'median_cosine_similarity': median_cosine_similarity.item(),
+                    'non_similar_median_cosine_similarity': non_similar_median_cosine_similarity.item(),
+                    'median_text_text_cosine_similarity': median_text_text_cosine_similarity.item(),
+                    'median_image_image_cosine_similarity': median_image_image_cosine_similarity.item(),
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
