@@ -350,9 +350,9 @@ def generate_csv_file_name(clip_model):
         elif 'loss' in part:
 
             if training_hyperparameters['intra_modality_loss']:
-                new_part = part.replace('loss', str(training_hyperparameters['Lit']))
+                new_part = part.replace('loss', 'Lit')
             else:
-                new_part = part.replace('loss', str(training_hyperparameters['Lit_ii_tt']))
+                new_part = part.replace('loss', 'Lit_ii_tt')
         else:
             new_part = part
 
