@@ -42,6 +42,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
+
+
+
         
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
@@ -64,14 +67,17 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
         val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
+
+        '''
+        1. Validation image classification accuracy
+        '''
         val_logits_per_image = val_outputs.logits_per_image # shape of both: ([64, 64])
 
-        logits_per_text = val_outputs.logits_per_text # shape of both: ([64, 64])
 
         # softmax on logits_per_image
         val_image_class_probs = F.softmax(val_logits_per_image, dim=-1) # shape: ([64, 64])
-       
 
+       
         # calculate accuracy
         # get indices of max values
         val_image_class_preds = val_image_class_probs.argmax(dim=-1) # shape: ([64])
@@ -81,7 +87,32 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         val_image_class_labels = torch.arange(val_image_class_probs.shape[0], device=val_image_class_probs.device) # shape: ([64])
 
         # calculate accuracy
-        val_image_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+        val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+        '''
+        2. Validation image retrieval accuracy
+        '''
+
+        logits_per_text = val_outputs.logits_per_text # shape of both: ([64, 64])
+
+        # softmax on logits_per_text
+        text_class_probs = F.softmax(logits_per_text, dim=-1)
+        
+        # calculate accuracy
+        # get indices of max values: These are indices of the retrieved images
+        text_class_preds = text_class_probs.argmax(dim=-1)
+
+        # get indices of correct predictions
+        val_text_class_labels = torch.arange(text_class_probs.shape[0], device=text_class_probs.device) # shape: ([64])
+
+        # calculate accuracy
+        val_image_retrieval_accuracy = (text_class_preds == val_text_class_labels).float().mean()
+
+
+
+        '''
+        3. Training image classification accuracy
+        '''
 
         (train_imgs, train_captions) = next(iter(train_dataloader))
 
@@ -90,7 +121,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
         train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
         train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
-        train_image_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
+        train_image_classification_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
 
         train_loss = train_outputs.loss.item()
 
@@ -103,8 +134,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # print('image preds ', image_class_preds)
         # print('image labels ', image_class_labels)
 
-        print('validation image_accuracy ', val_image_accuracy.item())
-        print('train image_accuracy ', train_image_accuracy.item())
+        print('validation image_accuracy ', val_image_classification_accuracy.item())
+        print('train image_accuracy ', train_image_classification_accuracy.item())
 
 
         print('--- IMAGE-TEXT SIMILARITIES --- ')
@@ -222,23 +253,27 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             
             # save to csv file
             with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'a') as f:
-                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_accuracy.item()) + ',' + str(train_image_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(train_loss) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
+                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_classification_accuracy.item()) + ',' + str(train_image_classification_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(train_loss) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
 
         '''
         log to wandb
         '''
 
+        average_intra_modality_gap = (median_text_text_cosine_similarity.item() + median_image_image_cosine_similarity.item()) / 2
+
         if wandb is not None:
             wandb.log(
                 data={
-                    'val_image_accuracy': val_image_accuracy.item(),
-                    'train_image_accuracy': train_image_accuracy.item(),
+                    'val_image_classification_accuracy': val_image_classification_accuracy.item(),
+                    'val_image_retrieval_accuracy': val_image_retrieval_accuracy.item(),
+                    'train_image_accuracy': train_image_classification_accuracy.item(),
                     'cosine_sim_metric': cosine_sim_metric.item(),
                     'train_loss': train_loss,
                     'median_cosine_similarity': median_cosine_similarity.item(),
                     'non_similar_median_cosine_similarity': non_similar_median_cosine_similarity.item(),
                     'median_text_text_cosine_similarity': median_text_text_cosine_similarity.item(),
                     'median_image_image_cosine_similarity': median_image_image_cosine_similarity.item(),
+                    'average_intra_modality_gap': average_intra_modality_gap
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -354,9 +389,9 @@ def generate_csv_file_name(clip_model):
         elif 'loss' in part:
 
             if training_hyperparameters['intra_modality_loss']:
-                new_part = part.replace('loss', 'Lit')
-            else:
                 new_part = part.replace('loss', 'Lit_ii_tt')
+            else:
+                new_part = part.replace('loss', 'Lit')
         else:
             new_part = part
 

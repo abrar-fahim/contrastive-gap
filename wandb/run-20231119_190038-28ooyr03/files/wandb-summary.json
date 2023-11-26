@@ -1,1 +1,0 @@
-{"val_image_accuracy": 0.7109375, "train_image_accuracy": 0.72265625, "cosine_sim_metric": 0.4958011507987976, "train_loss": 1.0236198902130127, "_timestamp": 1700445789, "_runtime": 151, "_step": 4, "_wandb": {"runtime": 153}}
