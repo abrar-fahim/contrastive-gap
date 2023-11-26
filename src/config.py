@@ -54,7 +54,7 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'intra_modality_loss': False,
+    'intra_modality_loss': True,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     'train_only_one_batch': False,

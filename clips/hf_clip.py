@@ -141,7 +141,7 @@ class HFClip(ClipParent):
     
     
   
-    def forward(self, preprocessed_images, captions, output_loss=True, return_all=False):
+    def forward(self, preprocessed_images, captions, output_loss=True, return_all=False, output_intra_modality_loss=False):
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
 
@@ -181,13 +181,20 @@ class HFClip(ClipParent):
 
             intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_image_image_similarity, labels) * text_weight
 
-
+            # print('intra loss: ,', intra_modality_loss)
         intermodality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
 
         if training_hyperparameters['intra_modality_loss']:
             loss = (intra_modality_loss + intermodality_loss) / 2
         else:
             loss = intermodality_loss
+
+        if output_intra_modality_loss:
+            loss = {
+                'intermodality': intermodality_loss.item(),
+                'intramodality': intra_modality_loss.item(),
+                'total': (intra_modality_loss + intermodality_loss) / 2
+            }
 
         outputs = CLIPOutput(
             loss=loss,

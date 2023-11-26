@@ -85,14 +85,18 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         (train_imgs, train_captions) = next(iter(train_dataloader))
 
-        train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True) # so tha I get cosine similarities directly
+        train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so tha I get cosine similarities directly
         train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
         train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
         train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
         train_image_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
 
-        train_loss = train_outputs.loss.item()
+        # train_loss = train_outputs.loss.item()
+
+        train_intra_loss = train_outputs.loss['intramodality']
+        train_inter_loss = train_outputs.loss['intermodality']
+        train_loss = train = train_outputs.loss['total']
 
 
 
@@ -234,7 +238,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'val_image_accuracy': val_image_accuracy.item(),
                     'train_image_accuracy': train_image_accuracy.item(),
                     'cosine_sim_metric': cosine_sim_metric.item(),
-                    'train_loss': train_loss,
+                    'train_intramodality_loss': train_intra_loss,
+                    'train_intermodality_loss': train_inter_loss,
                     'median_cosine_similarity': median_cosine_similarity.item(),
                     'non_similar_median_cosine_similarity': non_similar_median_cosine_similarity.item(),
                     'median_text_text_cosine_similarity': median_text_text_cosine_similarity.item(),
