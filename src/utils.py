@@ -16,8 +16,7 @@ pca = None
 # def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
 def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False, wandb=wandb):
 
-    from clip_caption.clip_caption_predict import Predictor as MLPPredictor
-    from clip_caption.clip_caption_transformer_predict import Predictor as TransformerPredictor
+    
     '''
     Report accuracy and median cosine similarity on validation set
     Report text-text and image-image cosine similarities
@@ -173,7 +172,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # doing it just for images for now
         # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
-        image_embeds = val_outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
+        # image_embeds = val_outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
 
 
 
@@ -290,6 +289,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
         if captioning_model:
+            from clip_caption.clip_caption_predict import Predictor as MLPPredictor
+            from clip_caption.clip_caption_transformer_predict import Predictor as TransformerPredictor
             # text_embeds = outputs.text_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
             # image_embeds = outputs.image_embeds
 
