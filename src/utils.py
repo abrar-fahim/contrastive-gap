@@ -258,7 +258,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         log to wandb
         '''
 
-        average_intra_modality_gap = (median_text_text_cosine_similarity.item() + median_image_image_cosine_similarity.item()) / 2
+        average_intra_modality_cosine_sim = (median_text_text_cosine_similarity.item() + median_image_image_cosine_similarity.item()) / 2
 
         if wandb is not None:
             wandb.log(
@@ -273,7 +273,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'non_similar_median_cosine_similarity': non_similar_median_cosine_similarity.item(),
                     'median_text_text_cosine_similarity': median_text_text_cosine_similarity.item(),
                     'median_image_image_cosine_similarity': median_image_image_cosine_similarity.item(),
-                    'average_intra_modality_gap': average_intra_modality_gap
+                    'average_intra_modality_cosine_similairity': average_intra_modality_cosine_sim
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
