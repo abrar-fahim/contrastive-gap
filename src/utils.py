@@ -42,11 +42,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
 
-
-
-
-        
-
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
             # show the first 10 images from the validation set in a subplot
@@ -125,9 +120,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # train_loss = train_outputs.loss.item()
 
-        train_intra_loss = train_outputs.loss['intramodality']
-        train_inter_loss = train_outputs.loss['intermodality']
-        train_loss = train = train_outputs.loss['total']
+        train_intra_loss = train_outputs.loss['intra_modality']
+        train_inter_loss = train_outputs.loss['inter_modality']
+        train_loss = train_outputs.loss['total']
 
 
 
