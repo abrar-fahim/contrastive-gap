@@ -379,7 +379,13 @@ def generate_csv_file_name(clip_model):
     for i, part in enumerate(name_parts):
         # replace temp with temperature
         if 'temp' in part:
-            new_part = part.replace('temp', str(clip_model.temperature) + '_' + str(clip_model.intra_modality_temperature))
+
+            new_part = part.replace('temp', str(clip_model.temperature))
+
+            if training_hyperparameters['intra_modality_loss']:
+                new_part += '_' + str(clip_model.intra_modality_temperature)
+
+
 
         elif 'name' in part:
             new_part = part.replace('name', str(selected_clip_model.value))
