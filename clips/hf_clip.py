@@ -78,6 +78,11 @@ class HFClip(ClipParent):
         if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
 
             self.temperature = training_hyperparameters['temperature']
+            self.intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
+
+            self.intra_modality_logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.intra_modality_temperature), requires_grad=False, device=self.device)) # not self.model since clip_model doesn't have intra_modality_logit_scale
+
+            self.intra_modality_logit_scale.requires_grad = False
 
             self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
 
@@ -174,12 +179,12 @@ class HFClip(ClipParent):
 
         if training_hyperparameters['intra_modality_loss']:
             # find cosine similarities between image embeddings themselves
-            scaled_image_image_similarity = image_embeds @ image_embeds.t() * self.model.logit_scale.exp()
+            scaled_image_image_similarity = image_embeds @ image_embeds.t() * self.intra_modality_logit_scale.exp()
 
             # find cosine similarities between text embeddings themselves
-            scaled_image_image_similarity = text_embeds @ text_embeds.t() * self.model.logit_scale.exp()
+            scaled_text_text_similarity = text_embeds @ text_embeds.t() * self.intra_modality_logit_scale.exp()
 
-            intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_image_image_similarity, labels) * text_weight
+            intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_text_text_similarity, labels) * text_weight
 
             # print('intra loss: ,', intra_modality_loss)
         inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
