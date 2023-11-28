@@ -18,7 +18,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     
     '''
-    Report accuracy and median cosine similarity on validation set
+    Report accuracy and mean cosine similarity on validation set
     Report text-text and image-image cosine similarities
     Dump numbers to csv file
     '''
@@ -145,21 +145,21 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # print logits per image for first 5 images
         # print('logits_per_image ', logits_per_image[:5, :5])
         cosine_similarities = val_logits_per_image.diag() # shape: [64]
-        # get median cosine similarity
-        median_cosine_similarity = torch.median(cosine_similarities)
-        print('median cosine similarity ', median_cosine_similarity.item())
+        # get mean cosine similarity
+        mean_cosine_similarity = torch.mean(cosine_similarities)
+        print('mean cosine similarity ', mean_cosine_similarity.item())
 
 
         # Get 2nd highest cosine similarity for each image
         top2_cosine_similarities = torch.topk(val_logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
         # print('top2_cosine_similarities ', top2_cosine_similarities.shape)
-        # get median of 2nd highest cosine similarity for each image
-        median_top2_cosine_similarity = torch.median(top2_cosine_similarities[:, 1])
+        # get mean of 2nd highest cosine similarity for each image
+        mean_top2_cosine_similarity = torch.mean(top2_cosine_similarities[:, 1])
 
         # print('median_top2_cosine_similarity ', median_top2_cosine_similarity)
 
-        # get median of elements that are not on the diagonal
-        non_similar_median_cosine_similarity = val_logits_per_image[~torch.eye(val_logits_per_image.shape[0], dtype=bool)].median()
+        # get mean of elements that are not on the diagonal
+        non_similar_mean_cosine_similarity = val_logits_per_image[~torch.eye(val_logits_per_image.shape[0], dtype=bool)].mean()
         # print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
 
         # print temperature
@@ -193,7 +193,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
 
         # get median of elements that are in the upper triangle (excluding diagonal!!)
-        median_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].median()
+        mean_text_text_cosine_similarity = text_text_cosine_similarities[torch.triu(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=1).bool()].mean()
 
         # print('median_text_text_cosine_similarity ', median_text_text_cosine_similarity)
 
@@ -214,7 +214,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t()
 
         # get median of elements that are not on the diagonal
-        median_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].median()
+        mean_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].mean()
 
         # print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
 
@@ -223,13 +223,13 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         '''
 
         # first, scale the cosine similarities by temperature
-        median_cosine_similarity = median_cosine_similarity * clip_model.temperature
-        non_similar_median_cosine_similarity = non_similar_median_cosine_similarity * clip_model.temperature
-        median_text_text_cosine_similarity = median_text_text_cosine_similarity
-        median_image_image_cosine_similarity = median_image_image_cosine_similarity
+        mean_cosine_similarity = mean_cosine_similarity * clip_model.temperature
+        non_similar_mean_cosine_similarity = non_similar_mean_cosine_similarity * clip_model.temperature
+        mean_text_text_cosine_similarity = mean_text_text_cosine_similarity
+        mean_image_image_cosine_similarity = mean_image_image_cosine_similarity
         
 
-        cosine_sim_metric = (median_cosine_similarity+1) / (((non_similar_median_cosine_similarity+1) ** 2 * (median_text_text_cosine_similarity+1) * (median_image_image_cosine_similarity+1)) + (median_cosine_similarity+1))
+        cosine_sim_metric = (mean_cosine_similarity+1) / (((non_similar_mean_cosine_similarity+1) ** 2 * (mean_text_text_cosine_similarity+1) * (mean_image_image_cosine_similarity+1)) + (mean_cosine_similarity+1))
         # adding +1 to handle negative cosine sims more easily
         # adding median cosine sim in denominator prevent divide by zero
         # seems like it varies from 0 (worst) to 1 (best) for now.
@@ -251,13 +251,13 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             
             # save to csv file
             with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'a') as f:
-                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_classification_accuracy.item()) + ',' + str(train_image_classification_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(train_loss) + ',' + str(median_cosine_similarity.item()) + ',' + str(non_similar_median_cosine_similarity.item()) + ',' + str(median_text_text_cosine_similarity.item()) + ',' + str(median_image_image_cosine_similarity.item()) + '\n')
+                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_classification_accuracy.item()) + ',' + str(train_image_classification_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(train_loss) + ',' + str(mean_cosine_similarity.item()) + ',' + str(non_similar_mean_cosine_similarity.item()) + ',' + str(mean_text_text_cosine_similarity.item()) + ',' + str(mean_image_image_cosine_similarity.item()) + '\n')
 
         '''
         log to wandb
         '''
 
-        average_intra_modality_cosine_sim = (median_text_text_cosine_similarity.item() + median_image_image_cosine_similarity.item()) / 2
+        average_intra_modality_cosine_sim = (mean_text_text_cosine_similarity.item() + mean_image_image_cosine_similarity.item()) / 2
 
         if wandb is not None:
             wandb.log(
@@ -268,10 +268,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'cosine_sim_metric': cosine_sim_metric.item(),
                     'train_intramodality_loss': train_intra_loss,
                     'train_intermodality_loss': train_inter_loss,
-                    'median_cosine_similarity': median_cosine_similarity.item(),
-                    'non_similar_median_cosine_similarity': non_similar_median_cosine_similarity.item(),
-                    'median_text_text_cosine_similarity': median_text_text_cosine_similarity.item(),
-                    'median_image_image_cosine_similarity': median_image_image_cosine_similarity.item(),
+                    'mean_cosine_similarity': mean_cosine_similarity.item(),
+                    'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
+                    'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
+                    'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
                     'average_intra_modality_cosine_similairity': average_intra_modality_cosine_sim
                     
                 },
@@ -419,7 +419,7 @@ def init_stats_csv_file(clip_model):
             for key, value in training_hyperparameters.items():
                 f.write(f'{key}: {value}\n')
             f.write('\n')
-            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, median_cosine_similarity,non_similar_median_cosine_similarity,median_text_text_cosine_similarity,median_image_image_cosine_similarity\n')    
+            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, mean_cosine_similarity,non_similar_mean_cosine_similarity,mean_text_text_cosine_similarity,mean_image_image_cosine_similarity\n')    
 
 def get_checkpoint_path():
     '''
