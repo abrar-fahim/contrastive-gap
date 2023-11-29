@@ -22,6 +22,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.train_subset_indices = None
         self.val_dataset = None
         self.val_dataloader = None
+        self.show_real_images_captions=False
 
         # set seed
         torch.manual_seed(42)
@@ -31,8 +32,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.load_train_dataset()
         self.load_val_dataset()
 
-    @staticmethod
-    def collate_fn(batch):
+
+    def collate_fn(self, batch):
         '''
         batch is a list of tuples?
         each tuple is of the form (image, caption)
@@ -43,17 +44,27 @@ class MSCOCOProcessor(DatasetProcessorParent):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         imgs, og_captions = zip(*batch)
+        if not self.show_real_images_captions:
+            imgs = tuple(self.preprocess(img) for img in imgs)
+            
 
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
 
         
-        # tokenize captions and return tokens directly
-        tokenized_captions = HFClip.static_tokenize_captions(captions)
+        
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
             # return (torch.stack(imgs), captions)
             return (imgs, captions)   
+        
+        
+        
+        if self.show_real_images_captions:
+            return (imgs, captions)
+        
+        # tokenize captions and return tokens directly
+        tokenized_captions = HFClip.static_tokenize_captions(captions)
 
         stacked_images = torch.stack(imgs)
         # stacked_images = stacked_images.to(device)
@@ -72,7 +83,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
         annFile = 'datasets/mscoco/annotations/captions_val2014.json',
         # transform=[transforms.PILToTensor()])
-        transform=self.preprocess,
+        # transform=self.preprocess, # transforming in collate instead
         )
 
         subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 

@@ -76,12 +76,82 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # get indices of max values
         val_image_class_preds = val_image_class_probs.argmax(dim=-1) # shape: ([64])
 
+        # print('val_image_class_preds ', val_image_class_preds)
+
+
         
         # get indices of correct predictions
         val_image_class_labels = torch.arange(val_image_class_probs.shape[0], device=val_image_class_probs.device) # shape: ([64])
 
+        # print('val_image_class_labels ', val_image_class_labels)
+
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+        # find cosine similarities between image-text pairs for images with wrong predictions
+        # get indices of incorrect predictions
+        incorrect_preds_mask = (val_image_class_preds != val_image_class_labels) # shape: ([n_wrong])
+        # print('incorrect_preds_mask ', incorrect_preds_mask)
+        # print('incorrect preds shape', val_image_class_preds[incorrect_preds_mask].shape)
+
+        val_logits_per_image_incorrect = val_logits_per_image[incorrect_preds_mask, :] # shape: ([n_wrong, batch_size])
+        # print('val_logits_per_image_incorrect ', val_logits_per_image_incorrect)
+        # print('val_logits_per_image_incorrect ', val_logits_per_image_incorrect.shape)
+
+        # get labels of incorrect predictions
+        incorrect_preds_labels = val_image_class_labels[incorrect_preds_mask] # shape: ([n_wrong])
+
+        # print('incorrect_preds_labels ', incorrect_preds_labels)
+
+        incorrect_preds_labels = incorrect_preds_labels.unsqueeze(1) # shape: ([n_wrong, 1])
+        
+
+        # get cosine similarities between input image and true label text 
+        incorrect_preds_cosine_similarities = torch.gather(val_logits_per_image_incorrect, 1, incorrect_preds_labels) # shape: ([n_wrong, 1])
+        # incorrect_preds_cosine_similarities = val_logits_per_image_incorrect[:, incorrect_preds_labels] # shape: ([n_wrong])
+
+        # print('incorrect_preds_cosine_similarities ', incorrect_preds_cosine_similarities)
+
+        # get mean cosine similarity
+        incorrect_preds_mean_cosine_similarity = torch.mean(incorrect_preds_cosine_similarities)
+
+        # scale by temperature
+        incorrect_preds_mean_cosine_similarity = incorrect_preds_mean_cosine_similarity * clip_model.temperature
+
+        print('incorrect_preds_mean_cosine_similarity ', incorrect_preds_mean_cosine_similarity.item())
+
+
+        # find cosine similarities for incorrect predictions between predicted text and input image
+        # get predicted labels
+        incorrect_preds_predicted_labels = val_image_class_preds[incorrect_preds_mask] # shape: ([n_wrong])
+
+        # unsqueeze to get shape: ([n_wrong, 1])
+        incorrect_preds_predicted_labels = incorrect_preds_predicted_labels.unsqueeze(1) # shape: ([n_wrong, 1])
+
+        # get cosine similarities between input image and predicted text
+        incorrect_preds_cosine_similarities = torch.gather(val_logits_per_image_incorrect, 1, incorrect_preds_predicted_labels) # shape: ([n_wrong, 1])
+        # incorrect_preds_cosine_similarities = val_logits_per_image_incorrect[:, incorrect_preds_predicted_labels] # shape: ([n_wrong])
+
+        # get mean cosine similarity
+        incorrect_preds_mean_cosine_similarity = torch.mean(incorrect_preds_cosine_similarities)
+
+        # scale by temperature
+        incorrect_preds_mean_cosine_similarity = incorrect_preds_mean_cosine_similarity * clip_model.temperature
+
+        print('incorrect_preds_mean_ cos sim between predicted', incorrect_preds_mean_cosine_similarity.item())
+
+        # For sanity check, print highest cosine similarity for each image
+
+        # get highest cosine similarity for each image
+        highest_cosine_similarities = torch.max(val_logits_per_image_incorrect, dim=-1).values
+
+        mean_highest_cosine_similarity = torch.mean(highest_cosine_similarities)
+
+        # scale by temperature
+        mean_highest_cosine_similarity = mean_highest_cosine_similarity * clip_model.temperature
+
+        print('mean_highest_cosine_similarity ', mean_highest_cosine_similarity.item())
+
 
         '''
         2. Validation image retrieval accuracy
@@ -160,7 +230,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # get mean of elements that are not on the diagonal
         non_similar_mean_cosine_similarity = val_logits_per_image[~torch.eye(val_logits_per_image.shape[0], dtype=bool)].mean()
-        # print('non_similar_median_cosine_similarity ', non_similar_median_cosine_similarity)
+        print('non_similar_mean_cosine_similarity ', non_similar_mean_cosine_similarity * clip_model.temperature)
 
         # print temperature
         # print('clip_model.logit_scale ', clip_model.model.logit_scale)
@@ -279,6 +349,69 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 step= int(epoch * 100 + index) # by 100 to maintain fair comparison with existing runs data
 
             )
+
+        '''
+        Show real images and captions for the incorrect predictions
+        '''
+
+        if training_hyperparameters['show_incorrect_images']:
+            # get real images and captions
+
+            dataset_processor.show_real_images_captions = True
+            collate_fn = dataset_processor.collate_fn
+
+            # create dataloader for validation set
+            real_images_captions_val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+
+
+            (images, true_captions) = next(iter(real_images_captions_val_dataloader))
+
+            # get indices of incorrect predictions
+            incorrect_preds_mask = (val_image_class_preds != val_image_class_labels)
+
+            # print('incorrect preds mask ', incorrect_preds_mask)
+
+            # print('images shape ', images.shape)
+
+            # display real images and captions for incorrect predictions
+            # incorrect_images = torch.masked_select(images, incorrect_preds_mask.unsqueeze(1).unsqueeze(1).unsqueeze(1)).reshape(-1, 3, 224, 224) # shape: ([n_wrong, 3, 224, 224]
+
+            incorrect_images = [item for keep, item in zip(incorrect_preds_mask, images) if keep]
+            label_captions = [item for keep, item in zip(incorrect_preds_mask, true_captions) if keep]
+
+            # get predicted captions
+            incorrect_predicted_caption_indices = val_image_class_preds[incorrect_preds_mask] # shape: ([n_wrong])
+
+            # get predicted captions
+            incorrect_predicted_captions = [item for keep, item in zip(incorrect_predicted_caption_indices, true_captions) if keep] # shape: ([n_wrong])
+
+            
+
+            # show the first 10 images from the validation set in a subplot
+
+            fig = plt.figure()
+
+            for i in range(min(10, len(incorrect_images))):
+                ax = plt.subplot(2, 5, i + 1)
+                # plt.imshow(incorrect_images[i].permute(1, 2, 0))
+                plt.imshow(incorrect_images[i])
+                # plt.title(captions[i])
+                plt.axis("off")
+                print('true: ')
+                print(label_captions[i])
+                print('predicted: ')
+                print(incorrect_predicted_captions[i])
+            
+            plt.show()
+
+            dataset_processor.show_real_images_captions = False
+
+            # print('predicted captions ', incorrect_predicted_captions[:10])
+
+
+
+
+
 
 
 

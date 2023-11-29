@@ -1,39 +1,25 @@
-import requests
 import torch
-from PIL import Image
-from transformers import AlignProcessor, AlignModel
 
-processor = AlignProcessor.from_pretrained("kakaobrain/align-base")
-model = AlignModel.from_pretrained("kakaobrain/align-base")
+a = torch.tensor([11, 15])
 
-url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-image = Image.open(requests.get(url, stream=True).raw)
-candidate_labels = ["an image of a cat", "an image of a dog"]
+# b = torch.tensor([[19.2484, 11.7084, 11.1596, 11.4631, 12.3431, 15.8071, 16.7049, 12.6975, 15.4289, 18.6648, 
+#          14.3783, 
+#          17.9233, 
+#          11.9665, 14.8254, 15.0897, 10.9909],
+#         [18.6673, 15.3969, 27.8116, 13.1985, 15.7663,  8.8110, 17.5427, 18.7815,
+#          10.8143, 13.5417, 12.7912, 12.5115, 15.3884,  5.0697,  9.0324, 
+#          26.9915]])
+b = torch.tensor([1, 2,3,4,5,6,7])
+b = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
-inputs = processor(text=candidate_labels, images=image, return_tensors="pt")
+# a = a.unsqueeze(1)
 
-with torch.no_grad():
-    outputs = model(**inputs)
+# print(torch.gather(b, 1, a))
 
-# this is the image-text similarity score
-logits_per_image = outputs.logits_per_image
+c = torch.tensor([False,  True, False, False, False, False, False])
 
-text_embeds = outputs.text_embeds
+print([item for keep, item in zip(c, b) if keep])
 
-# cosine similarity between text embeddings
-text_text = torch.matmul(text_embeds, text_embeds.t())
+# print(b[c])
 
-print('text text ', text_text)
-
-
-
-print('temp ', model.temperature)
-
-print('cosine sims ', logits_per_image * model.temperature)
-
-
-print('logits per image ', logits_per_image)
-
-# we can take the softmax to get the label probabilities
-probs = logits_per_image.softmax(dim=1)
-print(probs)
+# print(b[:, a])
