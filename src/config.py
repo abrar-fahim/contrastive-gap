@@ -38,7 +38,7 @@ training_hyperparameters = {
     'n_epochs': 3,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1e-5,
-    'temperature': 1,
+    'temperature': 0.1,
     'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
     'validation_dataset_size': 512,
@@ -47,10 +47,10 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256,
+    'small_train_loader_batch_size': 16,
     'small_train_loader_dataset_size': 30000,
     'num_workers': 4,
-    'save_every': 25,
+    'save_every': 15,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -61,7 +61,8 @@ training_hyperparameters = {
     'train_only_one_batch': False,
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss' # can have name, temp, iweight, tweight, loss as of now
+    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss', # can have name, temp, iweight, tweight, loss as of now,
+    'show_incorrect_images': False
     }
 
 

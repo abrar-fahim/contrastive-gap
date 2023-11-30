@@ -22,6 +22,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.train_subset_indices = None
         self.val_dataset = None
         self.val_dataloader = None
+        self.show_real_images_captions=False
 
         # set seed
         torch.manual_seed(42)
@@ -31,8 +32,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.load_train_dataset()
         self.load_val_dataset()
 
-    @staticmethod
-    def collate_fn(batch):
+
+    def collate_fn(self, batch):
         '''
         batch is a list of tuples?
         each tuple is of the form (image, caption)
@@ -44,16 +45,30 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         imgs, og_captions = zip(*batch)
 
+        if training_hyperparameters['show_incorrect_images']:
+            # do preprocess here only if we're showing incorrect images at some point in training
+            if not self.show_real_images_captions:
+                imgs = tuple(self.preprocess(img) for img in imgs)
+        
+            
+
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
 
         
-        # tokenize captions and return tokens directly
-        tokenized_captions = HFClip.static_tokenize_captions(captions)
+        
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
             # return (torch.stack(imgs), captions)
             return (imgs, captions)   
+        
+        
+        
+        if self.show_real_images_captions:
+            return (imgs, captions)
+        
+        # tokenize captions and return tokens directly
+        tokenized_captions = HFClip.static_tokenize_captions(captions)
 
         stacked_images = torch.stack(imgs)
         # stacked_images = stacked_images.to(device)
@@ -69,11 +84,28 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
     def load_train_dataset(self):
-        train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
-        annFile = 'datasets/mscoco/annotations/captions_val2014.json',
-        # transform=[transforms.PILToTensor()])
-        transform=self.preprocess,
-        )
+
+
+        
+        '''
+        comparing with training hyperparameters and not self.show_real_images_captions, because:
+        - training hyperparameters stays constant throghout
+        - self.show_real_images_captions is set to True in the middle of do_validation in utils
+        '''
+
+        if training_hyperparameters['show_incorrect_images']: 
+            # no preprocess here, instead have it in collate fn
+            train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
+            annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+            # transform=[transforms.PILToTensor()])
+            # transform=self.preprocess, # transforming in collate instead
+            )
+        else:
+            train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
+            annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+            # transform=[transforms.PILToTensor()])
+            transform=self.preprocess,
+            )
 
         subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 
         # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
@@ -137,7 +169,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         val_data_subset = Subset(self.train_dataset, val_indices)
+
+
         val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+
 
         # set class variables
         self.val_dataset = val_data_subset

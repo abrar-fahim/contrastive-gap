@@ -350,6 +350,69 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
             )
 
+        '''
+        Show real images and captions for the incorrect predictions
+        '''
+
+        if training_hyperparameters['show_incorrect_images']:
+            # get real images and captions
+
+            dataset_processor.show_real_images_captions = True
+            collate_fn = dataset_processor.collate_fn
+
+            # create dataloader for validation set
+            real_images_captions_val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+
+
+            (images, true_captions) = next(iter(real_images_captions_val_dataloader))
+
+            # get indices of incorrect predictions
+            incorrect_preds_mask = (val_image_class_preds != val_image_class_labels)
+
+            # print('incorrect preds mask ', incorrect_preds_mask)
+
+            # print('images shape ', images.shape)
+
+            # display real images and captions for incorrect predictions
+            # incorrect_images = torch.masked_select(images, incorrect_preds_mask.unsqueeze(1).unsqueeze(1).unsqueeze(1)).reshape(-1, 3, 224, 224) # shape: ([n_wrong, 3, 224, 224]
+
+            incorrect_images = [item for keep, item in zip(incorrect_preds_mask, images) if keep]
+            label_captions = [item for keep, item in zip(incorrect_preds_mask, true_captions) if keep]
+
+            # get predicted captions
+            incorrect_predicted_caption_indices = val_image_class_preds[incorrect_preds_mask] # shape: ([n_wrong])
+
+            # get predicted captions
+            incorrect_predicted_captions = [item for keep, item in zip(incorrect_predicted_caption_indices, true_captions) if keep] # shape: ([n_wrong])
+
+            
+
+            # show the first 10 images from the validation set in a subplot
+
+            fig = plt.figure()
+
+            for i in range(min(10, len(incorrect_images))):
+                ax = plt.subplot(2, 5, i + 1)
+                # plt.imshow(incorrect_images[i].permute(1, 2, 0))
+                plt.imshow(incorrect_images[i])
+                # plt.title(captions[i])
+                plt.axis("off")
+                print('true: ')
+                print(label_captions[i])
+                print('predicted: ')
+                print(incorrect_predicted_captions[i])
+            
+            plt.show()
+
+            dataset_processor.show_real_images_captions = False
+
+            # print('predicted captions ', incorrect_predicted_captions[:10])
+
+
+
+
+
+
 
 
 
