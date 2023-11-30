@@ -44,8 +44,12 @@ class MSCOCOProcessor(DatasetProcessorParent):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         imgs, og_captions = zip(*batch)
-        if not self.show_real_images_captions:
-            imgs = tuple(self.preprocess(img) for img in imgs)
+
+        if training_hyperparameters['show_incorrect_images']:
+            # do preprocess here only if we're showing incorrect images at some point in training
+            if not self.show_real_images_captions:
+                imgs = tuple(self.preprocess(img) for img in imgs)
+        
             
 
         # keep only first caption for each image
@@ -80,11 +84,28 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
     def load_train_dataset(self):
-        train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
-        annFile = 'datasets/mscoco/annotations/captions_val2014.json',
-        # transform=[transforms.PILToTensor()])
-        # transform=self.preprocess, # transforming in collate instead
-        )
+
+
+        
+        '''
+        comparing with training hyperparameters and not self.show_real_images_captions, because:
+        - training hyperparameters stays constant throghout
+        - self.show_real_images_captions is set to True in the middle of do_validation in utils
+        '''
+
+        if training_hyperparameters['show_incorrect_images']: 
+            # no preprocess here, instead have it in collate fn
+            train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
+            annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+            # transform=[transforms.PILToTensor()])
+            # transform=self.preprocess, # transforming in collate instead
+            )
+        else:
+            train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
+            annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+            # transform=[transforms.PILToTensor()])
+            transform=self.preprocess,
+            )
 
         subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 
         # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
@@ -148,7 +169,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         val_data_subset = Subset(self.train_dataset, val_indices)
+
+
         val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+
 
         # set class variables
         self.val_dataset = val_data_subset

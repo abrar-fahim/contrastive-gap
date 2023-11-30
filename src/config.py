@@ -62,7 +62,7 @@ training_hyperparameters = {
     'save_losses': False,
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss', # can have name, temp, iweight, tweight, loss as of now,
-    'show_incorrect_images': True
+    'show_incorrect_images': False
     }
 
 
