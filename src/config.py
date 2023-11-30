@@ -38,11 +38,11 @@ training_hyperparameters = {
     'n_epochs': 3,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1e-5,
-    'temperature': 0.01,
-    'intra_modality_temperature': 0.01,
+    'temperature': 1,
+    'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
-    'validation_dataset_size': 256,
-    'validation_batch_size': 256,
+    'validation_dataset_size': 512,
+    'validation_batch_size': 512,
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
@@ -55,7 +55,7 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'intra_modality_loss': True,
+    'intra_modality_loss': False,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     'train_only_one_batch': False,
