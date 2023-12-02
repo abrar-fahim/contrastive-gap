@@ -509,14 +509,17 @@ def generate_csv_file_name(clip_model):
 
     csv_name = ''
 
+    temperature = training_hyperparameters['temperature']
+    intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
+
     for i, part in enumerate(name_parts):
         # replace temp with temperature
         if 'temp' in part:
 
-            new_part = part.replace('temp', str(clip_model.temperature))
+            new_part = part.replace('temp', str(temperature))
 
             if training_hyperparameters['intra_modality_loss']:
-                new_part += '_' + str(clip_model.intra_modality_temperature)
+                new_part += '_' + str(intra_modality_temperature)
 
 
 
@@ -558,12 +561,14 @@ def init_stats_csv_file(clip_model):
             for key, value in training_hyperparameters.items():
                 f.write(f'{key}: {value}\n')
             f.write('\n')
-            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, mean_cosine_similarity,non_similar_mean_cosine_similarity,mean_text_text_cosine_similarity,mean_image_image_cosine_similarity\n')    
+            f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, mean_cosine_similarity,non_similar_mean_cosine_similarity,mean_text_text_cosine_similarity,mean_image_image_cosine_similarity\n')
 
 def get_checkpoint_path():
     '''
     Get path of model to load
     '''
+
+    return generate_csv_file_name(None) + '.pt'
     if selected_clip_model == ClipModels.FINETUNED_TEMP:
         return 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
     elif selected_clip_model == ClipModels.FINETUNED:
@@ -643,12 +648,6 @@ def plot_pca_subplots_from_file(dir, start, stop, step):
 
     # set title
     fig.suptitle('stacked subplots of image (red) and text (blue) projections')
-
-    
-
-
-
-
 
     for i in range(start, stop, step):
         # get image and text coordinates

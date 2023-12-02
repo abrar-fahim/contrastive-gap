@@ -47,17 +47,17 @@ class TrainerParent(ABC):
         clip_model.train()
 
 
-        # checkpoint_to_save = {
-        #     'epoch': epoch,
-        #     'model_state_dict': clip_model.state_dict(),
-        #     'optimizer_state_dict': optimizer.state_dict(),
-        #     'train_dataloader': train_dataloader,
-        #     'dataloader_enumerator_index': i,
-        #     }
-        # print()
-        # print('saving checkpoint')
-        # print()
-        # torch.save(checkpoint_to_save, get_checkpoint_path())
+        checkpoint_to_save = {
+            'epoch': epoch,
+            'model_state_dict': clip_model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'train_dataloader': train_dataloader,
+            'dataloader_enumerator_index': i,
+            }
+        print()
+        print('saving checkpoint')
+        print()
+        torch.save(checkpoint_to_save, get_checkpoint_path())
 
 
 class GradCacheTrainer(TrainerParent):
