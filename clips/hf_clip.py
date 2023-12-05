@@ -121,6 +121,9 @@ class HFClip(ClipParent):
         return tokenized_captions
     
     def encode_text(self, tokenized_captions):
+        '''
+        Returns pooled_output AFTER projection
+        '''
         # # assuming raw captions input, so need to tokenize and stuff
         # tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
@@ -147,6 +150,16 @@ class HFClip(ClipParent):
     
   
     def forward(self, preprocessed_images, captions, output_loss=True, return_all=False, output_intra_modality_loss=False):
+
+        '''
+        outputs = CLIPOutput(
+            loss=loss,
+            logits_per_image= logits_per_image,
+            logits_per_text= logits_per_text,
+            text_embeds= text_embeds,
+            image_embeds= image_embeds,
+        )
+        '''
 
         # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
 

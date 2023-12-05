@@ -7,8 +7,15 @@ from evaluate import load as load_evaluator
 from src.config import *
 import wandb
 
+import nltk
+import random
+from nltk.tokenize import word_tokenize
+from nltk.tag import pos_tag
+
 
 pca = None
+
+random.seed(42) # random used in evaluate_concept_arrangement
 
 
 
@@ -32,6 +39,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
     # create dataloader for validation set
+    # creating dataloader seperately here instead of using the one inside dataset_processor to set the manual seed explicitly so that I get same batch each time
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
 
     # create dataloader for train set
@@ -500,6 +508,134 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             print('rouge2 ', rouge_scores['rouge2'])
             print('rougeL ', rouge_scores['rougeL'])
             print("rougeLsum ", rouge_scores['rougeLsum'])
+
+def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wandb=wandb):
+    '''
+    - "Pizza on a table" (img) + "Dog" (txt) - "Pizza" (txt) = "Dog on a table" (img)
+    - Measuring how similar distance and direction between "Pizza on..." (img) and "Dog on..." (img) is compared to that between "Pizza" (txt) and "Dog" (txt)
+    '''
+
+    dataset_processor.return_org_imgs_collate_fn = True
+    val_dataset = dataset_processor.val_dataset
+    collate_fn = dataset_processor.collate_fn
+
+    # create dataloader for validation set
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+
+    n_subjects_to_try = 5
+    pos_to_get = ['NN', 'NNP']
+
+    with torch.no_grad():
+        preprocessed_imgs, tokenized_captions, original_imgs, original_captions = next(iter(val_dataloader))
+
+        outputs = clip_model(preprocessed_imgs, tokenized_captions, output_loss=False, return_all=True)
+
+        image_embeds = outputs.image_embeds # shape: ([batch_size, 512])
+        text_embeds = outputs.text_embeds # shape: ([batch_size, 512])
+
+        # normalize
+        image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
+        text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
+
+        '''
+        - Adding a text concept to image embeddings
+        - Doing this n_subjects_to_try times for each image
+        '''
+
+        for (image_embed, text_embed, original_img, original_caption) in zip(image_embeds, text_embeds, original_imgs, original_captions):
+
+            pos_tags = pos_tag(word_tokenize(original_caption))
+
+            caption_subject = [word for word, pos in pos_tags if pos in pos_to_get]
+
+            if len(caption_subject) == 0:
+                continue
+
+            for i in range(n_subjects_to_try):
+
+                # get random subject
+                subject = random.choice(all_subjects)
+                subject = subject.strip()
+                
+                # get subject embedding
+                tokenized_subject = clip_model.tokenize_captions([subject])
+                subject_embed = clip_model.encode_text(tokenized_subject)
+                # normalize subject embedding
+                subject_embed = subject_embed / torch.norm(subject_embed, dim=1, keepdim=True)
+
+                # caption subject
+                tokenized_caption_subject = clip_model.tokenize_captions([caption_subject[0]])
+                caption_subject_embed = clip_model.encode_text(tokenized_caption_subject)
+                caption_subject_embed = caption_subject_embed / torch.norm(caption_subject_embed, dim=1, keepdim=True)
+
+                # math with all normalized embeddings
+                new_image_embed = image_embed + subject_embed - caption_subject_embed
+                # normalize
+                new_image_embed = new_image_embed / torch.norm(new_image_embed, dim=1, keepdim=True)
+
+                # generate new caption by replacing caption subject with subject
+                new_caption = original_caption.replace(caption_subject[0], subject, 1)
+                # this will change when I'm searching whole dataset LATER
+
+                # get closest image to new_caption
+                tokenized_new_caption = clip_model.tokenize_captions([new_caption])
+                new_caption_embed = clip_model.encode_text(tokenized_new_caption)
+                new_caption_embed = new_caption_embed / torch.norm(new_caption_embed, dim=1, keepdim=True)
+                # cosine similarity between image_embeds and new_caption_embed
+                cosine_similarity = image_embeds @ new_caption_embed.t()
+                # get closest image
+                closest_image_index = torch.argmax(cosine_similarity)
+                closest_image_embed = image_embeds[closest_image_index]
+                closest_image = original_imgs[closest_image_index]
+                closest_image_caption = original_captions[closest_image_index]
+
+                # cosine similarity between new_image_embed and closest_image_embed
+                cosine_similarity = new_image_embed @ closest_image_embed.t()
+
+                sim_new_image_text = closest_image_embed @ new_caption_embed.t()
+
+                sim_new_image_old_image = closest_image_embed @ image_embed.t()
+
+                # this cosine similarity should be high
+
+                # print everything
+                print('original caption ', original_caption)
+                print('randomly chosen subject ', subject)
+                print('caption subject ', caption_subject[0])
+                print('new caption ', new_caption)
+                print('closest image caption ', closest_image_caption)
+                print('cosine similarity ', cosine_similarity.item())
+                print('target_cosine_sim', sim_new_image_text.item())
+                print('sim between new image embed and same image ', sim_new_image_old_image.item())
+
+                # show images
+                fig = plt.figure()
+                
+                ax = plt.subplot(1, 3, 1)
+                plt.imshow(original_img)
+                plt.axis("off")
+
+                ax = plt.subplot(1, 3, 2)
+                plt.imshow(closest_image)
+                plt.axis("off")
+
+                plt.show()
+
+
+
+
+
+
+
+
+
+            
+        
+
+
+
+
+
 
 def generate_csv_file_name(clip_model):
     # create csv file name
