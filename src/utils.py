@@ -317,6 +317,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         print()
 
         '''
+        Compute linearity metric
+        '''
+
+        average_linearity_cosine_sim = evaluate_linearity(clip_model)
+
+        '''
         dump numbers to csv file
         '''
 
@@ -350,7 +356,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
-                    'average_intra_modality_cosine_similairity': average_intra_modality_cosine_sim
+                    'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
+                    'average_linearity_cosine_similarity': average_linearity_cosine_sim,                    
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -693,16 +700,16 @@ def evaluate_linearity(clip_model, wandb=wandb):
                         average_cosine_similarity += cosine_similarity.item()
                         average_counter += 1
 
-                        print()
+                        # print()
 
-                        print('input caption ', input_caption_data['input_caption'])
-                        print('input caption subjects ', input_caption_data['input_caption_subjects'])
-                        print('target caption ', input_caption_data['top_captions'][i])
-                        print('target caption subjects ', input_caption_data['top_subjects'][i])
-                        print('cosine similarity ', cosine_similarity.item())
-                        print('original cosine similarity ', original_cosine_similarity.item())
-                        print('new_embedding_original_image_similarity ', new_embedding_original_image_similarity.item())
-                        print()
+                        # print('input caption ', input_caption_data['input_caption'])
+                        # print('input caption subjects ', input_caption_data['input_caption_subjects'])
+                        # print('target caption ', input_caption_data['top_captions'][i])
+                        # print('target caption subjects ', input_caption_data['top_subjects'][i])
+                        # print('cosine similarity ', cosine_similarity.item())
+                        # print('original cosine similarity ', original_cosine_similarity.item())
+                        # print('new_embedding_original_image_similarity ', new_embedding_original_image_similarity.item())
+                        # print()
 
 
 
@@ -717,7 +724,7 @@ def evaluate_linearity(clip_model, wandb=wandb):
     
     average_cosine_similarity = average_cosine_similarity / average_counter
 
-    print('average_cosine_similarity ', average_cosine_similarity)
+    return average_cosine_similarity
 
 
 

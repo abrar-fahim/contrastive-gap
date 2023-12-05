@@ -62,6 +62,9 @@ class HFClip(ClipParent):
         print()
 
         print('selected clip model ', selected_clip_model.name)
+
+        # calculate temperature from logit scale and assert that its the same as temp
+        assert np.isclose(self.temperature, 1 / self.model.logit_scale.exp().item())
         # print('logit scale: ', self.model.logit_scale)
         print('temperature (T): ', self.temperature)
   

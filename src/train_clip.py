@@ -26,15 +26,10 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from clips.hf_clip import HFClip
-from grad_cache_wrapper import GradCacheWrapper
-from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 import torch
 from src.utils import do_validation, get_checkpoint_path, init_stats_csv_file, generate_csv_file_name
-import clip
 import os
-import torchvision.datasets as dset
-import webdataset as wds
 import random
 
 from src.config import *
