@@ -43,13 +43,13 @@ training_hyperparameters = {
     'weight_decay': 0.2,
     'validation_dataset_size': 512,
     'validation_batch_size': 512,
-    'do_checkpointing': True,
+    'do_checkpointing': False,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256,
-    'small_train_loader_dataset_size': 30000,
-    'num_workers': 4,
+    'small_train_loader_batch_size': 10,
+    'small_train_loader_dataset_size': 500, # 30000
+    'num_workers': 0,
     'save_every': 25,
     'loss_weights': {
         'image_to_text_weight': 0.5,
@@ -62,7 +62,8 @@ training_hyperparameters = {
     'save_losses': False,
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss', # can have name, temp, iweight, tweight, loss as of now,
-    'show_incorrect_images': False
+    'show_incorrect_images': False,
+    
     }
 
 
