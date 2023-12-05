@@ -653,6 +653,8 @@ def evaluate_linearity(clip_model, wandb=wandb):
                     # create custom embedding to retrieve target image
                     input_image_embedding = input_caption_data['input_image_embedding'] # already normalized
 
+                    input_image_embedding = input_image_embedding.to(clip_model.device)
+
                     input_subjects = input_caption_data['input_caption_subjects']
 
                     # embed the input subjects
@@ -664,8 +666,10 @@ def evaluate_linearity(clip_model, wandb=wandb):
                     for i, target_caption_data in enumerate(input_caption_data['top_captions']):
                         # get target image embedding
                         target_image_embedding = input_caption_data['top_image_embeddings'][i]
+                        target_image_embedding = target_image_embedding.to(clip_model.device)
 
                         target_caption_embedding = input_caption_data['top_image_caption_embeddings'][i]
+                        target_caption_embedding = target_caption_embedding.to(clip_model.device)
 
                         # get target caption subjects
                         target_subjects = input_caption_data['top_subjects'][i]
@@ -677,6 +681,7 @@ def evaluate_linearity(clip_model, wandb=wandb):
                         target_subject_embeddings = target_subject_embeddings / torch.norm(target_subject_embeddings, dim=1, keepdim=True)
 
                         new_image_embedding = input_image_embedding.detach().clone()
+                        new_image_embedding = new_image_embedding.to(clip_model.device)
 
                         # do the math
                         for embedding in target_subject_embeddings:
