@@ -11,7 +11,7 @@ import nltk
 import random
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
-
+import pickle
 
 pca = None
 
@@ -622,6 +622,87 @@ def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wa
                 plt.show()
 
 
+def evaluate_linearity(clip_model, wandb=wandb):
+    '''
+    I'll only evaluate on the dataset I prepared and pickled in 'dataset' file
+    '''
+
+
+    filename = 'dataset'
+
+    average_cosine_similarity = 0 # this is the final output metric, should be high
+
+    average_counter = 0
+
+    # load dataset
+    with open(filename, 'rb') as fr:
+        try:
+            while True:
+                # data.append(pickle.load(fr))
+                input_caption_data = pickle.load(fr) # data for one input caption
+
+                with torch.no_grad():
+
+                    # create custom embedding to retrieve target image
+                    input_image_embedding = input_caption_data['input_image_embedding'] # already normalized
+
+                    input_subjects = input_caption_data['input_caption_subjects']
+
+                    # embed the input subjects
+                    input_subject_embeddings = clip_model.encode_text(clip_model.tokenize_captions(input_subjects))
+
+                    # normalize
+                    input_subject_embeddings = input_subject_embeddings / torch.norm(input_subject_embeddings, dim=1, keepdim=True)
+
+                    for i, target_caption_data in enumerate(input_caption_data['top_captions']):
+                        # get target image embedding
+                        target_image_embedding = input_caption_data['top_image_embeddings'][i]
+
+                        target_caption_embedding = input_caption_data['top_image_caption_embeddings'][i]
+
+                        # get target caption subjects
+                        target_subjects = input_caption_data['top_subjects'][i]
+
+                        # embed the target subjects
+                        target_subject_embeddings = clip_model.encode_text(clip_model.tokenize_captions(target_subjects))
+
+                        # normalize
+                        target_subject_embeddings = target_subject_embeddings / torch.norm(target_subject_embeddings, dim=1, keepdim=True)
+
+                        new_image_embedding = input_image_embedding.detach().clone()
+
+                        # do the math
+                        for embedding in target_subject_embeddings:
+                            new_image_embedding += embedding
+
+                        for embedding in input_subject_embeddings:
+                            new_image_embedding -= embedding
+
+                        # normalize
+                        new_image_embedding = new_image_embedding / torch.norm(new_image_embedding, dim=-1, keepdim=True)
+
+                        # cosine similarity between new_image_embedding and target_image_embedding
+                        cosine_similarity = torch.dot(new_image_embedding, target_image_embedding) # should be high
+
+                        original_cosine_similarity = torch.dot(target_image_embedding, target_caption_embedding) # is probably high
+
+                        # print magnitudes of embeddings
+
+                        new_embedding_original_image_similarity = torch.dot(new_image_embedding, input_image_embedding) # should be low, but default CLIP has this as super high, so it always selects the original image
+
+                        average_cosine_similarity += cosine_similarity.item()
+                        average_counter += 1
+
+                        print()
+
+                        print('input caption ', input_caption_data['input_caption'])
+                        print('input caption subjects ', input_caption_data['input_caption_subjects'])
+                        print('target caption ', input_caption_data['top_captions'][i])
+                        print('target caption subjects ', input_caption_data['top_subjects'][i])
+                        print('cosine similarity ', cosine_similarity.item())
+                        print('original cosine similarity ', original_cosine_similarity.item())
+                        print('new_embedding_original_image_similarity ', new_embedding_original_image_similarity.item())
+                        print()
 
 
 
@@ -629,11 +710,14 @@ def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wa
 
 
 
-            
-        
+        except EOFError:
+            pass
 
 
+    
+    average_cosine_similarity = average_cosine_similarity / average_counter
 
+    print('average_cosine_similarity ', average_cosine_similarity)
 
 
 
@@ -704,7 +788,7 @@ def get_checkpoint_path():
     Get path of model to load
     '''
 
-    return generate_csv_file_name(None) + '.pt'
+    return 'checkpoints/' + generate_csv_file_name(None) + '.pt'
     if selected_clip_model == ClipModels.FINETUNED_TEMP:
         return 'checkpoints/my_clip_checkpoint_finetuned_temp.pt'
     elif selected_clip_model == ClipModels.FINETUNED:

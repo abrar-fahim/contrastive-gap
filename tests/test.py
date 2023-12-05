@@ -23,6 +23,14 @@ processor = MSCOCOProcessor()
 
 torch.manual_seed(42)
 
+clip_model = HFClip()
+
+from src.utils import evaluate_linearity
+
+evaluate_linearity(clip_model)
+ 
+
+exit()
 
 # get first batch
 batch = next(iter(processor.train_dataloader))
@@ -49,7 +57,7 @@ option = OPTIONS.search_nearest_captions
 Get images closest to the first image
 '''
 
-clip_model = HFClip()
+
 
 torch.manual_seed(42) # resetting the batch
 

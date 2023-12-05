@@ -15,19 +15,7 @@ from src.utils import evaluate_concept_arrangement
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
 from nltk.translate.bleu_score import sentence_bleu
-
-
-dataset_processor = MSCOCOProcessor(return_org_imgs_collate_fn=True)
-
-clip_model = HFClip()
-
-# read all subjects from text file
-# with open('unique_subjects.txt', 'r') as f:
-#     all_subjects = f.readlines()
-
-# evaluate_concept_arrangement(dataset_processor, clip_model,all_subjects )
-
-
+import pickle
 
 def get_target_image(input_caption, dataset_processor, clip_model):
     '''
@@ -143,6 +131,21 @@ def get_target_image(input_caption, dataset_processor, clip_model):
     return top_k_images, top_k_captions, top_k_image_embeddings, top_k_image_caption_embeddings, top_k_subjects
 
 
+
+
+dataset_processor = MSCOCOProcessor(return_org_imgs_collate_fn=True)
+
+clip_model = HFClip()
+
+# read all subjects from text file
+# with open('unique_subjects.txt', 'r') as f:
+#     all_subjects = f.readlines()
+
+# evaluate_concept_arrangement(dataset_processor, clip_model,all_subjects )
+
+
+
+
 # set seed
 torch.manual_seed(42)
 
@@ -160,3 +163,44 @@ print('input caption ', input_caption)
 print('top captions ', top_captions)
 
 print('top subjects ', top_k_subjects)
+
+'''
+What I need to save
+- input caption
+- input caption subjects
+- top k captions
+- subjects for each of the top k captions
+- top k images
+- top k image embeddings
+'''
+
+n_batches = 0
+
+for batch in tqdm(dataset_processor.train_dataloader):
+
+    if n_batches > 0: #doing just one batch for now
+        break
+    preprocessed_images, tokenized_captions, images, captions = batch
+
+    for index, caption in enumerate(captions):
+
+        print('index ', index , '/ ', len(captions))
+        top_images, top_captions, top_image_embeddings, top_image_caption_embeddings, top_k_subjects = get_target_image(caption, dataset_processor, clip_model)
+
+        # save stuff to file
+        filename = 'dataset'
+        data = {
+            'input_caption': caption,
+            'input_caption_subjects': top_k_subjects,
+            'top_k_captions': top_captions,
+            'top_k_images': top_images,
+            'top_k_image_embeddings': top_image_embeddings,
+            'top_k_image_caption_embeddings': top_image_caption_embeddings,
+        }
+        with open(filename, 'a+') as fp:
+            pickle.dump(data, fp)
+    n_batches = n_batches + 1
+
+        
+    
+

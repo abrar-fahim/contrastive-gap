@@ -35,6 +35,8 @@ class HFClip(ClipParent):
 
         checkpoint_path = get_checkpoint_path()
 
+        print('check point path for CLIP model ', checkpoint_path)
+
         # check if checkpoint path exists
         if os.path.exists(checkpoint_path):
             loaded_checkpoint = torch.load(checkpoint_path, map_location=self.device)
@@ -43,8 +45,13 @@ class HFClip(ClipParent):
             # this only makes sense if we're loading from a checkpoint
             if not selected_clip_model == ClipModels.DEFAULT:
                 self.load_state_dict(loaded_checkpoint['model_state_dict'])
+                print('loaded clip model from checkpoint ', checkpoint_path)
 
+            else:
+                print('CLIP model not loaded from checkpoint')
 
+        else:
+            print('CLIP model not loaded from checkpoint')
 
         # if path doesnt exist, it means we're starting from pretrained model anyway
 

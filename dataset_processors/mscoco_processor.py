@@ -12,7 +12,7 @@ import numpy as np
 
 class MSCOCOProcessor(DatasetProcessorParent):
 
-    def __init__(self) -> None:
+    def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
         self.train_dataset = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
@@ -23,6 +23,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.val_dataset = None
         self.val_dataloader = None
         self.show_real_images_captions=False
+        self.return_org_imgs_collate_fn = return_org_imgs_collate_fn
+        self.return_only_captions = return_only_captions
 
         # set seed
         torch.manual_seed(42)
@@ -49,30 +51,49 @@ class MSCOCOProcessor(DatasetProcessorParent):
             # do preprocess here only if we're showing incorrect images at some point in training
             if not self.show_real_images_captions:
                 imgs = tuple(self.preprocess(img) for img in imgs)
+
+            
         
             
 
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
 
-        
-        
+        if self.return_only_captions:
+            return captions
+
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
             # return (torch.stack(imgs), captions)
             return (imgs, captions)   
+        
+
         
         
         
         if self.show_real_images_captions:
             return (imgs, captions)
         
+       
+        
         # tokenize captions and return tokens directly
         tokenized_captions = HFClip.static_tokenize_captions(captions)
 
-        stacked_images = torch.stack(imgs)
-        # stacked_images = stacked_images.to(device)
         
+        # stacked_images = stacked_images.to(device)
+
+        if self.return_org_imgs_collate_fn:
+
+            preprocessed_imgs = tuple(self.preprocess(img) for img in imgs)
+
+            stacked_preprocessed_images = torch.stack(preprocessed_imgs)
+
+
+            return (stacked_preprocessed_images, tokenized_captions, imgs, captions)
+        
+        
+        
+        stacked_images = torch.stack(imgs)
         return (stacked_images, tokenized_captions)
 
     
@@ -93,7 +114,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         - self.show_real_images_captions is set to True in the middle of do_validation in utils
         '''
 
-        if training_hyperparameters['show_incorrect_images']: 
+        if training_hyperparameters['show_incorrect_images'] or self.return_org_imgs_collate_fn: 
             # no preprocess here, instead have it in collate fn
             train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
