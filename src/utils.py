@@ -632,11 +632,11 @@ def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wa
 
 def evaluate_linearity(clip_model, wandb=wandb, plot=False):
     '''
-    I'll only evaluate on the dataset I prepared and pickled in 'dataset' file
+    I'll only evaluate on the dataset I prepared and pickled in 'datasets/mscoco/linear_eval_dataset' file
     '''
 
 
-    filename = 'dataset'
+    filename = 'datasets/mscoco/linear_eval_dataset'
 
     average_cosine_similarity = 0 # this is the final output metric, should be high
 
