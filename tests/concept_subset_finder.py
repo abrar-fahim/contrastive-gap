@@ -19,6 +19,7 @@ import pickle
 
 def get_target_image(input_caption, dataset_processor, clip_model):
     '''
+    - Need to use default clip_model here
     - Input: input_caption
     - Return: target_image, target_image_caption, target_image_embedding, target_image_caption_embedding
     - Functions of this form always:
@@ -143,6 +144,7 @@ print('input caption ', input_caption)
 '''
 What I need to save
 - input caption
+- input image
 - input caption subjects
 - top k captions
 - subjects for each of the top k captions
@@ -171,6 +173,11 @@ for batch in tqdm(dataset_processor.train_dataloader):
         print('index ', index , '/ ', len(captions))
         target_image_outputs = get_target_image(caption, dataset_processor, clip_model)
 
+        print('input caption ', caption)
+        print('input caption subjects ', target_image_outputs['input_caption_subjects'])
+        print('top captions ', target_image_outputs['top_captions'])
+        print('top subjects ', target_image_outputs['top_subjects'])
+
         
 
 
@@ -178,13 +185,13 @@ for batch in tqdm(dataset_processor.train_dataloader):
         filename = 'dataset'
         data = {
             'input_caption': caption,
-            'input_image_embedding': normalized_image_embeds[index],
-            'input_caption_embedding': normalized_text_embeds[index],
+            'input_image': images[index],
+            'input_caption': captions[index],
             'input_caption_subjects': target_image_outputs['input_caption_subjects'],
             'top_captions': target_image_outputs['top_captions'],
             'top_images': target_image_outputs['top_images'],
-            'top_image_embeddings': target_image_outputs['top_image_embeddings'],
-            'top_image_caption_embeddings': target_image_outputs['top_image_caption_embeddings'],
+            # 'top_image_embeddings': target_image_outputs['top_image_embeddings'],
+            # 'top_image_caption_embeddings': target_image_outputs['top_image_caption_embeddings'],
             'top_subjects': target_image_outputs['top_subjects'],
 
 

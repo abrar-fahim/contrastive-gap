@@ -38,8 +38,8 @@ training_hyperparameters = {
     'n_epochs': 50,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1e-5,
-    'temperature': 0.1,
-    'intra_modality_temperature': 0.1,
+    'temperature': 0.01,
+    'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
     'validation_dataset_size': 512,
     'validation_batch_size': 512,

@@ -12,6 +12,7 @@ import random
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
 import pickle
+from sklearn.decomposition import PCA
 
 pca = None
 
@@ -629,7 +630,7 @@ def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wa
                 plt.show()
 
 
-def evaluate_linearity(clip_model, wandb=wandb):
+def evaluate_linearity(clip_model, wandb=wandb, plot=False):
     '''
     I'll only evaluate on the dataset I prepared and pickled in 'dataset' file
     '''
@@ -641,12 +642,27 @@ def evaluate_linearity(clip_model, wandb=wandb):
 
     average_counter = 0
 
+    plot_captions = []
+    plot_images = [] 
+    plot_input_images = None
+    plot_input_caption = None
+    plot_new_images = [] # this is after arithmetic
+    plot_target_image = None # this is the image I want to get close to with the new_image_embedding.
+    # not comparing with captions, because they don't contain all info in the image. 
+
+    plot_n = 20
+
+    plot_i = 0
+
+
     # load dataset
     with open(filename, 'rb') as fr:
         try:
             while True:
                 # data.append(pickle.load(fr))
                 input_caption_data = pickle.load(fr) # data for one input caption
+
+                 
 
                 with torch.no_grad():
 
@@ -681,18 +697,24 @@ def evaluate_linearity(clip_model, wandb=wandb):
                         target_subject_embeddings = target_subject_embeddings / torch.norm(target_subject_embeddings, dim=1, keepdim=True)
 
                         new_image_embedding = input_image_embedding.detach().clone()
+
                         new_image_embedding = new_image_embedding.to(clip_model.device)
 
                         # do the math
                         for embedding in target_subject_embeddings:
                             new_image_embedding += embedding
-
+                        
                         for embedding in input_subject_embeddings:
                             new_image_embedding -= embedding
 
                         # normalize
                         new_image_embedding = new_image_embedding / torch.norm(new_image_embedding, dim=-1, keepdim=True)
 
+                        if plot and i < plot_n:
+                            plot_images.append(target_image_embedding)
+                            plot_captions.append(target_caption_embedding)
+                        if plot and plot_i >= 5:
+                            plot_new_images.append(new_image_embedding)
                         # cosine similarity between new_image_embedding and target_image_embedding
                         cosine_similarity = torch.dot(new_image_embedding, target_image_embedding) # should be high
 
@@ -705,6 +727,9 @@ def evaluate_linearity(clip_model, wandb=wandb):
                         average_cosine_similarity += cosine_similarity.item()
                         average_counter += 1
 
+                        
+
+
                         # print()
 
                         # print('input caption ', input_caption_data['input_caption'])
@@ -715,19 +740,52 @@ def evaluate_linearity(clip_model, wandb=wandb):
                         # print('original cosine similarity ', original_cosine_similarity.item())
                         # print('new_embedding_original_image_similarity ', new_embedding_original_image_similarity.item())
                         # print()
+                    
 
 
-
+                if plot: 
+                    plot_captions.append(input_caption_data['input_image_embedding'])
+                    plot_images.append(input_caption_data['input_caption_embedding'])
+                    plot_i += 1
 
 
 
 
         except EOFError:
+            print('done')
             pass
 
 
     
     average_cosine_similarity = average_cosine_similarity / average_counter
+
+    if plot:
+        # do pca 
+        pca = PCA(n_components=2)
+        plot_captions = torch.stack(plot_captions).detach().cpu().numpy()
+        plot_images = torch.stack(plot_images).detach().cpu().numpy()
+        plot_new_images = torch.stack(plot_new_images).detach().cpu().numpy()
+
+        all_embeddings = np.concatenate((plot_captions, plot_images, plot_new_images), axis=0)
+        pca.fit(all_embeddings)
+
+        # get PCA coordinates
+        pca_coordinates = pca.transform(all_embeddings)
+
+        # get image and text coordinates
+        caption_coordinates = pca_coordinates[:len(plot_captions), :] # shape: [batch_size, 2]
+        image_coordinates = pca_coordinates[len(plot_captions):len(plot_captions) + len(plot_images), :] # shape: [batch_size, 2]
+        new_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images):, :] # shape: [batch_size, 2]
+
+        # plot
+        plt.title(f'PCA of image (red) and text (blue) projections. Transformed image coordinates (green)')
+        plt.scatter(caption_coordinates[:, 0], caption_coordinates[:, 1], c='b')
+        plt.scatter(image_coordinates[:, 0], image_coordinates[:, 1], c='r')
+        plt.scatter(new_image_coordinates[:, 0], new_image_coordinates[:, 1], c='g')
+
+        plt.show()
+
+
 
     return average_cosine_similarity
 
