@@ -20,6 +20,8 @@ class HFClip(ClipParent):
         super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+        print('CLIP device ', self.device)
+
 
         self.tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
        

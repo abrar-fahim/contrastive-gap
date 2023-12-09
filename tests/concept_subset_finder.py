@@ -23,8 +23,6 @@ pos_to_get = ['NNP', 'NNS', 'NN', 'NNPS']
 n_captions_to_search = 2048 # number of captions to search for target image
 n_input_captions = 10 # number of input captions to consider
 dataset_path = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
-filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
-# filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
 
 
 def get_target_image(input_caption, dataset_processor, clip_model):
@@ -75,13 +73,19 @@ def get_target_image(input_caption, dataset_processor, clip_model):
 
 
 
+
     for batch_i, batch in tqdm(enumerate(val_dataloader)):
 
-        if batch_i >= n_batches_to_search:
+        if batch_i >= n_batches_to_search or len(top_k_captions) >= max_target_captions:
             break
+
+        # print('batch_i ', batch_i, ' / ', n_batches_to_search)
+
+        # print('top k captions len ', len(top_k_captions), ' ////')
         
 
         preprocessed_images, tokenized_captions, images, captions = batch
+
 
         batch_outputs = clip_model(preprocessed_images, tokenized_captions, return_all=True)
 
@@ -93,8 +97,7 @@ def get_target_image(input_caption, dataset_processor, clip_model):
 
         for index, caption in enumerate(captions):
 
-            if index >= n_captions_to_search or \
-                len(top_k_captions) >= max_target_captions:
+            if index >= n_captions_to_search or len(top_k_captions) >= max_target_captions:
                 break
             # get subject from caption
             pos_tags = pos_tag(word_tokenize(caption))
@@ -110,7 +113,7 @@ def get_target_image(input_caption, dataset_processor, clip_model):
             # if any(subject in caption_subjects for subject in input_caption_subjects) and (len(caption_subjects) != len(input_caption_subjects)): # this is linearity, excluding consistency to force image embeddings out of image space
             # check if there is exactly same number of subjects in caption and input caption and atleast one subject is same
             if len(caption_subjects) == len(input_caption_subjects) and any(subject in caption_subjects for subject in input_caption_subjects):
-
+                
 
                 # add to lists
                 top_k_captions.append(caption)
@@ -120,6 +123,8 @@ def get_target_image(input_caption, dataset_processor, clip_model):
                 top_k_subjects.append(caption_subjects)
                 top_k_preprocessed_images.append(preprocessed_images[index])
                 top_k_tokenized_captions.append(tokenized_captions[index])
+
+                pass
 
 
     return {
@@ -182,58 +187,59 @@ What I need to save
 
 n_batches_to_consider = n_input_captions // training_hyperparameters['validation_batch_size'] + 1
 
-for batch_i, batch in tqdm(enumerate(dataset_processor.val_dataloader)):
+with torch.no_grad():
 
-    if batch_i >= n_batches_to_consider:
-        break
-    preprocessed_images, tokenized_captions, images, captions = batch
+    for batch_i, batch in tqdm(enumerate(dataset_processor.val_dataloader)):
 
-    batch_outputs = clip_model(preprocessed_images, tokenized_captions, return_all=True)
-
-    # normalize image and text embeds
-    normalized_image_embeds = batch_outputs.image_embeds / batch_outputs.image_embeds.norm(dim=-1, keepdim=True)
-    normalized_text_embeds = batch_outputs.text_embeds / batch_outputs.text_embeds.norm(dim=-1, keepdim=True)
-
-    for index, caption in enumerate(captions):
-
-        if index >= n_input_captions:
+        if batch_i >= n_batches_to_consider:
             break
-        # print magnitude of normalized image embeds
-        # print('magnitude of normalized image embeds ', normalized_image_embeds[index].norm())
+        preprocessed_images, tokenized_captions, images, captions = batch
 
-        print('index ', index , '/ ', len(captions))
-        target_image_outputs = get_target_image(caption, dataset_processor, clip_model)
+        batch_outputs = clip_model(preprocessed_images, tokenized_captions, return_all=True)
 
-        print('input caption ', caption)
-        print('input caption subjects ', target_image_outputs['input_caption_subjects'])
-        print('top captions ', target_image_outputs['top_captions'])
-        print('top subjects ', target_image_outputs['top_subjects'])
+        # normalize image and text embeds
+        normalized_image_embeds = batch_outputs.image_embeds / batch_outputs.image_embeds.norm(dim=-1, keepdim=True)
+        normalized_text_embeds = batch_outputs.text_embeds / batch_outputs.text_embeds.norm(dim=-1, keepdim=True)
 
-        
+        for index, caption in enumerate(captions):
 
+            if index >= n_input_captions:
+                break
+            # print magnitude of normalized image embeds
+            # print('magnitude of normalized image embeds ', normalized_image_embeds[index].norm())
 
-        # save stuff to file
-        filename = dataset_path
-        data = {
-            'input_caption': caption,
-            'input_tokenized_caption': tokenized_captions[index],
-            'input_image': images[index],
-            'input_preprocessed_image': preprocessed_images[index],
-            'input_caption': captions[index],
-            'input_caption_subjects': target_image_outputs['input_caption_subjects'],
-            'top_captions': target_image_outputs['top_captions'],
-            'top_images': target_image_outputs['top_images'],
-            'top_preprocessed_images': target_image_outputs['top_preprocessed_images'],
-            'top_tokenized_captions': target_image_outputs['top_tokenized_captions'],
-            # 'top_image_embeddings': target_image_outputs['top_image_embeddings'],
-            # 'top_image_caption_embeddings': target_image_outputs['top_image_caption_embeddings'],
-            'top_subjects': target_image_outputs['top_subjects'],
+            print('index ', index , '/ ', len(captions))
+            target_image_outputs = get_target_image(caption, dataset_processor, clip_model)
+
+            print('input caption ', caption)
+            print('input caption subjects ', target_image_outputs['input_caption_subjects'])
+            print('top captions ', target_image_outputs['top_captions'])
+            print('top subjects ', target_image_outputs['top_subjects'])
+
+            
 
 
-        }
-        with open(filename, 'ab+') as fp:
-            pickle.dump(data, fp)
-    n_batches = n_batches + 1
+            # save stuff to file
+            filename = dataset_path
+            data = {
+                'input_caption': caption,
+                'input_tokenized_caption': tokenized_captions[index],
+                'input_image': images[index],
+                'input_preprocessed_image': preprocessed_images[index],
+                'input_caption': captions[index],
+                'input_caption_subjects': target_image_outputs['input_caption_subjects'],
+                'top_captions': target_image_outputs['top_captions'],
+                'top_images': target_image_outputs['top_images'],
+                'top_preprocessed_images': target_image_outputs['top_preprocessed_images'],
+                'top_tokenized_captions': target_image_outputs['top_tokenized_captions'],
+                # 'top_image_embeddings': target_image_outputs['top_image_embeddings'],
+                # 'top_image_caption_embeddings': target_image_outputs['top_image_caption_embeddings'],
+                'top_subjects': target_image_outputs['top_subjects'],
+
+
+            }
+            with open(filename, 'ab+') as fp:
+                pickle.dump(data, fp)
 
         
     

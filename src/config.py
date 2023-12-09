@@ -49,7 +49,7 @@ training_hyperparameters = {
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
-    'num_workers': 0,
+    'num_workers': 4,
     'save_every': 25,
     'loss_weights': {
         'image_to_text_weight': 0.5,
