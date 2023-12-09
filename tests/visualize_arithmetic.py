@@ -11,6 +11,13 @@ from clips.hf_clip import HFClip
 
 from src.utils import evaluate_linearity
 
+import torch
+import random
+
+# set seed
+torch.manual_seed(42)
+random.seed(42)
+
 
 # load clip model
 clip_model = HFClip()

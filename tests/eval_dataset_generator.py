@@ -188,7 +188,7 @@ for batch in tqdm(dataset_processor.train_dataloader):
         top_images, top_captions, top_image_embeddings, top_image_caption_embeddings, top_k_subjects = get_target_image(caption, dataset_processor, clip_model)
 
         # save stuff to file
-        filename = 'dataset'
+        filename = 'datasets/mscoco/linear_eval_dataset/dataset'
         data = {
             'input_caption': caption,
             'input_caption_subjects': top_k_subjects,

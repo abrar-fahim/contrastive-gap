@@ -47,8 +47,8 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256,
-    'small_train_loader_dataset_size': 30000, # 30000
+    'small_train_loader_batch_size': 10,
+    'small_train_loader_dataset_size': 500, # 30000
     'num_workers': 0,
     'save_every': 25,
     'loss_weights': {

@@ -517,9 +517,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             print('rougeL ', rouge_scores['rougeL'])
             print("rougeLsum ", rouge_scores['rougeLsum'])
 
-def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wandb=wandb):
+
+def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wandb=wandb):
     '''
-    - "Pizza on a table" (img) + "Dog" (txt) - "Pizza" (txt) = "Dog on a table" (img)
+    - "Pizza on a table" (img) + []"Dog" (txt) - "Pizza" (txt)] = "Dog on a table" (img)
     - Measuring how similar distance and direction between "Pizza on..." (img) and "Dog on..." (img) is compared to that between "Pizza" (txt) and "Dog" (txt)
     '''
 
@@ -630,13 +631,14 @@ def evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wa
                 plt.show()
 
 
-def evaluate_linearity(clip_model, wandb=wandb, plot=False):
+def evaluate_linearity(clip_model, evaluate='linearity', wandb=wandb, plot=False): # evaluate = 'linearity' or 'concept_arrangement'
     '''
     I'll only evaluate on the dataset I prepared and pickled in 'datasets/mscoco/linear_eval_dataset' file
     '''
 
 
-    filename = 'datasets/mscoco/linear_eval_dataset'
+    filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
+    # filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
 
     average_cosine_similarity = 0 # this is the final output metric, should be high
 
@@ -644,16 +646,21 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
 
     plot_captions = []
     plot_images = [] 
-    plot_input_images = None
+    plot_input_image = []
     plot_input_caption = None
     plot_new_images = [] # this is after arithmetic
     plot_target_image = None # this is the image I want to get close to with the new_image_embedding.
+    plot_input_literal_caption = None
+    plot_target_literal_captions = []
+    plot_input_subjects = []
+    plot_target_subjects = [] # list of lists
     # not comparing with captions, because they don't contain all info in the image. 
 
     plot_n = 20
 
     plot_i = 0
 
+    input_image_index = 5
 
     # load dataset
     with open(filename, 'rb') as fr:
@@ -666,10 +673,36 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
 
                 with torch.no_grad():
 
-                    # create custom embedding to retrieve target image
-                    input_image_embedding = input_caption_data['input_image_embedding'] # already normalized
 
-                    input_image_embedding = input_image_embedding.to(clip_model.device)
+
+                    # create custom embedding to retrieve target image
+                    input_preprocessed_image = input_caption_data['input_preprocessed_image']
+
+                    input_tokenized_caption = input_caption_data['input_tokenized_caption']
+                    input_caption = input_caption_data['input_caption']
+
+                    if plot:
+                        print('input caption ', input_caption)
+
+                    # get input image embedding
+
+                    outputs = clip_model(input_preprocessed_image.unsqueeze(0), clip_model.tokenize_captions([input_caption]), output_loss=False, return_all=True)
+
+                    input_image_embedding = outputs.image_embeds.squeeze(0)
+
+                    # normalize
+                    input_image_embedding = input_image_embedding / torch.norm(input_image_embedding, dim=-1, keepdim=True)
+
+                    input_caption_embedding = outputs.text_embeds.squeeze(0)
+
+                    # normalize
+                    input_caption_embedding = input_caption_embedding / torch.norm(input_caption_embedding, dim=-1, keepdim=True)
+
+
+
+
+
+                    # input_image_embedding = input_image_embedding.to(clip_model.device)
 
                     input_subjects = input_caption_data['input_caption_subjects']
 
@@ -678,14 +711,27 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
 
                     # normalize
                     input_subject_embeddings = input_subject_embeddings / torch.norm(input_subject_embeddings, dim=1, keepdim=True)
+                        
 
-                    for i, target_caption_data in enumerate(input_caption_data['top_captions']):
+                    for i, _ in enumerate(input_caption_data['top_captions']):
+
+                        target_preprocessed_image = input_caption_data['top_preprocessed_images'][i]
+                        target_preprocessed_image = target_preprocessed_image.to (clip_model.device)
+                        # target_tokenized_caption = input_caption_data['top_tokenized_captions'][i]
+                        # target_tokenized_caption = target_tokenized_caption.to(clip_model.device)
+
+                        target_caption = input_caption_data['top_captions'][i]
+
+                        outputs = clip_model(target_preprocessed_image.unsqueeze(0), clip_model.tokenize_captions([target_caption]), output_loss=False, return_all=True)
+
+
                         # get target image embedding
-                        target_image_embedding = input_caption_data['top_image_embeddings'][i]
-                        target_image_embedding = target_image_embedding.to(clip_model.device)
+                        target_image_embedding = outputs.image_embeds.squeeze(0)
+                        target_caption_embedding = outputs.text_embeds.squeeze(0)
 
-                        target_caption_embedding = input_caption_data['top_image_caption_embeddings'][i]
-                        target_caption_embedding = target_caption_embedding.to(clip_model.device)
+                        # normalize
+                        target_image_embedding = target_image_embedding / torch.norm(target_image_embedding, dim=-1, keepdim=True)
+                        target_caption_embedding = target_caption_embedding / torch.norm(target_caption_embedding, dim=-1, keepdim=True)
 
                         # get target caption subjects
                         target_subjects = input_caption_data['top_subjects'][i]
@@ -713,8 +759,13 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
                         if plot and i < plot_n:
                             plot_images.append(target_image_embedding)
                             plot_captions.append(target_caption_embedding)
-                        if plot and plot_i >= 5:
-                            plot_new_images.append(new_image_embedding)
+
+
+                            if plot_i == input_image_index:
+                                plot_new_images.append(new_image_embedding)
+                                plot_target_literal_captions.append(target_caption)
+                                plot_target_subjects.append(target_subjects)
+                                
                         # cosine similarity between new_image_embedding and target_image_embedding
                         cosine_similarity = torch.dot(new_image_embedding, target_image_embedding) # should be high
 
@@ -744,9 +795,16 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
 
 
                 if plot: 
-                    plot_captions.append(input_caption_data['input_image_embedding'])
-                    plot_images.append(input_caption_data['input_caption_embedding'])
+
+                    if input_image_index == plot_i:
+                        plot_input_image.append(input_image_embedding)
+                        plot_input_literal_caption = input_caption
+                        plot_input_subjects = input_subjects
+                    else:
+                        plot_images.append(input_image_embedding)
+                    plot_captions.append(input_caption_embedding)
                     plot_i += 1
+
 
 
 
@@ -760,14 +818,29 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
     average_cosine_similarity = average_cosine_similarity / average_counter
 
     if plot:
+
+        # print input caption, input subjects, target captions, and target subjects for each caption
+
+        print(' -- INPUT -- ')
+        print('input caption ', plot_input_literal_caption)
+        print('input subjects ', plot_input_subjects)
+        for i in range(len(plot_target_literal_captions)):
+            
+            print(f' -- TARGET {i+1}-- ')
+            print('target caption ', plot_target_literal_captions[i])
+            print('target subjects ', plot_target_subjects[i])
+            print()
         # do pca 
         pca = PCA(n_components=2)
         plot_captions = torch.stack(plot_captions).detach().cpu().numpy()
         plot_images = torch.stack(plot_images).detach().cpu().numpy()
         plot_new_images = torch.stack(plot_new_images).detach().cpu().numpy()
+        plot_input_image = torch.stack(plot_input_image).detach().cpu().numpy()
 
-        all_embeddings = np.concatenate((plot_captions, plot_images, plot_new_images), axis=0)
+        all_embeddings = np.concatenate((plot_captions, plot_images, plot_input_image), axis=0)
         pca.fit(all_embeddings)
+
+        all_embeddings = np.concatenate((plot_captions, plot_images, plot_new_images, plot_input_image), axis=0)
 
         # get PCA coordinates
         pca_coordinates = pca.transform(all_embeddings)
@@ -776,12 +849,14 @@ def evaluate_linearity(clip_model, wandb=wandb, plot=False):
         caption_coordinates = pca_coordinates[:len(plot_captions), :] # shape: [batch_size, 2]
         image_coordinates = pca_coordinates[len(plot_captions):len(plot_captions) + len(plot_images), :] # shape: [batch_size, 2]
         new_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images):, :] # shape: [batch_size, 2]
+        input_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images) + len(plot_new_images):, :] # shape: [batch_size, 2]
 
         # plot
-        plt.title(f'PCA of image (red) and text (blue) projections. Transformed image coordinates (green)')
+        plt.title(f'PCA of image (red) and text (blue) projections. Transformed image coordinates (green). Input image coordinates (yellow).')
         plt.scatter(caption_coordinates[:, 0], caption_coordinates[:, 1], c='b')
         plt.scatter(image_coordinates[:, 0], image_coordinates[:, 1], c='r')
         plt.scatter(new_image_coordinates[:, 0], new_image_coordinates[:, 1], c='g')
+        plt.scatter(input_image_coordinates[:, 0], input_image_coordinates[:, 1], c='y')
 
         plt.show()
 

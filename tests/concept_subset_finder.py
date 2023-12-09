@@ -11,10 +11,8 @@ from tqdm import tqdm
 import torch
 import random
 from clips.hf_clip import HFClip
-from src.utils import evaluate_concept_arrangement
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
-from nltk.translate.bleu_score import sentence_bleu
 import pickle
 
 def get_target_image(input_caption, dataset_processor, clip_model):
@@ -31,7 +29,7 @@ def get_target_image(input_caption, dataset_processor, clip_model):
     # Find target_caption that has similar structure as caption only with subject changed
 
     # get subject from caption
-    pos_to_get = ['NN', 'NNP']
+    pos_to_get = ['NN', 'NNP', 'NNS', 'NNPS']
     pos_tags = pos_tag(word_tokenize(input_caption))
 
     input_caption_subjects = [word.lower() for word, pos in pos_tags if pos in pos_to_get]
@@ -44,16 +42,21 @@ def get_target_image(input_caption, dataset_processor, clip_model):
 
     print('input caption subjects ', input_caption_subjects)
 
+    # print('all ', pos_tags)
+
 
 
     train_dataloader = dataset_processor.train_dataloader
     train_dataloader.return_org_imgs_collate_fn = True
 
-    k = 10 # keep top k captions
+    k = 30 # keep top k captions
     top_k_captions = []
     top_k_images = []
     top_k_image_embeddings = []
     top_k_image_caption_embeddings = []
+
+    top_k_preprocessed_images = []
+    top_k_tokenized_captions = []
     
     top_k_bleu_scores = []
 
@@ -73,11 +76,14 @@ def get_target_image(input_caption, dataset_processor, clip_model):
 
 
         for index, caption in enumerate(captions):
+
+            if len(top_k_captions) >= k:
+                break
             # get subject from caption
-            pos_to_get = ['NNP', 'NN']
+            pos_to_get = ['NNP', 'NNS', 'NN', 'NNPS']
             pos_tags = pos_tag(word_tokenize(caption))
 
-            caption_subjects = [word for word, pos in pos_tags if pos in pos_to_get]
+            caption_subjects = [word.lower() for word, pos in pos_tags if pos in pos_to_get]
 
             # get unique subjects
             caption_subjects = list(set(caption_subjects))
@@ -86,7 +92,11 @@ def get_target_image(input_caption, dataset_processor, clip_model):
                 continue
 
             # check if caption subjects contain any of the input caption subjects
-            if any(subject in caption_subjects for subject in input_caption_subjects):
+            # if any(subject in caption_subjects for subject in input_caption_subjects) and (len(caption_subjects) != len(input_caption_subjects)): # this is linearity, excluding consistency to force image embeddings out of image space
+            # check if there is exactly same number of subjects in caption and input caption and atleast one subject is same
+            if len(caption_subjects) == len(input_caption_subjects) and any(subject in caption_subjects for subject in input_caption_subjects):
+
+
 
                 # add to lists
                 top_k_captions.append(caption)
@@ -94,6 +104,8 @@ def get_target_image(input_caption, dataset_processor, clip_model):
                 top_k_image_embeddings.append(normalized_image_embeds[index])
                 top_k_image_caption_embeddings.append(normalized_text_embeds[index])
                 top_k_subjects.append(caption_subjects)
+                top_k_preprocessed_images.append(preprocessed_images[index])
+                top_k_tokenized_captions.append(tokenized_captions[index])
 
 
     return {
@@ -103,6 +115,8 @@ def get_target_image(input_caption, dataset_processor, clip_model):
         'top_image_caption_embeddings': top_k_image_caption_embeddings,
         'top_subjects': top_k_subjects,
         'input_caption_subjects': input_caption_subjects,
+        'top_preprocessed_images': top_k_preprocessed_images,
+        'top_tokenized_captions': top_k_tokenized_captions,
     }
 
 
@@ -127,9 +141,9 @@ torch.manual_seed(42)
 
 dataset_processor.return_org_imgs_collate_fn = True
 # get first caption in dataset as input caption for now
-input_caption = next(iter(dataset_processor.train_dataloader))[3][0]
+# input_caption = next(iter(dataset_processor.train_dataloader))[3][0]
 
-print('input caption ', input_caption)
+# print('input caption ', input_caption)
 
 # target_image_outputs = get_target_image(input_caption, dataset_processor, clip_model)
 
@@ -182,14 +196,19 @@ for batch in tqdm(dataset_processor.train_dataloader):
 
 
         # save stuff to file
-        filename = 'dataset'
+        filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
+        # filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
         data = {
             'input_caption': caption,
+            'input_tokenized_caption': tokenized_captions[index],
             'input_image': images[index],
+            'input_preprocessed_image': preprocessed_images[index],
             'input_caption': captions[index],
             'input_caption_subjects': target_image_outputs['input_caption_subjects'],
             'top_captions': target_image_outputs['top_captions'],
             'top_images': target_image_outputs['top_images'],
+            'top_preprocessed_images': target_image_outputs['top_preprocessed_images'],
+            'top_tokenized_captions': target_image_outputs['top_tokenized_captions'],
             # 'top_image_embeddings': target_image_outputs['top_image_embeddings'],
             # 'top_image_caption_embeddings': target_image_outputs['top_image_caption_embeddings'],
             'top_subjects': target_image_outputs['top_subjects'],

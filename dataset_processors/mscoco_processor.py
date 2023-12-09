@@ -65,7 +65,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
             # return (torch.stack(imgs), captions)
-            return (imgs, captions)   
+            return (imgs, captions)    
         
 
         
