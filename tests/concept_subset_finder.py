@@ -6,6 +6,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # add sibling directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.config import training_hyperparameters
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from tqdm import tqdm
 import torch
@@ -14,6 +16,16 @@ from clips.hf_clip import HFClip
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
 import pickle
+
+# hypers
+max_target_captions = 30 # keep top k captions
+pos_to_get = ['NNP', 'NNS', 'NN', 'NNPS']
+n_captions_to_search = 2048 # number of captions to search for target image
+n_input_captions = 10 # number of input captions to consider
+dataset_path = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
+filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
+# filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
+
 
 def get_target_image(input_caption, dataset_processor, clip_model):
     '''
@@ -29,7 +41,7 @@ def get_target_image(input_caption, dataset_processor, clip_model):
     # Find target_caption that has similar structure as caption only with subject changed
 
     # get subject from caption
-    pos_to_get = ['NN', 'NNP', 'NNS', 'NNPS']
+    global pos_to_get, max_target_captions, n_captions_to_search
     pos_tags = pos_tag(word_tokenize(input_caption))
 
     input_caption_subjects = [word.lower() for word, pos in pos_tags if pos in pos_to_get]
@@ -45,11 +57,8 @@ def get_target_image(input_caption, dataset_processor, clip_model):
     # print('all ', pos_tags)
 
 
-
-    train_dataloader = dataset_processor.train_dataloader
-    train_dataloader.return_org_imgs_collate_fn = True
-
-    k = 30 # keep top k captions
+    val_dataloader = dataset_processor.val_dataloader
+    dataset_processor.return_org_imgs_collate_fn = True
     top_k_captions = []
     top_k_images = []
     top_k_image_embeddings = []
@@ -62,9 +71,16 @@ def get_target_image(input_caption, dataset_processor, clip_model):
 
     top_k_subjects = []
 
+    n_batches_to_search = n_captions_to_search // training_hyperparameters['validation_batch_size'] + 1
 
 
-    for batch in tqdm(train_dataloader):
+
+    for batch_i, batch in tqdm(enumerate(val_dataloader)):
+
+        if batch_i >= n_batches_to_search:
+            break
+        
+
         preprocessed_images, tokenized_captions, images, captions = batch
 
         batch_outputs = clip_model(preprocessed_images, tokenized_captions, return_all=True)
@@ -77,12 +93,11 @@ def get_target_image(input_caption, dataset_processor, clip_model):
 
         for index, caption in enumerate(captions):
 
-            if len(top_k_captions) >= k:
+            if index >= n_captions_to_search or \
+                len(top_k_captions) >= max_target_captions:
                 break
             # get subject from caption
-            pos_to_get = ['NNP', 'NNS', 'NN', 'NNPS']
             pos_tags = pos_tag(word_tokenize(caption))
-
             caption_subjects = [word.lower() for word, pos in pos_tags if pos in pos_to_get]
 
             # get unique subjects
@@ -95,7 +110,6 @@ def get_target_image(input_caption, dataset_processor, clip_model):
             # if any(subject in caption_subjects for subject in input_caption_subjects) and (len(caption_subjects) != len(input_caption_subjects)): # this is linearity, excluding consistency to force image embeddings out of image space
             # check if there is exactly same number of subjects in caption and input caption and atleast one subject is same
             if len(caption_subjects) == len(input_caption_subjects) and any(subject in caption_subjects for subject in input_caption_subjects):
-
 
 
                 # add to lists
@@ -166,11 +180,11 @@ What I need to save
 - top k image embeddings
 '''
 
-n_batches = 0
+n_batches_to_consider = n_input_captions // training_hyperparameters['validation_batch_size'] + 1
 
-for batch in tqdm(dataset_processor.train_dataloader):
+for batch_i, batch in tqdm(enumerate(dataset_processor.val_dataloader)):
 
-    if n_batches > 0: #doing just one batch for now
+    if batch_i >= n_batches_to_consider:
         break
     preprocessed_images, tokenized_captions, images, captions = batch
 
@@ -181,6 +195,9 @@ for batch in tqdm(dataset_processor.train_dataloader):
     normalized_text_embeds = batch_outputs.text_embeds / batch_outputs.text_embeds.norm(dim=-1, keepdim=True)
 
     for index, caption in enumerate(captions):
+
+        if index >= n_input_captions:
+            break
         # print magnitude of normalized image embeds
         # print('magnitude of normalized image embeds ', normalized_image_embeds[index].norm())
 
@@ -196,8 +213,7 @@ for batch in tqdm(dataset_processor.train_dataloader):
 
 
         # save stuff to file
-        filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
-        # filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
+        filename = dataset_path
         data = {
             'input_caption': caption,
             'input_tokenized_caption': tokenized_captions[index],

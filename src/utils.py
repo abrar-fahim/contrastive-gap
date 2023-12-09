@@ -669,8 +669,6 @@ def evaluate_linearity(clip_model, evaluate='linearity', wandb=wandb, plot=False
                 # data.append(pickle.load(fr))
                 input_caption_data = pickle.load(fr) # data for one input caption
 
-                 
-
                 with torch.no_grad():
 
 
