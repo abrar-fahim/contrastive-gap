@@ -22,7 +22,8 @@ max_target_captions = 30 # keep top k captions
 pos_to_get = ['NNP', 'NNS', 'NN', 'NNPS']
 n_captions_to_search = 2048 # number of captions to search for target image
 n_input_captions = 10 # number of input captions to consider
-dataset_path = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
+# dataset_path = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
+dataset_path = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
 
 
 def get_target_image(input_caption, dataset_processor, clip_model):
@@ -109,12 +110,20 @@ def get_target_image(input_caption, dataset_processor, clip_model):
             if len(caption_subjects) == 0:
                 continue
 
-            # check if caption subjects contain any of the input caption subjects
-            # if any(subject in caption_subjects for subject in input_caption_subjects) and (len(caption_subjects) != len(input_caption_subjects)): # this is linearity, excluding consistency to force image embeddings out of image space
-            # check if there is exactly same number of subjects in caption and input caption and atleast one subject is same
-            if len(caption_subjects) == len(input_caption_subjects) and any(subject in caption_subjects for subject in input_caption_subjects):
-                
+            append = False
+            
+            if 'linearity' in dataset_path:
 
+                # check if caption subjects contain any of the input caption subjects
+                if any(subject in caption_subjects for subject in input_caption_subjects) and (len(caption_subjects) != len(input_caption_subjects)): # this is linearity, excluding consistency to force image embeddings out of image space
+                    append = True
+
+            elif 'consistency' in dataset_path:
+                # check if there is exactly same number of subjects in caption and input caption and atleast one subject is same
+                if len(caption_subjects) == len(input_caption_subjects) and any(subject in caption_subjects for subject in input_caption_subjects):
+                    append = True
+                
+            if append:
                 # add to lists
                 top_k_captions.append(caption)
                 top_k_images.append(images[index])
