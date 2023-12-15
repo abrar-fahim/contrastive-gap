@@ -232,10 +232,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
         # Get 2nd highest cosine similarity for each image
-        top2_cosine_similarities = torch.topk(val_logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
+        # top2_cosine_similarities = torch.topk(val_logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
         # print('top2_cosine_similarities ', top2_cosine_similarities.shape)
         # get mean of 2nd highest cosine similarity for each image
-        mean_top2_cosine_similarity = torch.mean(top2_cosine_similarities[:, 1])
+        # mean_top2_cosine_similarity = torch.mean(top2_cosine_similarities[:, 1])
 
         # print('median_top2_cosine_similarity ', median_top2_cosine_similarity)
 
