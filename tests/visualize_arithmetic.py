@@ -22,5 +22,5 @@ random.seed(42)
 # load clip model
 clip_model = HFClip()
 
-evaluate_linearity(clip_model, plot=True)
+evaluate_linearity(clip_model, evaluate_just_text=True, plot=True)  
 
