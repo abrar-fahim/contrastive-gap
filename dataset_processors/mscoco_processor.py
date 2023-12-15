@@ -26,6 +26,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.return_org_imgs_collate_fn = return_org_imgs_collate_fn
         self.return_only_captions = return_only_captions
 
+        self.val_tokenized_captions = None
+
+        self.use_cached_tokenized_captions = False
+
         # set seed
         torch.manual_seed(training_hyperparameters['seed'])
         random.seed(training_hyperparameters['seed'])
@@ -52,13 +56,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
             if not self.show_real_images_captions:
                 imgs = tuple(self.preprocess(img) for img in imgs)
 
-            
-        
-            
 
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
-
         if self.return_only_captions:
             return captions
 
@@ -76,7 +76,16 @@ class MSCOCOProcessor(DatasetProcessorParent):
         
        
         
-        # tokenize captions and return tokens directly
+        # # tokenize captions and return tokens directly
+        # if self.use_cached_tokenized_captions and self.val_tokenized_captions is not None:
+        #     tokenized_captions = self.val_tokenized_captions
+
+        # else:
+        #     tokenized_captions = HFClip.static_tokenize_captions(captions)
+
+        #     if self.use_cached_tokenized_captions:
+        #         self.val_tokenized_captions = tokenized_captions
+
         tokenized_captions = HFClip.static_tokenize_captions(captions)
 
         
@@ -90,7 +99,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
             return (stacked_preprocessed_images, tokenized_captions, imgs, captions)
-        
         
         
         stacked_images = torch.stack(imgs)

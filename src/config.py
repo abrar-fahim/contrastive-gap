@@ -42,8 +42,8 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 8192,
-    'validation_batch_size': 4096,
+    'validation_dataset_size': 2048,
+    'validation_batch_size': 2048,
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights

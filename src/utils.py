@@ -35,6 +35,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     val_dataset = dataset_processor.val_dataset
     train_dataset = dataset_processor.train_dataset
+    # set caching to true only for inside do_validation
+    dataset_processor.use_cached_tokenized_captions = True
     collate_fn = dataset_processor.collate_fn
 
 
@@ -44,12 +46,21 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
     # create dataloader for train set
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    # train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+
+    
+
+
+
+
 
     with torch.no_grad():
         # get batch from validation set
-        (val_imgs, val_captions) = next(iter(val_dataloader))
 
+
+        for batch in val_dataloader:
+            # (val_imgs, val_captions) = next(iter(val_dataloader))
+            (val_imgs, val_captions) = batch
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
@@ -189,20 +200,20 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         3. Training image classification accuracy
         '''
 
-        (train_imgs, train_captions) = next(iter(train_dataloader))
+        # (train_imgs, train_captions) = next(iter(train_dataloader))
 
-        train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so tha I get cosine similarities directly
-        train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
-        train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
-        train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
-        train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
-        train_image_classification_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
+        # train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so tha I get cosine similarities directly
+        # train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
+        # train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
+        # train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
+        # train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
+        # train_image_classification_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
 
-        # train_loss = train_outputs.loss.item()
+        # # train_loss = train_outputs.loss.item()
 
-        train_intra_loss = train_outputs.loss['intra_modality']
-        train_inter_loss = train_outputs.loss['inter_modality']
-        train_loss = train_outputs.loss['total']
+        # train_intra_loss = train_outputs.loss['intra_modality']
+        # train_inter_loss = train_outputs.loss['inter_modality']
+        # train_loss = train_outputs.loss['total']
 
 
 
@@ -214,7 +225,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # print('image labels ', image_class_labels)
 
         print('validation image_accuracy ', val_image_classification_accuracy.item())
-        print('train image_accuracy ', train_image_classification_accuracy.item())
+        # print('train image_accuracy ', train_image_classification_accuracy.item())
 
 
         print('--- IMAGE-TEXT SIMILARITIES --- ')
@@ -339,7 +350,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             # save to csv file
             with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'a') as f:
                 # f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_classification_accuracy.item()) + ',' + str(train_image_classification_accuracy.item()) + ',' + str(cosine_sim_metric.item()) + ',' + str(train_loss) + ',' + str(mean_cosine_similarity.item()) + ',' + str(non_similar_mean_cosine_similarity.item()) + ',' + str(mean_text_text_cosine_similarity.item()) + ',' + str(mean_image_image_cosine_similarity.item()) + '\n')
-                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_classification_accuracy.item()) + ',' + str(train_image_classification_accuracy.item()) + ',' + str(0) + ',' + str(train_loss) + ',' + str(mean_cosine_similarity.item()) + ',' + str(non_similar_mean_cosine_similarity.item()) + ',' + str(mean_text_text_cosine_similarity.item()) + ',' + str(mean_image_image_cosine_similarity.item()) + '\n')
+                f.write(str(epoch) + ',' + str(index) + ',' + str(val_image_classification_accuracy.item()) + ',' + str(0) + ',' + str(0) + ',' + str(0) + ',' + str(mean_cosine_similarity.item()) + ',' + str(non_similar_mean_cosine_similarity.item()) + ',' + str(mean_text_text_cosine_similarity.item()) + ',' + str(mean_image_image_cosine_similarity.item()) + '\n')
 
         '''
         log to wandb
@@ -352,10 +363,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 data={
                     'val_image_classification_accuracy': val_image_classification_accuracy.item(),
                     'val_image_retrieval_accuracy': val_image_retrieval_accuracy.item(),
-                    'train_image_accuracy': train_image_classification_accuracy.item(),
+                    # 'train_image_accuracy': train_image_classification_accuracy.item(),
                     # 'cosine_sim_metric': cosine_sim_metric.item(),
-                    'train_intramodality_loss': train_intra_loss,
-                    'train_intermodality_loss': train_inter_loss,
+                    # 'train_intramodality_loss': train_intra_loss,
+                    # 'train_intermodality_loss': train_inter_loss,
                     'mean_cosine_similarity': mean_cosine_similarity.item(),
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
@@ -368,6 +379,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 step= int(epoch * 100 + index) # by 100 to maintain fair comparison with existing runs data
 
             )
+        
+        # set dataprocessor caching back to off
+        dataset_processor.use_cached_tokenized_captions = False
 
         '''
         Show real images and captions for the incorrect predictions
@@ -426,12 +440,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             dataset_processor.show_real_images_captions = False
 
             # print('predicted captions ', incorrect_predicted_captions[:10])
-
-
-
-
-
-
 
 
 
