@@ -637,8 +637,8 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
     '''
 
 
-    filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
-    # filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
+    # filename = 'datasets/mscoco/linear_eval_dataset/linearity_dataset'
+    filename = 'datasets/mscoco/linear_eval_dataset/consistency_dataset'
 
     average_cosine_similarity = 0 # this is the final output metric, should be high
 
@@ -654,8 +654,6 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
     plot_literal_target_captions = []
     plot_literal_input_subjects = []
     plot_literal_target_subjects = [] # list of lists
-    plot_input_subjects = [] # list of lists
-    plot_target_subjects = [] # list of lists
     # not comparing with captions, because they don't contain all info in the image. 
 
     plot_n = 20
@@ -679,6 +677,7 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
                     if plot:
                         print('input caption ', input_caption)
+                        print('input caption subjects ', input_caption_data['input_caption_subjects'])
 
                     # get input image embedding
 
@@ -707,12 +706,45 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
                     # normalize
                     norm_input_subject_embeddings = input_subject_embeddings / torch.norm(input_subject_embeddings, dim=1, keepdim=True)
+
+                    # calculate cosine similarity between sum of input subjects and input sentence
+
+                    # sum_input_subject_embeddings = torch.sum(norm_input_subject_embeddings, dim=0)
+
+                    # sum_input_subject_embeddings = torch.zeros_like(norm_input_subject_embeddings[0])
+
+                    # for embedding in norm_input_subject_embeddings:
+                    # for embedding in input_subject_embeddings:
+                    #     sum_input_subject_embeddings += embedding
+
+                    #     # normalize
+                    #     # sum_input_subject_embeddings = sum_input_subject_embeddings / torch.norm(sum_input_subject_embeddings, dim=-1, keepdim=True)
+                    # # sum_input_subject_embeddings = torch.sum(input_subject_embeddings, dim=0)
+
+                    # # normalize
+                    # norm_sum_input_subject_embeddings = sum_input_subject_embeddings / torch.norm(sum_input_subject_embeddings, dim=-1, keepdim=True)
+
+                    # plot_new_images.append(norm_sum_input_subject_embeddings) # this is after arithmetic
+
+
+
+
+
+                    # cosine_similarity = torch.dot(norm_input_caption_embedding, norm_sum_input_subject_embeddings) # should be high
+
+                    
+
+                    # print('cosine similarity between sum of input subjects and input sentence ', cosine_similarity.item())
+                    
+
+
                         
 
                     for i, _ in enumerate(input_caption_data['top_captions']):
+                    # for i, _ in enumerate(range(0)):
 
                         target_preprocessed_image = input_caption_data['top_preprocessed_images'][i]
-                        target_preprocessed_image = target_preprocessed_image.to (clip_model.device)
+                        target_preprocessed_image = target_preprocessed_image.to(clip_model.device)
                         # target_tokenized_caption = input_caption_data['top_tokenized_captions'][i]
                         # target_tokenized_caption = target_tokenized_caption.to(clip_model.device)
 
@@ -739,54 +771,42 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
                         norm_target_subject_embeddings = target_subject_embeddings / torch.norm(target_subject_embeddings, dim=1, keepdim=True)
 
 
+
+
                         if evaluate_just_text:
-
                             # new_caption_embedding = norm_input_caption_embedding.detach().clone()
-                            new_caption_embedding = input_caption_embedding.detach().clone()
-                            new_caption_embedding = new_caption_embedding.to(clip_model.device)
+                            new_embedding = input_caption_embedding.detach().clone()
+                        else:
+                            # new_image_embedding = norm_input_image_embedding.detach().clone()
+                            new_embedding = input_image_embedding.detach().clone()
                             
-                            #do the math
-
-                            # print('new caption embedding before ', new_caption_embedding[:100])
-                            # for embedding in norm_input_subject_embeddings:
-                            for embedding in input_subject_embeddings:
-                                new_caption_embedding -= embedding
-                                # normalize
-                                # new_caption_embedding = new_caption_embedding / torch.norm(new_caption_embedding, dim=-1, keepdim=True)
+                        new_embedding = new_embedding.to(clip_model.device)
 
 
+                        #do the math
 
-                            # for embedding in norm_target_subject_embeddings:
-                            for embedding in target_subject_embeddings:
-                                new_caption_embedding += embedding 
-                                # normalize
-                                new_caption_embedding = new_caption_embedding / torch.norm(new_caption_embedding, dim=-1, keepdim=True)
+                        # for embedding in norm_target_subject_embeddings:
+                        for embedding in target_subject_embeddings:
+                            new_embedding += embedding 
+                            # normalize
+                            # new_caption_embedding = new_caption_embedding / torch.norm(new_caption_embedding, dim=-1, keepdim=True)
 
-                            # print('new_caption_embedding after ', new_caption_embedding[:100])
+                        # print('new_caption_embedding after ', new_caption_embedding[:100])
+                            
+                        # print('new caption embedding before ', new_caption_embedding[:100])
+                        # for embedding in norm_input_subject_embeddings:
+                        for embedding in input_subject_embeddings:
+                            new_embedding -= embedding
+                            # normalize
+                            # new_caption_embedding = new_caption_embedding / torch.norm(new_caption_embedding, dim=-1, keepdim=True)
 
-                            # plot new caption embedding before and after
-                            if plot:
-                                # normalize
-                                norm_new_caption_embedding = new_caption_embedding / torch.norm(new_caption_embedding, dim=-1, keepdim=True)
+                        # plot new caption embedding before and after
+                        if plot:
+                            # normalize
+                            norm_new_embedding = new_embedding / torch.norm(new_embedding, dim=-1, keepdim=True)
                               
                             
-                            predicted_target_embedding = new_caption_embedding
-
-
-                        else:
-
-                            # new_image_embedding = norm_input_image_embedding.detach().clone()
-                            new_image_embedding = input_image_embedding.detach().clone()
-
-                            new_image_embedding = new_image_embedding.to(clip_model.device)
-                            # do the math
-                            for embedding in norm_target_subject_embeddings:
-                                new_image_embedding += embedding
-                            
-                            for embedding in norm_input_subject_embeddings:
-                                new_image_embedding -= embedding
-
-                            predicted_target_embedding = new_image_embedding
+                            predicted_target_embedding = new_embedding
                         
 
                         # normalize
@@ -802,19 +822,9 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
                             if plot_i == input_image_index:
 
-                                print('input caption ', input_caption)
-
-                                print('target subjects len ', len(target_subjects))
-                                plt.plot(norm_input_caption_embedding.detach().cpu().numpy(), color='blue')
-
-                                plt.plot(norm_new_caption_embedding.detach().cpu().numpy(), color='red')
-
-                                plt.show()
                                 plot_new_images.append(norm_predicted_target_embedding) # this is after arithmetic
                                 plot_literal_target_captions.append(target_caption)
                                 plot_literal_target_subjects.append(target_subjects)
-                                if norm_target_subject_embeddings.shape[0] == 2:
-                                    plot_target_subjects = norm_target_subject_embeddings
 
                                 
                         # cosine similarity between new_image_embedding and target_image_embedding
@@ -847,6 +857,8 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
                 if plot: 
 
+
+
                     if input_image_index == plot_i:
 
                         if evaluate_just_text:
@@ -855,7 +867,6 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
                             plot_input_image.append(norm_input_image_embedding)
                         plot_literal_input_caption = input_caption
                         plot_literal_input_subjects = input_subjects
-                        plot_input_subjects = norm_input_subject_embeddings
                     else:
                         plot_images.append(norm_input_image_embedding)
                     plot_captions.append(norm_input_caption_embedding)
@@ -891,9 +902,6 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
         # plot_target_subjects = torch.stack(plot_target_subjects).detach().cpu().numpy()
         # plot_input_subjects = torch.stack(plot_input_subjects).detach().cpu().numpy()
 
-        print('plot target subjects shape ', plot_target_subjects.shape)
-        print('plot input subjects shape ', plot_input_subjects.shape)
-
         print('plot new images shape ', plot_new_images.shape)
 
         all_embeddings = np.concatenate((plot_captions, plot_images, plot_input_image), axis=0)
@@ -903,7 +911,6 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
         all_embeddings = np.concatenate((plot_captions, plot_images, plot_new_images, plot_input_image), axis=0)
 
-        all_embeddings = np.concatenate((all_embeddings, plot_target_subjects, plot_input_subjects), axis=0)
         
 
         # get PCA coordinates
@@ -914,19 +921,17 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
         image_coordinates = pca_coordinates[len(plot_captions):len(plot_captions) + len(plot_images), :] # shape: [batch_size, 2]
         # new_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images):, :] # shape: [batch_size, 2]
         new_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images):len(plot_captions) + len(plot_images) + len(plot_new_images), :] # shape: [batch_size, 2]
-        input_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images) + len(plot_new_images):len(plot_captions) + len(plot_images) + len(plot_new_images) + len(plot_input_image), :] # shape: [batch_size, 2]
-        target_subject_coordinates = pca_coordinates[len(plot_captions) + len(plot_images) + len(plot_new_images) + len(plot_input_image):len(plot_captions) + len(plot_images) + len(plot_new_images) + len(plot_input_image) + len(plot_target_subjects), :] # shape: [batch_size, 2]
-        input_subject_coordinates = pca_coordinates[len(plot_captions) + len(plot_images) + len(plot_new_images) + len(plot_input_image) + len(plot_target_subjects):, :] # shape: [batch_size, 2]
+        input_image_coordinates = pca_coordinates[len(plot_captions) + len(plot_images) + len(plot_new_images):, :] # shape: [batch_size, 2]
 
         # plot
         plt.title(f'PCA of image (red) and text (blue) projections. Transformed image coordinates (green). Input image coordinates (yellow).')
         plt.scatter(caption_coordinates[:, 0], caption_coordinates[:, 1], c='b')
         plt.scatter(image_coordinates[:, 0], image_coordinates[:, 1], c='r')
-        plt.scatter(target_subject_coordinates[:, 0], target_subject_coordinates[:, 1], c='b', marker=f'$y$')
-        plt.scatter(input_subject_coordinates[:, 0], input_subject_coordinates[:, 1], c='b', marker='x')
 
         for i, coord in enumerate(new_image_coordinates):
+            # plt.scatter(caption_coordinates[i, 0], caption_coordinates[i, 1], c='b', marker=f'${i}$', s=100)
             plt.scatter(coord[0], coord[1], c='g', marker=f'${len(plot_literal_target_subjects[i])}$')
+            # plt.scatter(coord[0], coord[1], c='g', marker=f'${i}$', s=100)
             # plt.annotate(plot_target_literal_captions[i], (coord[0], coord[1]))
         # plt.scatter(new_image_coordinates[:, 0], new_image_coordinates[:, 1], c='g', marker=f'${len(plot_target_subjects) - len(plot_input_subjects)}$')
         plt.scatter(input_image_coordinates[:, 0], input_image_coordinates[:, 1], c='y')
