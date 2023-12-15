@@ -21,8 +21,8 @@ intra_modality_losses = [True, False]
 for seed in seeds_to_try:
     for temp in temps_to_try:
 
-        if temp == 0.1:
-            # skip True intra_modality_loss for temp 0.1
+        if temp == 0.01:
+            # skip True intra_modality_loss for temp 0.01
             intra_modality_losses = [False]
         else:
             intra_modality_losses = [True, False]
