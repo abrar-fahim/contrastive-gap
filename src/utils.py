@@ -323,7 +323,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         Compute linearity metric
         '''
 
-        average_linearity_cosine_sim = evaluate_linearity(clip_model)
+        # average_linearity_cosine_sim = evaluate_linearity(clip_model)
 
         '''
         dump numbers to csv file
@@ -360,7 +360,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
                     'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
-                    'average_linearity_cosine_similarity': average_linearity_cosine_sim,                    
+                    # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,                    
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
