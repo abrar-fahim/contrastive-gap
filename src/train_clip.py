@@ -47,8 +47,8 @@ def main():
     
 
     # set seed
-    torch.manual_seed(42)
-    random.seed(42)
+    torch.manual_seed(training_hyperparameters['seed'])
+    random.seed(training_hyperparameters['seed'])
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

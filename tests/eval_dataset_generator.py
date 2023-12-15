@@ -147,7 +147,7 @@ clip_model = HFClip()
 
 
 # set seed
-torch.manual_seed(42)
+torch.manual_seed(training_hyperparameters['seed'])
 
 
 dataset_processor.return_org_imgs_collate_fn = True

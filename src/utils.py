@@ -16,7 +16,7 @@ from sklearn.decomposition import PCA
 
 pca = None
 
-random.seed(42) # random used in evaluate_concept_arrangement
+random.seed(training_hyperparameters['seed']) # random used in evaluate_concept_arrangement
 
 
 
@@ -41,14 +41,15 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     # create dataloader for validation set
     # creating dataloader seperately here instead of using the one inside dataset_processor to set the manual seed explicitly so that I get same batch each time
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
     # create dataloader for train set
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
     with torch.no_grad():
         # get batch from validation set
         (val_imgs, val_captions) = next(iter(val_dataloader))
+
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
@@ -68,7 +69,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
             plt.show()
 
-
+        
+        
         val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
 
         '''
@@ -377,7 +379,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             collate_fn = dataset_processor.collate_fn
 
             # create dataloader for validation set
-            real_images_captions_val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+            real_images_captions_val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
 
             (images, true_captions) = next(iter(real_images_captions_val_dataloader))
@@ -529,7 +531,7 @@ def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects
     collate_fn = dataset_processor.collate_fn
 
     # create dataloader for validation set
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(42))
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
     n_subjects_to_try = 5
     pos_to_get = ['NN', 'NNP']

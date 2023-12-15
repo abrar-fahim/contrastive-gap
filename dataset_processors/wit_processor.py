@@ -57,14 +57,14 @@ class WITProcessor(DatasetProcessorParent):
         self.val_tar_count = val_tar_count
 
         self.torch_generator = torch.Generator()
-        self.torch_generator.manual_seed(42)
+        self.torch_generator.manual_seed(training_hyperparameters['seed'])
 
         
 
 
         # set seed
-        torch.manual_seed(42)
-        random.seed(42)
+        torch.manual_seed(training_hyperparameters['seed'])
+        random.seed(training_hyperparameters['seed'])
 
 
         pass

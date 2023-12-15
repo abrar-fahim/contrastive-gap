@@ -27,8 +27,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.return_only_captions = return_only_captions
 
         # set seed
-        torch.manual_seed(42)
-        random.seed(42)
+        torch.manual_seed(training_hyperparameters['seed'])
+        random.seed(training_hyperparameters['seed'])
 
         # always need to first load train then load val dataset. Fix this confusing requirement later
         self.load_train_dataset()
