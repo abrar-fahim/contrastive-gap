@@ -50,6 +50,8 @@ def main():
     torch.manual_seed(training_hyperparameters['seed'])
     random.seed(training_hyperparameters['seed'])
 
+
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     print('device ', device)
@@ -156,12 +158,12 @@ def main():
 
     # setup trainer
 
-    wandb.init(
-        project="clipverse", 
-        # track hyperparameters and run metadata
-        config=training_hyperparameters,
-        name=generate_csv_file_name(clip_model)
-    )
+    # wandb.init(
+    #     project="clipverse", 
+    #     # track hyperparameters and run metadata
+    #     config=training_hyperparameters,
+    #     name=generate_csv_file_name(clip_model)
+    # )
 
     if training_hyperparameters['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, wandb)
