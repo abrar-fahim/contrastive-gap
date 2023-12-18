@@ -343,10 +343,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         '''
 
         # first, scale the cosine similarities by temperature
-        # mean_cosine_similarity = mean_cosine_similarity * clip_model.temperature
-        # non_similar_mean_cosine_similarity = non_similar_mean_cosine_similarity * clip_model.temperature
-        # mean_text_text_cosine_similarity = mean_text_text_cosine_similarity
-        # mean_image_image_cosine_similarity = mean_image_image_cosine_similarity
+        mean_cosine_similarity = mean_cosine_similarity * clip_model.temperature
+        non_similar_mean_cosine_similarity = non_similar_mean_cosine_similarity * clip_model.temperature
+        mean_text_text_cosine_similarity = mean_text_text_cosine_similarity
+        mean_image_image_cosine_similarity = mean_image_image_cosine_similarity
         
 
         # cosine_sim_metric = (mean_cosine_similarity+1) / (((non_similar_mean_cosine_similarity+1) ** 2 * (mean_text_text_cosine_similarity+1) * (mean_image_image_cosine_similarity+1)) + (mean_cosine_similarity+1))
