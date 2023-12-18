@@ -13,6 +13,7 @@ from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
 import pickle
 from sklearn.decomposition import PCA
+import os
 
 pca = None
 
@@ -65,12 +66,21 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # print('torch no grad')
 
+        batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
 
-        for batch in val_dataloader:
-            # (val_imgs, val_captions) = next(iter(val_dataloader))
-            print('batching')
-            (val_imgs, val_captions) = batch
-            print('batching done')
+        if os.path.exists(batch_file_path):
+            print('loading batch from cache')
+            (val_imgs, val_captions) = torch.load(batch_file_path)
+            print('loading cache done')
+
+        else:
+            for batch in val_dataloader:
+                # (val_imgs, val_captions) = next(iter(val_dataloader))
+                (val_imgs, val_captions) = batch
+            print('saving batch to cache')
+            # save batch to cache
+            torch.save((val_imgs, val_captions), batch_file_path)
+
 
         # print('batching')
         # (val_imgs, val_captions) = next(iter(val_dataloader))
@@ -986,6 +996,8 @@ def generate_csv_file_name(clip_model):
     temperature = training_hyperparameters['temperature']
     intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
 
+    seed = training_hyperparameters['seed']
+
     for i, part in enumerate(name_parts):
         # replace temp with temperature
         if 'temp' in part:
@@ -1009,6 +1021,8 @@ def generate_csv_file_name(clip_model):
                 new_part = part.replace('loss', 'Lit_ii_tt')
             else:
                 new_part = part.replace('loss', 'Lit')
+        elif 'seed' in part:
+            new_part = part.replace('seed', str(seed))
         else:
             new_part = part
 

@@ -32,7 +32,7 @@ def set_hypers():
 
 
 sweep_configuration = {
-    "method": "random",
+    "method": "grid",
     "name": "sweep_temp_imloss",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
@@ -57,4 +57,4 @@ def main():
     wandb.finish()
 
 
-wandb.agent(sweep_id, function=main, count=20)
+wandb.agent(sweep_id, function=main)
