@@ -38,7 +38,7 @@ training_hyperparameters = {
     'grad_cache_multiplier': 16,
     'n_epochs': 10,
     'max_steps': None, # or None, in which case each epoch goes through all the data
-    'lr': 1e-5,
+    'lr': 1.5e-5,
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
@@ -51,7 +51,7 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
-    'save_every': 25,
+    'save_every': 30,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,

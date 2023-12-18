@@ -40,10 +40,6 @@ for seed in seeds_to_try:
             config.training_hyperparameters['intra_modality_temperature'] = temp
             config.training_hyperparameters['intra_modality_loss'] = intra_modality_loss
 
-            # reload config
-            importlib.reload(config)
-            importlib.reload(train_clip)
-
             # run training
             train_clip.main()
 

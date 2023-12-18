@@ -31,6 +31,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
     Dump numbers to csv file
     '''
 
+    # print('validation started')
+
     # create seperate dataloaders for val and train dataset, seperate from the ones used in training, so that I get same train and val batch each time this runs
 
     val_dataset = dataset_processor.val_dataset
@@ -39,11 +41,15 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
     dataset_processor.use_cached_tokenized_captions = True
     collate_fn = dataset_processor.collate_fn
 
+    # print('defining dataloaders')
+
 
 
     # create dataloader for validation set
     # creating dataloader seperately here instead of using the one inside dataset_processor to set the manual seed explicitly so that I get same batch each time
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+
+    # print('defining dataloaders done')
 
     # create dataloader for train set
     # train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
@@ -57,10 +63,19 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
     with torch.no_grad():
         # get batch from validation set
 
+        # print('torch no grad')
+
 
         for batch in val_dataloader:
             # (val_imgs, val_captions) = next(iter(val_dataloader))
+            print('batching')
             (val_imgs, val_captions) = batch
+            print('batching done')
+
+        # print('batching')
+        # (val_imgs, val_captions) = next(iter(val_dataloader))
+        
+
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
@@ -81,9 +96,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             plt.show()
 
         
-        
+        # print('clipping')
         val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
-
+        # print('clipping done')
         '''
         1. Validation image classification accuracy
         '''
@@ -109,6 +124,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+        # print('classification done')
 
         # find cosine similarities between image-text pairs for images with wrong predictions
         # get indices of incorrect predictions
@@ -194,6 +211,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # calculate accuracy
         val_image_retrieval_accuracy = (text_class_preds == val_text_class_labels).float().mean()
 
+        # print('retrieval done')
 
 
         '''
@@ -382,6 +400,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         
         # set dataprocessor caching back to off
         dataset_processor.use_cached_tokenized_captions = False
+
+        # print('val done')
 
         '''
         Show real images and captions for the incorrect predictions

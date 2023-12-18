@@ -31,12 +31,12 @@ import torch
 from src.utils import do_validation, get_checkpoint_path, init_stats_csv_file, generate_csv_file_name
 import os
 import random
-
+import wandb
 from src.config import *
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.wit_processor import WITProcessor
 from trainer import Trainer, GradCacheTrainer
-import wandb
+
 
 
 
@@ -158,12 +158,14 @@ def main():
 
     # setup trainer
 
-    # wandb.init(
-    #     project="clipverse", 
-    #     # track hyperparameters and run metadata
-    #     config=training_hyperparameters,
-    #     name=generate_csv_file_name(clip_model)
-    # )
+
+
+    wandb.init(
+        project="clipverse", 
+        # track hyperparameters and run metadata
+        config=training_hyperparameters,
+        name=generate_csv_file_name(clip_model)
+    )
 
     if training_hyperparameters['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, wandb)
@@ -178,7 +180,7 @@ def main():
     clip_model.eval()
 
     # do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
-    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
+    # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()
 
@@ -192,7 +194,7 @@ def main():
         trainer.train_one_epoch(clip_model, dataset_processor.train_dataloader, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'])
 
         i_loaded_from_checkpoint = False
-        epoch +=1
+        epoch += 1
 
     clip_model.train()
 

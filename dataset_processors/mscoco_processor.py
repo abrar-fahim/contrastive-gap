@@ -47,6 +47,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         caption is a tuple of strings
         '''
 
+
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         imgs, og_captions = zip(*batch)
@@ -86,8 +87,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         #     if self.use_cached_tokenized_captions:
         #         self.val_tokenized_captions = tokenized_captions
 
-        tokenized_captions = HFClip.static_tokenize_captions(captions)
 
+        tokenized_captions = HFClip.static_tokenize_captions(captions)
         
         # stacked_images = stacked_images.to(device)
 
@@ -101,7 +102,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
             return (stacked_preprocessed_images, tokenized_captions, imgs, captions)
         
         
-        stacked_images = torch.stack(imgs)
+        stacked_images = torch.stack(imgs) 
         return (stacked_images, tokenized_captions)
 
     

@@ -8,6 +8,14 @@ import torch
 from utils import get_checkpoint_path, do_validation
 from abc import ABC, abstractmethod
 
+# import torch.multiprocessing as mp
+# import pathos.multiprocessing as mp
+
+# def top_validate(trainer_parent, clip_model, train_dataloader, optimizer, epoch, i):
+#     trainer_parent.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, i)
+
+
+
 
 
 
@@ -19,6 +27,8 @@ class TrainerParent(ABC):
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.wandb = wandb
+
+        self.val_processes = []
         pass
 
     def __init__(self, dataset_processor, wandb) -> None:
@@ -29,6 +39,8 @@ class TrainerParent(ABC):
         self.val_dataset = dataset_processor.val_dataset
         self.dataset_processor = dataset_processor
         self.wandb = wandb
+        self.val_processes = []
+        # mp.set_start_method('forkserver')
         pass
 
     @abstractmethod
@@ -135,7 +147,14 @@ class GradCacheTrainer(TrainerParent):
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, loss.item()))
 
                     if step % save_every == 0 and training_hyperparameters['do_checkpointing']:
+
+                        # for old_p in self.val_processes:
+                        #     old_p.join()
+
+                        # p = mp.Process(target=self.save_checkpoint_and_validate, args=(clip_model, train_dataloader, optimizer, epoch, step))
                         self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, step)
+                        # p.start()
+                        # self.val_processes.append(p)
 
 
                     if training_hyperparameters['train_only_one_batch']:
@@ -185,7 +204,29 @@ class Trainer(TrainerParent):
             # print statistics
             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
 
+            
+
             if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
+                # do this in another thread
+
+                # for old_p in self.val_processes:
+                #     print('waiting')
+                #     old_p.join()
+
+                # print('waiting done. clearing val processes')
+                # self.val_processes = []
+
+                # p = mp.Process(target=self.save_checkpoint_and_validate, args=(clip_model, train_dataloader, optimizer, epoch, i))
+                # # p = mp.Process(target=top_validate, args=(self, clip_model, train_dataloader, optimizer, epoch, i))
+                # # self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, step)
+                # p.start()
+                # self.val_processes.append(p)
+                # print('joining')
+                # p.join()
+                # print('joining done')
+
+
+
                 self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, i)
                 pass
             
