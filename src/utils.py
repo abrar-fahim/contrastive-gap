@@ -248,7 +248,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # get median of elements that are not on the diagonal
         mean_image_image_cosine_similarity = image_image_cosine_similarities[~torch.eye(image_image_cosine_similarities.shape[0], dtype=bool)].mean()
 
-        # print('median_image_image_cosine_similarity ', median_image_image_cosine_similarity)
+
+
+        print('mean_image_image_cosine_similarity ', mean_image_image_cosine_similarity)
 
         '''
         Calculate cosine similarity quality metric
@@ -262,11 +264,13 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         
 
         '''
-        Compute linearity metric
+        Compute consistency metric
         '''
 
         # average_linearity_cosine_sim = evaluate_linearity(clip_model)
-        average_consistency_accuracy = evaluate_consistency(image_encoder_outputs, text_encoder_outputs)
+        average_consistency_accuracy, average_consistency_cosine_similarity = evaluate_consistency(image_encoder_outputs, text_encoder_outputs)
+
+        print('average_cosistency ', average_consistency_accuracy)
 
         '''
         dump numbers to csv file
@@ -305,6 +309,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
                     'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
                     'average_consistency_accuracy': average_consistency_accuracy,
+                    'average_consistency_cosine_sim': average_consistency_cosine_similarity
                     # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,                    
                     
                 },
@@ -474,6 +479,8 @@ def evaluate_consistency(norm_image_embeddings, norm_caption_embeddings):
 
     n_targets_to_try = 5
 
+    average_cosine_similarity = 0 # this is the final output metric, should be high
+
     for cap_i, cap_emb in tqdm(enumerate(norm_caption_embeddings)):
         # randomly sample another 
         for i in range(n_targets_to_try):
@@ -482,8 +489,7 @@ def evaluate_consistency(norm_image_embeddings, norm_caption_embeddings):
             target_cap_index = random.randint(0, len(norm_caption_embeddings) - 1)
             target_cap_emb = norm_caption_embeddings[target_cap_index]
 
-            target_img_index = random.randint(0, len(norm_image_embeddings) - 1)
-            # target_img_emb = norm_image_embeddings[target_img_index]
+            target_img_emb = norm_image_embeddings[target_cap_index]
 
             cap_direction = target_cap_emb - cap_emb
 
@@ -498,13 +504,21 @@ def evaluate_consistency(norm_image_embeddings, norm_caption_embeddings):
             # do softmax
             logits = F.softmax(cosine_similarity, dim=0)
             closest_image_index = torch.argmax(logits)
-            if closest_image_index == target_img_index:
+            # cosine similarity between target_img_emb and closest_image
+            closest_image = norm_image_embeddings[closest_image_index]
+            closest_image_cosine_similarity = closest_image @ target_img_emb.t()
+            average_cosine_similarity += closest_image_cosine_similarity.item()
+
+            if closest_image_index == target_cap_index:
                 num_corrects += 1
             
             total_count += 1
 
+    average_cosine_similarity = average_cosine_similarity / total_count
+    print('average_cosine_similarity ', average_cosine_similarity)
 
-    return num_corrects / total_count
+
+    return num_corrects / total_count, average_cosine_similarity
 
 
 

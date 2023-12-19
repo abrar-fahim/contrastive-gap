@@ -33,7 +33,7 @@ def set_hypers():
 
 sweep_configuration = {
     "method": "grid",
-    "name": "sweep_temp_imloss",
+    "name": "sweep_temp_imloss_consistency",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.1, 0.01]},
