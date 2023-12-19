@@ -78,8 +78,10 @@ class HFClip(ClipParent):
 
     def set_weights(self, state='default'):
         if state == 'default':
+            print('-- LOADING DEFAULT CLIP MODEL --')
             self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
         elif state == 'random':
+            print('-- LOADING CLIP MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
             self.model.init_weights()
 
         # set model parameters requires_grad to True
