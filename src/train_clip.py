@@ -102,7 +102,7 @@ def main():
         print()
         print('--- TRAINING FROM SCRATCH ---')
         print()
-        clip_model.reset_weights_to_random()
+        clip_model.set_weights('random')
 
 
     
@@ -138,7 +138,9 @@ def main():
         epoch = 0
         i = 0
 
-        clip_model.reset_weights_to_default() # because CLIP loads from latest checkpoint in init for inference
+        if not training_hyperparameters['train_from_scratch']:
+
+            clip_model.set_weights('default') # because CLIP loads from latest checkpoint in init for inference
 
         # setup adamW optimizer
 

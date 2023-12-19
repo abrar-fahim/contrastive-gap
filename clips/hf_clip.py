@@ -28,7 +28,7 @@ class HFClip(ClipParent):
 
         self.temperature = 0.01 # this is default temp
 
-        self.reset_weights_to_default() # loads clip model and sets the logit scale param 
+        self.set_weights('default') # loads clip model and sets the logit scale param 
 
         '''
         load CLIP from respective checkpoint regardless of training mode
@@ -76,12 +76,11 @@ class HFClip(ClipParent):
         # no need to load state dict for default, since it's the same as the pretrained model
 
 
-    def reset_weights_to_random(self):
-        self.model.init_weights()
-        # self model is the only thing here thats trainable anyway
-
-    def reset_weights_to_default(self):
-        self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
+    def set_weights(self, state='default'):
+        if state == 'default':
+            self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
+        elif state == 'random':
+            self.model.init_weights()
 
         # set model parameters requires_grad to True
         for param in self.model.parameters():
@@ -99,7 +98,7 @@ class HFClip(ClipParent):
             self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
 
             self.model.logit_scale.requires_grad = False
-
+        
         self.to(self.device)
         
 
