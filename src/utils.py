@@ -14,6 +14,7 @@ from nltk.tag import pos_tag
 import pickle
 from sklearn.decomposition import PCA
 import os
+from tqdm import tqdm
 
 pca = None
 
@@ -130,76 +131,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # get indices of correct predictions
         val_image_class_labels = torch.arange(val_image_class_probs.shape[0], device=val_image_class_probs.device) # shape: ([64])
 
-        # print('val_image_class_labels ', val_image_class_labels)
-
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
-
-        # print('classification done')
-
-        # find cosine similarities between image-text pairs for images with wrong predictions
-        # get indices of incorrect predictions
-        # incorrect_preds_mask = (val_image_class_preds != val_image_class_labels) # shape: ([n_wrong])
-        # print('incorrect_preds_mask ', incorrect_preds_mask)
-        # print('incorrect preds shape', val_image_class_preds[incorrect_preds_mask].shape)
-
-        # val_logits_per_image_incorrect = val_logits_per_image[incorrect_preds_mask, :] # shape: ([n_wrong, batch_size])
-        # print('val_logits_per_image_incorrect ', val_logits_per_image_incorrect)
-        # print('val_logits_per_image_incorrect ', val_logits_per_image_incorrect.shape)
-
-        # get labels of incorrect predictions
-        # incorrect_preds_labels = val_image_class_labels[incorrect_preds_mask] # shape: ([n_wrong])
-
-        # print('incorrect_preds_labels ', incorrect_preds_labels)
-
-        # incorrect_preds_labels = incorrect_preds_labels.unsqueeze(1) # shape: ([n_wrong, 1])
-        
-
-        # get cosine similarities between input image and true label text 
-        # incorrect_preds_cosine_similarities = torch.gather(val_logits_per_image_incorrect, 1, incorrect_preds_labels) # shape: ([n_wrong, 1])
-        # incorrect_preds_cosine_similarities = val_logits_per_image_incorrect[:, incorrect_preds_labels] # shape: ([n_wrong])
-
-        # print('incorrect_preds_cosine_similarities ', incorrect_preds_cosine_similarities)
-
-        # get mean cosine similarity
-        # incorrect_preds_mean_cosine_similarity = torch.mean(incorrect_preds_cosine_similarities)
-
-        # # scale by temperature
-        # incorrect_preds_mean_cosine_similarity = incorrect_preds_mean_cosine_similarity * clip_model.temperature
-
-        # print('incorrect_preds_mean_cosine_similarity ', incorrect_preds_mean_cosine_similarity.item())
-
-
-        # find cosine similarities for incorrect predictions between predicted text and input image
-        # get predicted labels
-        # incorrect_preds_predicted_labels = val_image_class_preds[incorrect_preds_mask] # shape: ([n_wrong])
-
-        # unsqueeze to get shape: ([n_wrong, 1])
-        # incorrect_preds_predicted_labels = incorrect_preds_predicted_labels.unsqueeze(1) # shape: ([n_wrong, 1])
-
-        # get cosine similarities between input image and predicted text
-        # incorrect_preds_cosine_similarities = torch.gather(val_logits_per_image_incorrect, 1, incorrect_preds_predicted_labels) # shape: ([n_wrong, 1])
-        # incorrect_preds_cosine_similarities = val_logits_per_image_incorrect[:, incorrect_preds_predicted_labels] # shape: ([n_wrong])
-
-        # get mean cosine similarity
-        # incorrect_preds_mean_cosine_similarity = torch.mean(incorrect_preds_cosine_similarities)
-
-        # scale by temperature
-        # incorrect_preds_mean_cosine_similarity = incorrect_preds_mean_cosine_similarity * clip_model.temperature
-
-        # print('incorrect_preds_mean_ cos sim between predicted', incorrect_preds_mean_cosine_similarity.item())
-
-        # For sanity check, print highest cosine similarity for each image
-
-        # get highest cosine similarity for each image
-        # highest_cosine_similarities = torch.max(val_logits_per_image_incorrect, dim=-1).values
-
-        # mean_highest_cosine_similarity = torch.mean(highest_cosine_similarities)
-
-        # scale by temperature
-        # mean_highest_cosine_similarity = mean_highest_cosine_similarity * clip_model.temperature
-
-        # print('mean_highest_cosine_similarity ', mean_highest_cosine_similarity.item())
 
 
         '''
@@ -270,30 +203,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         print('mean cosine similarity ', mean_cosine_similarity.item())
 
 
-        # Get 2nd highest cosine similarity for each image
-        # top2_cosine_similarities = torch.topk(val_logits_per_image, k=2, dim=-1).values # shape: [batch_size, 2]
-        # print('top2_cosine_similarities ', top2_cosine_similarities.shape)
-        # get mean of 2nd highest cosine similarity for each image
-        # mean_top2_cosine_similarity = torch.mean(top2_cosine_similarities[:, 1])
-
-        # print('median_top2_cosine_similarity ', median_top2_cosine_similarity)
-
         # get mean of elements that are not on the diagonal
         non_similar_mean_cosine_similarity = val_logits_per_image[~torch.eye(val_logits_per_image.shape[0], dtype=bool)].mean()
         print('non_similar_mean_cosine_similarity ', non_similar_mean_cosine_similarity * clip_model.temperature)
-
-        # print temperature
-        # print('clip_model.logit_scale ', clip_model.model.logit_scale)
-
-        '''
-        Check if model predictions are exploding
-        (Do this check without the temperature param)
-        '''
-
-        # doing it just for images for now
-        # image_embeds = outputs.vision_model_output.pooler_output # shape: ([batch_size, 512]), these are before linear projection
-        # image_embeds = val_outputs.image_embeds # shape: ([batch_size, 512]), these are after linear projection
-
 
 
 
@@ -349,20 +261,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         mean_image_image_cosine_similarity = mean_image_image_cosine_similarity
         
 
-        # cosine_sim_metric = (mean_cosine_similarity+1) / (((non_similar_mean_cosine_similarity+1) ** 2 * (mean_text_text_cosine_similarity+1) * (mean_image_image_cosine_similarity+1)) + (mean_cosine_similarity+1))
-        # adding +1 to handle negative cosine sims more easily
-        # adding median cosine sim in denominator prevent divide by zero
-        # seems like it varies from 0 (worst) to 1 (best) for now.
-
-        # print()
-        # print('cosine_sim_metric ', cosine_sim_metric.item())
-        # print()
-
         '''
         Compute linearity metric
         '''
 
         # average_linearity_cosine_sim = evaluate_linearity(clip_model)
+        average_consistency_accuracy = evaluate_consistency(image_encoder_outputs, text_encoder_outputs)
 
         '''
         dump numbers to csv file
@@ -400,6 +304,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
                     'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
+                    'average_consistency_accuracy': average_consistency_accuracy,
                     # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,                    
                     
                 },
@@ -557,6 +462,51 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             print('rouge2 ', rouge_scores['rouge2'])
             print('rougeL ', rouge_scores['rougeL'])
             print("rougeLsum ", rouge_scores['rougeLsum'])
+
+
+def evaluate_consistency(norm_image_embeddings, norm_caption_embeddings):
+    '''
+    Input embeddings should be normalized
+    '''
+
+    num_corrects = 0
+    total_count = 0
+
+    n_targets_to_try = 5
+
+    for cap_i, cap_emb in tqdm(enumerate(norm_caption_embeddings)):
+        # randomly sample another 
+        for i in range(n_targets_to_try):
+            source_img_emb = norm_image_embeddings[cap_i]
+
+            target_cap_index = random.randint(0, len(norm_caption_embeddings) - 1)
+            target_cap_emb = norm_caption_embeddings[target_cap_index]
+
+            target_img_index = random.randint(0, len(norm_image_embeddings) - 1)
+            # target_img_emb = norm_image_embeddings[target_img_index]
+
+            cap_direction = target_cap_emb - cap_emb
+
+            target_img_emb_hat = source_img_emb + cap_direction
+
+            # normalize
+            norm_target_img_emb_hat = target_img_emb_hat / torch.norm(target_img_emb_hat, dim=-1, keepdim=True)
+
+            # check if closest image to norm_target_img_emb_hat is target_img_emb
+            cosine_similarity = norm_image_embeddings @ norm_target_img_emb_hat.t()
+            # shape: ([n_images])
+            # do softmax
+            logits = F.softmax(cosine_similarity, dim=0)
+            closest_image_index = torch.argmax(logits)
+            if closest_image_index == target_img_index:
+                num_corrects += 1
+            
+            total_count += 1
+
+
+    return num_corrects / total_count
+
+
 
 
 def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wandb=wandb):
