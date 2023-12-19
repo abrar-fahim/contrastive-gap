@@ -36,7 +36,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 10,
+    'n_epochs': 6,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -46,7 +46,7 @@ training_hyperparameters = {
     'validation_batch_size': 2048,
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
-    'train_from_scratch': False, # this randomly initializes weights
+    'train_from_scratch': True, # this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
