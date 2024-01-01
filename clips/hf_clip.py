@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from clips.clip_parent import ClipParent
-from transformers import CLIPModel, AutoTokenizer
+from transformers import CLIPModel, AutoTokenizer, CLIPConfig
 from src.utils import get_checkpoint_path
 
 from transformers.models.clip.modeling_clip import CLIPOutput
@@ -82,6 +82,14 @@ class HFClip(ClipParent):
             self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
         elif state == 'random':
             print('-- LOADING CLIP MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
+            '''
+            These are from https://huggingface.co/docs/transformers/v4.36.1/en/model_doc/clip#transformers.CLIPConfig
+            '''
+            # Initializing a CLIPConfig with openai/clip-vit-base-patch32 style configuration
+            configuration = CLIPConfig()
+
+            # Initializing a CLIPModel (with random weights) from the openai/clip-vit-base-patch32 style configuration
+            self.model = CLIPModel(configuration)
             self.model.init_weights()
 
         # set model parameters requires_grad to True
