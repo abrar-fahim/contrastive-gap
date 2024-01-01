@@ -36,7 +36,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 6,
+    'n_epochs': 12,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
