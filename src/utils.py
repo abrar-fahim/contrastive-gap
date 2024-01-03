@@ -15,6 +15,7 @@ import pickle
 from sklearn.decomposition import PCA
 import os
 from tqdm import tqdm
+from scipy import stats
 
 pca = None
 
@@ -133,6 +134,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
 
 
         '''
@@ -261,7 +263,59 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         non_similar_mean_cosine_similarity = non_similar_mean_cosine_similarity * clip_model.temperature
         mean_text_text_cosine_similarity = mean_text_text_cosine_similarity
         mean_image_image_cosine_similarity = mean_image_image_cosine_similarity
+
+
+        '''
+        RSA correlations
+        '''
+
+        shuffle_ratio = 0.5 # percentage of texts and images to shuffle
+
         
+
+        # before shuffling
+
+        text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+        image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+        result = stats.spearmanr(text_RSM.cpu(), image_RSM.cpu())
+
+        print('correlation before interchanging', result.correlation)
+        print('p value ', result.pvalue)
+
+        rsa_before_interchanging = result.correlation
+
+        # after shuffling
+
+        # get random indices 
+        num_elements_to_switch = int(shuffle_ratio * text_encoder_outputs.shape[0])
+        random_indices = random.sample(range(text_encoder_outputs.shape[0]), num_elements_to_switch)
+
+        interchanged_text_encoder_outputs = text_encoder_outputs.clone()
+        interchanged_image_encoder_outputs = image_encoder_outputs.clone()
+
+        # switch elements at random indices
+        interchanged_text_encoder_outputs[random_indices], interchanged_image_encoder_outputs[random_indices] = interchanged_image_encoder_outputs[random_indices], interchanged_text_encoder_outputs[random_indices]
+
+        # cosine similarities between text-text pairs
+        interchanged_text_RSM = interchanged_text_encoder_outputs @ interchanged_text_encoder_outputs.t() # shape: ([batch_size, batch_size])
+        # get elements in lower traingle excluding diagonal
+        interchanged_text_RSM = interchanged_text_RSM[torch.tril(torch.ones(interchanged_text_RSM.shape[0], interchanged_text_RSM.shape[1]), diagonal=-1).bool()]
+
+        # cosine similarities between image-image pairs
+        interchanged_image_RSM = interchanged_image_encoder_outputs @ interchanged_image_encoder_outputs.t() # shape: ([batch_size, batch_size])
+        # get elements in lower traingle excluding diagonal
+        interchanged_image_RSM = interchanged_image_RSM[torch.tril(torch.ones(interchanged_image_RSM.shape[0], interchanged_image_RSM.shape[1]), diagonal=-1).bool()]
+
+        result_after_shuffling = stats.spearmanr(interchanged_text_RSM.cpu(), interchanged_image_RSM.cpu())
+
+        print('correlation after interchanging', result_after_shuffling.correlation)
+        print('p value ', result_after_shuffling.pvalue)
+
+        rsa_after_interchanging = result_after_shuffling.correlation
+
+
 
         '''
         Compute consistency metric
@@ -309,8 +363,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
                     'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
                     'average_consistency_accuracy': average_consistency_accuracy,
-                    'average_consistency_cosine_sim': average_consistency_cosine_similarity
-                    # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,                    
+                    'average_consistency_cosine_sim': average_consistency_cosine_similarity,
+                    # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,     
+                    'rsa_before_interchanging': rsa_before_interchanging,
+                    'rsa_after_interchanging': rsa_after_interchanging,             
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
