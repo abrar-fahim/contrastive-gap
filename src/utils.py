@@ -273,7 +273,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         
 
-        # before shuffling
+        '''
+         - Before interchanging
+        '''
 
         text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
@@ -286,7 +288,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         rsa_before_interchanging = result.correlation
 
-        # after shuffling
+        '''
+         - After interchanging
+        '''
 
         # get random indices 
         num_elements_to_switch = int(shuffle_ratio * text_encoder_outputs.shape[0])
@@ -305,15 +309,27 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # cosine similarities between image-image pairs
         interchanged_image_RSM = interchanged_image_encoder_outputs @ interchanged_image_encoder_outputs.t() # shape: ([batch_size, batch_size])
+
+
         # get elements in lower traingle excluding diagonal
         interchanged_image_RSM = interchanged_image_RSM[torch.tril(torch.ones(interchanged_image_RSM.shape[0], interchanged_image_RSM.shape[1]), diagonal=-1).bool()]
 
-        result_after_shuffling = stats.spearmanr(interchanged_text_RSM.cpu(), interchanged_image_RSM.cpu())
 
-        print('correlation after interchanging', result_after_shuffling.correlation)
-        print('p value ', result_after_shuffling.pvalue)
 
-        rsa_after_interchanging = result_after_shuffling.correlation
+        rho_interchanged_image_RSM_image_RSM = stats.spearmanr(interchanged_image_RSM.cpu(), image_RSM.cpu())
+
+        print('correlation between interchanged image RSM and original image RSM', rho_interchanged_image_RSM_image_RSM.correlation)
+
+        rho_interchanged_text_RSM_text_RSM = stats.spearmanr(interchanged_text_RSM.cpu(), text_RSM.cpu())
+
+        print('correlation between interchanged text RSM and original text RSM', rho_interchanged_text_RSM_text_RSM.correlation)
+
+
+        # result_after_shuffling = stats.spearmanr(interchanged_text_RSM.cpu(), interchanged_image_RSM.cpu())
+
+        image_rsa_after_interchanging = rho_interchanged_image_RSM_image_RSM.correlation
+
+        text_rsa_after_interchanging = rho_interchanged_text_RSM_text_RSM.correlation
 
 
 
@@ -365,8 +381,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'average_consistency_accuracy': average_consistency_accuracy,
                     'average_consistency_cosine_sim': average_consistency_cosine_similarity,
                     # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,     
-                    'rsa_before_interchanging': rsa_before_interchanging,
-                    'rsa_after_interchanging': rsa_after_interchanging,             
+                    'rsa_before_interchanging': image_rsa_after_interchanging,
+                    'rsa_after_interchanging': text_rsa_after_interchanging       
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -690,6 +706,47 @@ def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects
                 plt.axis("off")
 
                 plt.show()
+
+def plot_embeddings(clip_model, dataloader):
+
+    with torch.no_grad():
+        for batch in dataloader:
+            (imgs, captions) = batch
+
+        outputs = clip_model(imgs, captions, output_loss=False, return_all=True)
+
+        text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are normalized
+        image_embeds = outputs.image_embeds # normalized also
+
+        pca = PCA(n_components=2)
+        plot_captions = text_embeds.detach().cpu().numpy()
+        plot_images = image_embeds.detach().cpu().numpy()
+
+        all_embeddings = np.concatenate((plot_captions, plot_images), axis=0)
+
+        pca.fit(all_embeddings)
+
+        pca_coordinates = pca.transform(all_embeddings)
+        
+        caption_coordinates = pca_coordinates[:plot_captions.shape[0]]
+        image_coordinates = pca_coordinates[plot_captions.shape[0]:]
+
+        plt.title(f'PCA of image (red) and text (blue) projections.')
+        plt.scatter(caption_coordinates[:, 0], caption_coordinates[:, 1], c='b')
+        plt.scatter(image_coordinates[:, 0], image_coordinates[:, 1], c='r')
+
+        # set axes limits
+        plt.xlim(-1, 1)
+        plt.ylim(-1, 1)
+
+        plt.show()
+
+
+
+
+
+
+
 
 
 def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=False): # evaluate = 'linearity' or 'concept_arrangement'

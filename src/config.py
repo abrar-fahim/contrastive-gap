@@ -31,7 +31,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
-    'seed': 10,
+    'seed': 42,
     'dataset': ClipDatasets.MSCOCO,
     'batch_size': 256,
     'grad_cache': False,
@@ -39,7 +39,7 @@ training_hyperparameters = {
     'n_epochs': 6,
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
-    'temperature': 0.1,
+    'temperature': 0.01,
     'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
     'validation_dataset_size': 2048,
@@ -56,7 +56,7 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'intra_modality_loss': True,
+    'intra_modality_loss': False,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
     'train_only_one_batch': False,

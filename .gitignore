@@ -176,3 +176,5 @@ wandb/
 dataset
 
 1dataset
+
+checkpoints/downloaded checkpoints/
