@@ -381,6 +381,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'average_consistency_accuracy': average_consistency_accuracy,
                     'average_consistency_cosine_sim': average_consistency_cosine_similarity,
                     # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,     
+                    'rsa_before_interchanging': rsa_before_interchanging,
                     'image_rsa_after_interchanging': image_rsa_after_interchanging,
                     'text_rsa_after_interchanging': text_rsa_after_interchanging       
                     
