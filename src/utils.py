@@ -70,7 +70,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
 
-        if os.path.exists(batch_file_path):
+        if os.path.exists(batch_file_path) and training_hyperparameters['use_cached_val_batch']:
             print('loading batch from cache')
             (val_imgs, val_captions) = torch.load(batch_file_path)
             print('loading cache done')
@@ -79,9 +79,11 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             for batch in val_dataloader:
                 # (val_imgs, val_captions) = next(iter(val_dataloader))
                 (val_imgs, val_captions) = batch
-            print('saving batch to cache')
-            # save batch to cache
-            torch.save((val_imgs, val_captions), batch_file_path)
+
+            if training_hyperparameters['use_cached_val_batch']:
+                print('saving batch to cache')
+                # save batch to cache
+                torch.save((val_imgs, val_captions), batch_file_path)
 
 
         # print('batching')
@@ -320,9 +322,13 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         print('correlation between interchanged image RSM and original image RSM', rho_interchanged_image_RSM_image_RSM.correlation)
 
+        print('p value between interchanged image RSM and original image RSM ', rho_interchanged_image_RSM_image_RSM.pvalue)
+
         rho_interchanged_text_RSM_text_RSM = stats.spearmanr(interchanged_text_RSM.cpu(), text_RSM.cpu())
 
         print('correlation between interchanged text RSM and original text RSM', rho_interchanged_text_RSM_text_RSM.correlation)
+
+        print('p value between interchanged text RSM and original text RSM ', rho_interchanged_text_RSM_text_RSM.pvalue)
 
 
         # result_after_shuffling = stats.spearmanr(interchanged_text_RSM.cpu(), interchanged_image_RSM.cpu())
