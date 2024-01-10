@@ -44,6 +44,7 @@ training_hyperparameters = {
     'weight_decay': 0.2,
     'validation_dataset_size': 2048,
     'validation_batch_size': 2048,
+    'use_cached_val_batch': False,
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': False, # this randomly initializes weights
