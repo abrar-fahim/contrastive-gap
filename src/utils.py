@@ -412,7 +412,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'text_rsa_after_interchanging': text_rsa_after_interchanging,
                     'text_intermodality_rsa': text_intermodality_rsa,
                     'image_intermodality_rsa': image_intermodality_rsa,
-                           
+
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -1130,6 +1130,12 @@ def generate_csv_file_name(clip_model):
                 new_part = part.replace('loss', 'Lit')
         elif 'seed' in part:
             new_part = part.replace('seed', str(seed))
+        elif 'trainmode' in part:
+            if training_hyperparameters['train_from_scratch']:
+                trainmode = 'scratch'
+            else:
+                trainmode = 'finetune'
+            new_part = part.replace('trainmode', trainmode)
         else:
             new_part = part
 
