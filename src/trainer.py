@@ -62,7 +62,7 @@ class TrainerParent(ABC):
         checkpoint_to_save = {
             'epoch': epoch,
             'model_state_dict': clip_model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
+            # 'optimizer_state_dict': optimizer.state_dict(),
             # 'train_dataloader': train_dataloader,
             'dataloader_enumerator_index': i,
             }

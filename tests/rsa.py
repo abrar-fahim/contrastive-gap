@@ -27,10 +27,15 @@ heatmap = False
 
 hist = False
 
-scatter = False
+scatter = True
 
-image_text_matching = True
-image_text_non_matching = True
+image_text_matching = False
+image_text_non_matching = False
+
+
+compare_corresponding_RSMs = False
+compare_inter_intra_RMSs = True
+
 
 def plot_heatmap(cosine_similarities, title):
     # plot heatmap of cosine similarities
@@ -50,11 +55,11 @@ def plot_histogram(cosine_similarities, title):
     plt.title(title)
     plt.show()
 
-def plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, title, interchanged_indices=None, n=None):
+def plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, title, interchanged_indices=None, n=None, color=None):
     # plot scatter plot of image-image and text-text cosine similarities
 
     if interchanged_indices is None:
-        plt.scatter(image_image_cosine_similarity.cpu().numpy(), text_text_cosine_similarity.cpu().numpy())
+        plt.scatter(image_image_cosine_similarity.cpu().numpy(), text_text_cosine_similarity.cpu().numpy(), c=color)
     else:
 
         dummy_rsm = torch.zeros(n, n)
@@ -62,8 +67,13 @@ def plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, tit
         print('interchanged_indices: ', interchanged_indices)
 
         # change dummy rsm rows and columns at interchanged indices to 1
-        dummy_rsm[interchanged_indices, :] = torch.ones(1, n)
-        dummy_rsm[:, interchanged_indices] = torch.ones(n, 1)
+        dummy_rsm[interchanged_indices, :] += torch.ones(1, n)
+        dummy_rsm[:, interchanged_indices] += torch.ones(n, 1)
+
+        # image-text overlaps will now be 1
+        # same-modality overlaps will now be 2
+
+
 
         print('dummy_rsm: ', dummy_rsm)
 
@@ -74,10 +84,12 @@ def plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, tit
 
 
 
-        colors = ['blue'] * image_image_cosine_similarity.shape[0]
+        colors = ['purple'] * image_image_cosine_similarity.shape[0] # non interchanged indices are blue
         for i, c in enumerate(dummy_rsm_tril):
             if c == 1:
-                colors[i] = 'red'
+                colors[i] = 'orange' # interchanged indices are red
+            elif c == 2:
+                colors[i] = 'green' # same modality indices are green
         plt.scatter(image_image_cosine_similarity.cpu().numpy(), text_text_cosine_similarity.cpu().numpy(), c=colors)
 
     # set axis limits
@@ -93,7 +105,7 @@ torch.manual_seed(training_hyperparameters['seed'])
 random.seed(training_hyperparameters['seed'])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-batch_size = 512
+batch_size = 256
 shuffle_ratio = 0.5 # percentage of texts and images to shuffle
 
 
@@ -160,6 +172,14 @@ else:
 
 
 
+        '''
+        image-text
+        '''
+
+        # cosine similarities between image-text pairs
+        image_text_cosine_similarities = val_outputs.logits_per_image * clip_model.temperature # shape: ([batch_size, batch_size])
+
+        image_text_RSM = image_text_cosine_similarities[torch.tril(torch.ones(image_text_cosine_similarities.shape[0], image_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
         '''
         1. text-text
@@ -178,10 +198,10 @@ else:
 
         # get elements in lower traingle excluding diagonal
 
-        text_text_cosine_similarity = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
+        text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
         
         if hist:
-            plot_histogram(text_text_cosine_similarity, f'text-text cosine similarities histogram, T = {clip_model.temperature}')
+            plot_histogram(text_RSM, f'text-text cosine similarities (text_RSM) histogram, T = {clip_model.temperature}')
 
         '''
         2. Image-image
@@ -201,19 +221,19 @@ else:
 
         # get elements in lower traingle excluding diagonal
 
-        image_image_cosine_similarity = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
+        image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
 
         if hist:
-            plot_histogram(image_image_cosine_similarity, f'image-image cosine similarities histogram, T = {clip_model.temperature}')
+            plot_histogram(image_RSM, f'image-image cosine similarities (image_RSM) histogram, T = {clip_model.temperature}')
 
         # compute spearman correlation between text-text and image-image cosine similarities
-        result = stats.spearmanr(text_text_cosine_similarity.cpu(), image_image_cosine_similarity.cpu())
+        result = stats.spearmanr(text_RSM.cpu(), image_RSM.cpu())
 
         if scatter:
-            plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, f'image-image vs text-text cosine similarities, T = {clip_model.temperature}')
+            plot_scatter(image_RSM, text_RSM, f'image_RSM vs text_RSM , T = {clip_model.temperature}')
 
-        print('spearman correlation between text-text and image-image cosine similarities: ', result.statistic)
+        print('spearman correlation between text_RSM and image_RSM: ', result.statistic)
         print('p value: ', result.pvalue)
 
         '''
@@ -235,42 +255,82 @@ else:
         '''
 
         # cosine similarities between text-text pairs
-        text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
+        interchanged_text_text_cosine_similarities = text_encoder_outputs @ text_encoder_outputs.t() # shape: ([batch_size, batch_size])
 
 
         if heatmap:
-            plot_histogram(text_text_cosine_similarities, f'text-text cosine similarities after interchanging, T = {clip_model.temperature}')
+            plot_histogram(interchanged_text_text_cosine_similarities, f'text-text cosine similarities after interchanging, T = {clip_model.temperature}')
 
 
         # get elements in lower traingle excluding diagonal
-        text_text_cosine_similarity = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
+        interchanged_text_RSM = interchanged_text_text_cosine_similarities[torch.tril(torch.ones(interchanged_text_text_cosine_similarities.shape[0], interchanged_text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
 
         if hist:
-            plot_histogram(text_text_cosine_similarity, f'text-text cosine similarities histogram after interchanging, T = {clip_model.temperature}')
+            plot_histogram(interchanged_text_RSM, f'text-text cosine similarities (interchanged_text_RSM)  histogram after interchanging, T = {clip_model.temperature}')
 
         '''
         5. image-image
         '''
 
         # cosine similarities between image-image pairs
-        image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t() # shape: ([batch_size, batch_size])
+        interchanged_image_image_cosine_similarities = image_encoder_outputs @ image_encoder_outputs.t() # shape: ([batch_size, batch_size])
 
 
         if heatmap:
-            plot_heatmap(image_image_cosine_similarities, f'image-image cosine similarities after interchanging, T = {clip_model.temperature}')
+            plot_heatmap(interchanged_image_image_cosine_similarities, f'image-image cosine similarities after interchanging, T = {clip_model.temperature}')
         
 
         # get elements in lower traingle excluding diagonal
-        image_image_cosine_similarity = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
+        interchanged_image_RSM = interchanged_image_image_cosine_similarities[torch.tril(torch.ones(interchanged_image_image_cosine_similarities.shape[0], interchanged_image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
         if hist:
-            plot_histogram(image_image_cosine_similarity, f'image-image cosine similarities histogram after interchanging, T = {clip_model.temperature}')
+            plot_histogram(interchanged_image_RSM, f'image-image cosine similarities (interchanged_image_RSM) histogram after interchanging, T = {clip_model.temperature}')
 
         if scatter:
-            plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, f'image-image vs text-text cosine similarities after interchanging, T = {clip_model.temperature}', interchanged_indices=random_indices, n=text_encoder_outputs.shape[0])
+            if compare_corresponding_RSMs:
+                plot_scatter(interchanged_image_RSM, interchanged_text_RSM, f'interchanged_image_RSM vs interchanged_text_RSM, T = {clip_model.temperature}', interchanged_indices=random_indices, n=text_encoder_outputs.shape[0])
+                result = stats.spearmanr(interchanged_image_RSM.cpu(), interchanged_text_RSM.cpu())
+            elif compare_inter_intra_RMSs:
+
+               
+                # plot_scatter(image_text_RSM, image_RSM, f'image_text_RSM vs image_RSM, T = {clip_model.temperature}', color='purple', n=text_encoder_outputs.shape[0])
+                # plot_scatter(image_RSM, text_RSM, f'image_RSM vs text_RSM, T = {clip_model.temperature}', color='orange', n=text_encoder_outputs.shape[0])
+                result = stats.spearmanr(image_text_RSM.cpu(), image_RSM.cpu())
+                print('spearman correlation between image_text_RSM and image_RSM: ', result.statistic)
+                print('p value: ', result.pvalue)
+                result = stats.spearmanr(image_RSM.cpu(), text_RSM.cpu())
+                print('spearman correlation between image_RSM and text_RSM: ', result.statistic)
+                print('p value: ', result.pvalue)
+
+                stackx = torch.stack((image_text_RSM, image_RSM), dim=0)
+                stacky = torch.stack((image_RSM, text_RSM), dim=0)
+
+                colors = ['purple'] * image_text_RSM.shape[0] 
+                colors += ['orange'] * image_RSM.shape[0]
+
+
+                # plt.scatter(stackx.cpu().numpy(), stacky.cpu().numpy(), c=colors)
+                plt.scatter(image_RSM.cpu().numpy(), text_RSM.cpu().numpy(), c='orange')
+                plt.scatter(image_text_RSM.cpu().numpy(), image_RSM.cpu().numpy(), c='purple')
+                
+                plt.xlim(-1, 1)
+                plt.ylim(-1, 1)
+
+                # set legend
+                plt.legend(['image_text_RSM vs image_RSM', 'image_RSM vs text_RSM'])
+
+                # set title
+                plt.title(f'inter-modality vs intra-modality RSMs, T = {clip_model.temperature}')
+                plt.show()
+
+
+
+            else:
+                plot_scatter(interchanged_image_RSM, image_RSM, f'interchanged_image_RSM vs image_RSM, T = {clip_model.temperature}', interchanged_indices=random_indices, n=text_encoder_outputs.shape[0])
+                result = stats.spearmanr(interchanged_image_RSM.cpu(), image_RSM.cpu())
 
         # compute spearman correlation between text-text and image-image cosine similarities
-        result = stats.spearmanr(text_text_cosine_similarity.cpu(), image_image_cosine_similarity.cpu())
-        print('spearman correlation between text-text and image-image cosine similarities after interchanging: ', result.statistic)
+        
+        print('spearman correlation between interchanged_image_RSM and image_RSM: ', result.statistic)
         print('p value: ', result.pvalue)

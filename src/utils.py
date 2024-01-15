@@ -290,6 +290,26 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         rsa_before_interchanging = result.correlation
 
+        val_logits_per_image = val_outputs.logits_per_image # shape of both: ([batch_size, batch_size])
+
+        # scale with temp
+        image_text_cosine_similarities = val_logits_per_image * clip_model.temperature
+
+        image_text_RSM = image_text_cosine_similarities[torch.tril(torch.ones(image_text_cosine_similarities.shape[0], image_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+        text_inter_result = stats.spearmanr(image_text_RSM.cpu(), text_RSM.cpu())
+        image_inter_result = stats.spearmanr(image_text_RSM.cpu(), image_RSM.cpu())
+
+        print('correlation between image-text RSM and text RSM', text_inter_result.correlation)
+        print('p value between image-text RSM and text RSM ', text_inter_result.pvalue)
+        print('correlation between image-text RSM and image RSM', image_inter_result.correlation)
+        print('p value between image-text RSM and image RSM ', image_inter_result.pvalue)
+
+        text_intermodality_rsa = text_inter_result.correlation
+        image_intermodality_rsa = image_inter_result.correlation
+
+
+
         '''
          - After interchanging
         '''
@@ -389,7 +409,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,     
                     'rsa_before_interchanging': rsa_before_interchanging,
                     'image_rsa_after_interchanging': image_rsa_after_interchanging,
-                    'text_rsa_after_interchanging': text_rsa_after_interchanging       
+                    'text_rsa_after_interchanging': text_rsa_after_interchanging,
+                    'text_intermodality_rsa': text_intermodality_rsa,
+                    'image_intermodality_rsa': image_intermodality_rsa,
+                           
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
