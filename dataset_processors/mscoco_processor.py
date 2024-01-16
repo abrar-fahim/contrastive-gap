@@ -145,17 +145,19 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         checkpoint_path = get_checkpoint_path()
 
-        if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
+        # NOT SAVING DATALOADER IN CHECKPOINT, so load dataloader normally
 
-            '''
-            Load from checkpoint
-            '''
-            print('Loading dataloader from checkpoint...')
+        # if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
 
-            checkpoint = torch.load(checkpoint_path)
-            self.train_dataloader = checkpoint['train_dataloader']
-            # keep self.train_dataset same as in init, since it doesnt matter
-            return
+        #     '''
+        #     Load from checkpoint
+        #     '''
+        #     print('Loading dataloader from checkpoint...')
+
+        #     checkpoint = torch.load(checkpoint_path)
+        #     self.train_dataloader = checkpoint['train_dataloader']
+        #     # keep self.train_dataset same as in init, since it doesnt matter
+        #     return
 
         
         '''
