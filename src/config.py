@@ -42,10 +42,10 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
-    'validation_dataset_size': 64,
-    'validation_batch_size': 64,
+    'validation_dataset_size': 2048,
+    'validation_batch_size': 2048,
     'cifar_batch_size': 128,
-    'use_cached_val_batch': False, # SET
+    'use_cached_val_batch': True, # SET
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights

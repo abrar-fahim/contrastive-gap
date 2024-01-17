@@ -53,7 +53,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # for CIFAR10 and other zero shot datasets
         cifar_val_dataset = val_dataset_processor.val_dataset
         collate_fn = None
-        cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{training_hyperparameters['seed']}.pt"
+        # cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{training_hyperparameters['seed']}.pt"
         # batch contains (images, index of target class)
         cifar_val_dataloader = torch.utils.data.DataLoader(cifar_val_dataset, batch_size=training_hyperparameters['cifar_batch_size'], num_workers=training_hyperparameters['num_workers'])
 

@@ -33,7 +33,7 @@ def set_hypers():
 
 sweep_configuration = {
     "method": "grid",
-    "name": "inter_intra_RSA_scratch_continue",
+    "name": "cifar_scratch",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.1, 0.01]},
@@ -42,7 +42,7 @@ sweep_configuration = {
         # "lr": {"max": 7e-5, "min": 1e-6},
         "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
         # 'seed': {'values': [42, 10, 100]},
-        'seed': {'values': [42]},
+        'seed': {'values': [21]},
     },
 }
 
@@ -59,4 +59,4 @@ def main():
     wandb.finish()
 
 
-wandb.agent('ea2ldx3d', function=main)
+wandb.agent(sweep_id, function=main)
