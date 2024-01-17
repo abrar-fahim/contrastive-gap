@@ -36,18 +36,18 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 6, # SET
+    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
-    'temperature': 0.1,
+    'temperature': 0.01,
     'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
     'validation_dataset_size': 2048,
     'validation_batch_size': 2048,
     'use_cached_val_batch': True, # SET
     'do_checkpointing': True,
-    'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
-    'train_from_scratch': False, # SET: this randomly initializes weights
+    'continue_from_checkpoint': False, # SET: False means don't loads weights from previous checkpoint
+    'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
@@ -65,8 +65,6 @@ training_hyperparameters = {
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
-    
-    
     }
 
 
