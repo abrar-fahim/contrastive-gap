@@ -55,7 +55,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         collate_fn = None
         cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{training_hyperparameters['seed']}.pt"
         # batch contains (images, index of target class)
-        cifar_val_dataloader = torch.utils.data.DataLoader(cifar_val_dataset, batch_size=training_hyperparameters['cifar_batch_size'], generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+        cifar_val_dataloader = torch.utils.data.DataLoader(cifar_val_dataset, batch_size=training_hyperparameters['cifar_batch_size'], num_workers=training_hyperparameters['num_workers'])
 
     
 
@@ -173,9 +173,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
             cifar10_val_image_classification_accuracy_runsum = 0
             for batch in tqdm(cifar_val_dataloader):
-                print('batching')
                 (cifar_val_imgs, cifar_val_indices) = batch
-                print('batching done')
                 
                 
                 # get logits per image
@@ -190,8 +188,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 # get indices of max values
                 cifar_val_image_class_preds = cifar_val_image_class_probs.argmax(dim=-1) # shape: ([batch_size])
 
+                cifar_val_indices = cifar_val_indices.to(clip_model.device)
+
                 cifar10_val_image_classification_accuracy_runsum += (cifar_val_image_class_preds == cifar_val_indices).float().sum()
-                print('cifar10_val_image_classification_accuracy_runsum ', cifar10_val_image_classification_accuracy_runsum)
+                # print('cifar10_val_image_classification_accuracy_runsum ', cifar10_val_image_classification_accuracy_runsum)
 
             cifar10_val_image_classification_accuracy = cifar10_val_image_classification_accuracy_runsum / len(cifar_val_dataset)
             print('cifar10_val_image_classification_accuracy ', cifar10_val_image_classification_accuracy.item())
