@@ -296,29 +296,30 @@ else:
                
                 # plot_scatter(image_text_RSM, image_RSM, f'image_text_RSM vs image_RSM, T = {clip_model.temperature}', color='purple', n=text_encoder_outputs.shape[0])
                 # plot_scatter(image_RSM, text_RSM, f'image_RSM vs text_RSM, T = {clip_model.temperature}', color='orange', n=text_encoder_outputs.shape[0])
-                result = stats.spearmanr(image_text_RSM.cpu(), image_RSM.cpu())
-                print('spearman correlation between image_text_RSM and image_RSM: ', result.statistic)
+                result = stats.spearmanr(image_RSM.cpu(), image_text_RSM.cpu())
+                print('spearman correlation between image_RSM and image_text_RSM: ', result.statistic)
                 print('p value: ', result.pvalue)
                 result = stats.spearmanr(image_RSM.cpu(), text_RSM.cpu())
                 print('spearman correlation between image_RSM and text_RSM: ', result.statistic)
                 print('p value: ', result.pvalue)
 
-                stackx = torch.stack((image_text_RSM, image_RSM), dim=0)
-                stacky = torch.stack((image_RSM, text_RSM), dim=0)
-
-                colors = ['purple'] * image_text_RSM.shape[0] 
-                colors += ['orange'] * image_RSM.shape[0]
-
 
                 # plt.scatter(stackx.cpu().numpy(), stacky.cpu().numpy(), c=colors)
                 plt.scatter(image_RSM.cpu().numpy(), text_RSM.cpu().numpy(), c='orange')
-                plt.scatter(image_text_RSM.cpu().numpy(), image_RSM.cpu().numpy(), c='purple')
+                plt.scatter(image_RSM.cpu().numpy(), image_text_RSM.cpu().numpy(), c='purple')
+                
                 
                 plt.xlim(-1, 1)
                 plt.ylim(-1, 1)
 
+                # set x axis title
+                plt.xlabel('Image RSM values')
+                plt.ylabel('Text RSM / Image-Text RSM values')
+
+
                 # set legend
-                plt.legend(['image_text_RSM vs image_RSM', 'image_RSM vs text_RSM'])
+                # plt.legend(['image_text_RSM vs image_RSM', 'image_RSM vs text_RSM'])
+                plt.legend(['image_RSM vs text_RSM', 'image_RSM vs image_text_RSM'])
 
                 # set title
                 plt.title(f'inter-modality vs intra-modality RSMs, T = {clip_model.temperature}')

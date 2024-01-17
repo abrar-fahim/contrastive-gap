@@ -35,6 +35,7 @@ import wandb
 from src.config import *
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.wit_processor import WITProcessor
+from dataset_processors.cifar10_processor import CIFAR10Processor
 from trainer import Trainer, GradCacheTrainer
 
 
@@ -63,6 +64,8 @@ def main():
     elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
         dataset_processor = WITProcessor()
 
+
+    cifar_dataset_processor = CIFAR10Processor()
 
     # clip_model = MyClip().to(device)
     # clip_model = OpenAIClip().to(device)
@@ -148,6 +151,7 @@ def main():
 
 
     dataset_processor.print_dataset_stats()
+    cifar_dataset_processor.print_dataset_stats()
 
     '''
     create csv file
@@ -181,8 +185,9 @@ def main():
 
     clip_model.eval()
 
-    # do_validation(dataset_processor.val_dataset, dataset_processor.train_dataset, clip_model, index=i, epoch=epoch, captioning_model=False)
+    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
+    return
 
     clip_model.train()
 

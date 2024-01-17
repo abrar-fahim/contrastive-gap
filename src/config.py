@@ -31,7 +31,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
-    'seed': 42,
+    'seed': 21,
     'dataset': ClipDatasets.MSCOCO,
     'batch_size': 256,
     'grad_cache': False,
@@ -42,11 +42,12 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
-    'validation_dataset_size': 2048,
-    'validation_batch_size': 2048,
-    'use_cached_val_batch': True, # SET
+    'validation_dataset_size': 64,
+    'validation_batch_size': 64,
+    'cifar_batch_size': 128,
+    'use_cached_val_batch': False, # SET
     'do_checkpointing': True,
-    'continue_from_checkpoint': False, # SET: False means don't loads weights from previous checkpoint
+    'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 256,

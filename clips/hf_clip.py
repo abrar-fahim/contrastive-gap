@@ -211,34 +211,38 @@ class HFClip(ClipParent):
         image_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
         text_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
 
-        if training_hyperparameters['intra_modality_loss']:
-            # find cosine similarities between image embeddings themselves
-            scaled_image_image_similarity = image_embeds @ image_embeds.t() * self.intra_modality_logit_scale.exp()
+        loss = 0
 
-            # find cosine similarities between text embeddings themselves
-            scaled_text_text_similarity = text_embeds @ text_embeds.t() * self.intra_modality_logit_scale.exp()
-
-            intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_text_text_similarity, labels) * text_weight
-
-            # print('intra loss: ,', intra_modality_loss)
-        inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
-
-        if training_hyperparameters['intra_modality_loss']:
-            loss = (intra_modality_loss + inter_modality_loss) / 2
-        else:
-            loss = inter_modality_loss
-
-        if output_intra_modality_loss:
-            loss = {
-                'inter_modality': inter_modality_loss.item(),
-                
-                'total': loss.item(),
-            }
+        if output_loss == True:
 
             if training_hyperparameters['intra_modality_loss']:
-                loss['intra_modality'] = intra_modality_loss.item()
+                # find cosine similarities between image embeddings themselves
+                scaled_image_image_similarity = image_embeds @ image_embeds.t() * self.intra_modality_logit_scale.exp()
+
+                # find cosine similarities between text embeddings themselves
+                scaled_text_text_similarity = text_embeds @ text_embeds.t() * self.intra_modality_logit_scale.exp()
+
+                intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_text_text_similarity, labels) * text_weight
+
+                # print('intra loss: ,', intra_modality_loss)
+            inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
+
+            if training_hyperparameters['intra_modality_loss']:
+                loss = (intra_modality_loss + inter_modality_loss) / 2
             else:
-                loss['intra_modality'] = -100
+                loss = inter_modality_loss
+
+            if output_intra_modality_loss:
+                loss = {
+                    'inter_modality': inter_modality_loss.item(),
+                    
+                    'total': loss.item(),
+                }
+
+                if training_hyperparameters['intra_modality_loss']:
+                    loss['intra_modality'] = intra_modality_loss.item()
+                else:
+                    loss['intra_modality'] = -100
 
         outputs = CLIPOutput(
             loss=loss,

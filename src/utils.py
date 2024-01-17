@@ -17,6 +17,8 @@ import os
 from tqdm import tqdm
 from scipy import stats
 
+from torchvision.datasets import CIFAR10
+
 pca = None
 
 random.seed(training_hyperparameters['seed']) # random used in evaluate_concept_arrangement
@@ -25,7 +27,7 @@ random.seed(training_hyperparameters['seed']) # random used in evaluate_concept_
 
 
 # def do_validation(val_dataset, train_dataset, clip_model, index=0, epoch=0, captioning_model=False):
-def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False, wandb=wandb):
+def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_model=False, wandb=wandb, val_dataset_processor = None):
 
     
     '''
@@ -38,11 +40,24 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     # create seperate dataloaders for val and train dataset, seperate from the ones used in training, so that I get same train and val batch each time this runs
 
-    val_dataset = dataset_processor.val_dataset
+    mscoco_val_dataset = dataset_processor.val_dataset
     train_dataset = dataset_processor.train_dataset
     # set caching to true only for inside do_validation
     dataset_processor.use_cached_tokenized_captions = True
     collate_fn = dataset_processor.collate_fn
+    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
+    mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+        
+        
+    if val_dataset_processor != None:
+        # for CIFAR10 and other zero shot datasets
+        cifar_val_dataset = val_dataset_processor.val_dataset
+        collate_fn = None
+        cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{training_hyperparameters['seed']}.pt"
+        # batch contains (images, index of target class)
+        cifar_val_dataloader = torch.utils.data.DataLoader(cifar_val_dataset, batch_size=training_hyperparameters['cifar_batch_size'], generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+
+    
 
     # print('defining dataloaders')
 
@@ -50,12 +65,13 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     # create dataloader for validation set
     # creating dataloader seperately here instead of using the one inside dataset_processor to set the manual seed explicitly so that I get same batch each time
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    
 
     # print('defining dataloaders done')
 
     # create dataloader for train set
     # train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+   
 
     
 
@@ -68,22 +84,26 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # print('torch no grad')
 
-        batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
-
-        if os.path.exists(batch_file_path) and training_hyperparameters['use_cached_val_batch']:
+        if os.path.exists(mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']:
             print('loading batch from cache')
-            (val_imgs, val_captions) = torch.load(batch_file_path)
+
+            (mscoco_val_imgs, mscoco_val_captions) = torch.load(mscoco_batch_file_path)
             print('loading cache done')
 
         else:
-            for batch in val_dataloader:
+            for batch in mscoco_val_dataloader:
                 # (val_imgs, val_captions) = next(iter(val_dataloader))
-                (val_imgs, val_captions) = batch
+                (mscoco_val_imgs, mscoco_val_captions) = batch
 
             if training_hyperparameters['use_cached_val_batch']:
                 print('saving batch to cache')
                 # save batch to cache
-                torch.save((val_imgs, val_captions), batch_file_path)
+                torch.save((mscoco_val_imgs, mscoco_val_captions), mscoco_batch_file_path)
+
+        
+        
+        
+       
 
 
         # print('batching')
@@ -109,9 +129,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
             plt.show()
 
+
+
+
         
         # print('clipping')
-        val_outputs = clip_model(val_imgs, val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
+        val_outputs = clip_model(mscoco_val_imgs, mscoco_val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
         # print('clipping done')
         '''
         1. Validation image classification accuracy
@@ -136,6 +159,43 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+
+        '''
+        1.1 Validation image classification accuracy on CIFAR10
+        '''
+
+        if val_dataset_processor != None:
+            cifar_classes = val_dataset_processor.classes
+
+            # tokenize captions
+            cifar_tokenized_classes = clip_model.tokenize_captions(cifar_classes)
+
+            cifar10_val_image_classification_accuracy_runsum = 0
+            for batch in tqdm(cifar_val_dataloader):
+                print('batching')
+                (cifar_val_imgs, cifar_val_indices) = batch
+                print('batching done')
+                
+                
+                # get logits per image
+                cifar_val_outputs = clip_model(cifar_val_imgs, cifar_tokenized_classes, output_loss=False, return_all=True)
+
+                cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
+
+                # softmax on logits_per_image
+                cifar_val_image_class_probs = F.softmax(cifar_val_logits_per_image, dim=-1) # shape: ([batch_size, 10]). 10 is num_classes in cifar10
+
+                # calculate accuracy
+                # get indices of max values
+                cifar_val_image_class_preds = cifar_val_image_class_probs.argmax(dim=-1) # shape: ([batch_size])
+
+                cifar10_val_image_classification_accuracy_runsum += (cifar_val_image_class_preds == cifar_val_indices).float().sum()
+                print('cifar10_val_image_classification_accuracy_runsum ', cifar10_val_image_classification_accuracy_runsum)
+
+            cifar10_val_image_classification_accuracy = cifar10_val_image_classification_accuracy_runsum / len(cifar_val_dataset)
+            print('cifar10_val_image_classification_accuracy ', cifar10_val_image_classification_accuracy.item())
+
 
 
 
@@ -220,7 +280,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # print(' --- TEXT-TEXT SIMILARITIES --- ')
         # print()
 
-        text_encoder_outputs = clip_model.encode_text(val_captions) # shape: ([batch_size, 512])
+        text_encoder_outputs = clip_model.encode_text(mscoco_val_captions) # shape: ([batch_size, 512])
 
         # normalize features
         text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
@@ -241,7 +301,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # print(' --- IMAGE-IMAGE SIMILARITIES --- ')
         # print()
 
-        image_encoder_outputs = clip_model.encode_image(val_imgs) # shape: ([batch_size, 512])
+        image_encoder_outputs = clip_model.encode_image(mscoco_val_imgs) # shape: ([batch_size, 512])
 
         # normalize features
         image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
@@ -412,6 +472,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'text_rsa_after_interchanging': text_rsa_after_interchanging,
                     'text_intermodality_rsa': text_intermodality_rsa,
                     'image_intermodality_rsa': image_intermodality_rsa,
+                    'cifar10_val_image_classification_accuracy': cifar10_val_image_classification_accuracy.item() if val_dataset_processor != None else 0,
 
                     
                 },
