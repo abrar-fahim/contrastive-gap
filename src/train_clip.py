@@ -197,7 +197,7 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, dataset_processor.train_dataloader, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'])
+        trainer.train_one_epoch(clip_model, dataset_processor.train_dataloader, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'], val_dataset_processor=cifar_dataset_processor)
 
         i_loaded_from_checkpoint = False
         epoch += 1
