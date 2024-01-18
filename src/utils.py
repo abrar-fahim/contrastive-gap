@@ -344,9 +344,15 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
         result = stats.spearmanr(text_RSM.cpu(), image_RSM.cpu())
+        pearson_result = stats.pearsonr(text_RSM.cpu(), image_RSM.cpu())
 
         print('correlation before interchanging', result.correlation)
         print('p value ', result.pvalue)
+
+        print('pearson correlation before interchanging', pearson_result.statistic)
+        print('pearson p value ', pearson_result.pvalue)
+
+        pearson_rsa_before_interchanging = pearson_result.statistic
 
         rsa_before_interchanging = result.correlation
 
@@ -360,13 +366,28 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         text_inter_result = stats.spearmanr(image_text_RSM.cpu(), text_RSM.cpu())
         image_inter_result = stats.spearmanr(image_text_RSM.cpu(), image_RSM.cpu())
 
+        text_inter_pearson_result = stats.pearsonr(image_text_RSM.cpu(), text_RSM.cpu())
+        image_inter_pearson_result = stats.pearsonr(image_text_RSM.cpu(), image_RSM.cpu())
+
+        print('--- SPEARMAN CORRELATION ---')
+
         print('correlation between image-text RSM and text RSM', text_inter_result.correlation)
         print('p value between image-text RSM and text RSM ', text_inter_result.pvalue)
         print('correlation between image-text RSM and image RSM', image_inter_result.correlation)
         print('p value between image-text RSM and image RSM ', image_inter_result.pvalue)
 
+        print('--- PEARSON CORRELATION ---')
+
+        print('pearson correlation between image-text RSM and text RSM', text_inter_pearson_result.statistic)
+        print('pearson p value between image-text RSM and text RSM ', text_inter_pearson_result.pvalue)
+        print('pearson correlation between image-text RSM and image RSM', image_inter_pearson_result.statistic)
+        print('pearson p value between image-text RSM and image RSM ', image_inter_pearson_result.pvalue)
+
         text_intermodality_rsa = text_inter_result.correlation
         image_intermodality_rsa = image_inter_result.correlation
+
+        pearson_text_intermodality_rsa = text_inter_pearson_result.statistic
+        pearson_image_intermodality_rsa = image_inter_pearson_result.statistic
 
 
 
@@ -473,6 +494,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'text_intermodality_rsa': text_intermodality_rsa,
                     'image_intermodality_rsa': image_intermodality_rsa,
                     'cifar10_val_image_classification_accuracy': cifar10_val_image_classification_accuracy.item() if val_dataset_processor != None else 0,
+                    'pearson_rsa_before_interchanging': pearson_rsa_before_interchanging,
+                    'pearson_text_intermodality_rsa': pearson_text_intermodality_rsa,
+                    'pearson_image_intermodality_rsa': pearson_image_intermodality_rsa
+                    
 
                     
                 },
