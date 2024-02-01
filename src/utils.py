@@ -234,8 +234,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             (train_imgs, train_captions) = torch.load(mscoco_train_dataset_batch_file_path)
             print('loading cache done')
         else:
+            print('loading train batch')
             for batch in train_dataloader:
                 (train_imgs, train_captions) = batch
+                break # loading a single train batch for now
 
             if training_hyperparameters['use_cached_val_batch']:
                 print('saving train batch to cache')
