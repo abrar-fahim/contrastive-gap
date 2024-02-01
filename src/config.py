@@ -31,7 +31,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
-    'seed': 21,
+    'seed': 42,
     'dataset': ClipDatasets.MSCOCO,
     'batch_size': 256,
     'grad_cache': False,
@@ -39,7 +39,7 @@ training_hyperparameters = {
     'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
-    'temperature': 0.01,
+    'temperature': 0.1,
     'intra_modality_temperature': 0.1,
     'weight_decay': 0.2,
     'validation_dataset_size': 2048,

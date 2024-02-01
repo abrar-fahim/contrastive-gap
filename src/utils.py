@@ -42,11 +42,15 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     mscoco_val_dataset = dataset_processor.val_dataset
     train_dataset = dataset_processor.train_dataset
+    
     # set caching to true only for inside do_validation
     dataset_processor.use_cached_tokenized_captions = True
     collate_fn = dataset_processor.collate_fn
     mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
+    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
     mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
         
         
     if val_dataset_processor != None:
@@ -225,20 +229,34 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         3. Training image classification accuracy
         '''
 
+        if os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']:
+            print('loading train batch from cache')
+            (train_imgs, train_captions) = torch.load(mscoco_train_dataset_batch_file_path)
+            print('loading cache done')
+        else:
+            for batch in train_dataloader:
+                (train_imgs, train_captions) = batch
+
+            if training_hyperparameters['use_cached_val_batch']:
+                print('saving train batch to cache')
+                # save batch to cache
+                torch.save((train_imgs, train_captions), mscoco_train_dataset_batch_file_path)
+            
+
         # (train_imgs, train_captions) = next(iter(train_dataloader))
 
-        # train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so tha I get cosine similarities directly
-        # train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
-        # train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
-        # train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
-        # train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
-        # train_image_classification_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
+        train_outputs = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so tha I get cosine similarities directly
+        train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
+        train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
+        train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
+        train_image_class_labels = torch.arange(train_image_class_probs.shape[0], device=train_image_class_probs.device) # shape: ([64])
+        train_image_classification_accuracy = (train_image_class_preds == train_image_class_labels).float().mean()
 
-        # # train_loss = train_outputs.loss.item()
+        # train_loss = train_outputs.loss.item()
 
-        # train_intra_loss = train_outputs.loss['intra_modality']
-        # train_inter_loss = train_outputs.loss['inter_modality']
-        # train_loss = train_outputs.loss['total']
+        train_intra_loss = train_outputs.loss['intra_modality']
+        train_inter_loss = train_outputs.loss['inter_modality']
+        train_loss = train_outputs.loss['total']
 
 
 
@@ -476,10 +494,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 data={
                     'val_image_classification_accuracy': val_image_classification_accuracy.item(),
                     'val_image_retrieval_accuracy': val_image_retrieval_accuracy.item(),
-                    # 'train_image_accuracy': train_image_classification_accuracy.item(),
-                    # 'cosine_sim_metric': cosine_sim_metric.item(),
-                    # 'train_intramodality_loss': train_intra_loss,
-                    # 'train_intermodality_loss': train_inter_loss,
+                    'train_image_accuracy': train_image_classification_accuracy.item(),
+                    'train_intramodality_loss': train_intra_loss,
+                    'train_intermodality_loss': train_inter_loss,
+                    'train_total_loss': train_loss,
                     'mean_cosine_similarity': mean_cosine_similarity.item(),
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
@@ -834,7 +852,7 @@ def plot_embeddings(clip_model, dataloader):
         text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are normalized
         image_embeds = outputs.image_embeds # normalized also
 
-        pca = PCA(n_components=2)
+        pca = PCA(n_components=3)
         plot_captions = text_embeds.detach().cpu().numpy()
         plot_images = image_embeds.detach().cpu().numpy()
 
@@ -847,13 +865,29 @@ def plot_embeddings(clip_model, dataloader):
         caption_coordinates = pca_coordinates[:plot_captions.shape[0]]
         image_coordinates = pca_coordinates[plot_captions.shape[0]:]
 
-        plt.title(f'PCA of image (red) and text (blue) projections.')
-        plt.scatter(caption_coordinates[:, 0], caption_coordinates[:, 1], c='b')
-        plt.scatter(image_coordinates[:, 0], image_coordinates[:, 1], c='r')
+        # 3D scatter plot
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+
+        ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
+        ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
+
+        
 
         # set axes limits
-        plt.xlim(-1, 1)
-        plt.ylim(-1, 1)
+        ax.set_xlim3d(-1, 1)
+        ax.set_ylim3d(-1, 1)
+        ax.set_zlim3d(-1, 1)
+
+
+        # plt.title(f'PCA of image (red) and text (blue) projections.')
+        # plt.scatter(caption_coordinates[:, 0], caption_coordinates[:, 1], c='b')
+        # plt.scatter(image_coordinates[:, 0], image_coordinates[:, 1], c='r')
+
+        # set axes limits
+        # plt.xlim(-1, 1)
+        # plt.ylim(-1, 1)
+        
 
         plt.show()
 

@@ -153,7 +153,7 @@ def main():
     dataset_processor.print_dataset_stats()
     cifar_dataset_processor.print_dataset_stats()
 
-    cifar_dataset_processor = None
+    # cifar_dataset_processor = None
 
     '''
     create csv file
