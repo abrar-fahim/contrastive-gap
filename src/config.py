@@ -23,7 +23,7 @@ class ClipDatasets(Enum):
 
 # selected_clip_model = ClipModels.WARM
 selected_clip_model = ClipModels.FINETUNED_TEMP
-# selected_clip_model = ClipModels.DEFAULT
+# selected_clip_model = CliModels.DEFAULT
 # selected_clip_model = ClipModels.FINETUNED
 
 '''
@@ -58,10 +58,11 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'intra_modality_loss': False,
+    'intra_modality_loss': False, 
+    'rsa_loss': False,
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
     'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
-    'train_only_one_batch': False,
+    'train_only_one_batch': False, # SET
     'save_losses': False,
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode', # can have name, temp, iweight, tweight, loss as of now,
