@@ -3,6 +3,7 @@ import numpy as np
 from clips.clip_parent import ClipParent
 from transformers import CLIPModel, AutoTokenizer, CLIPConfig
 from src.utils import get_checkpoint_path
+from torch.functional import F
 
 from transformers.models.clip.modeling_clip import CLIPOutput
 
@@ -225,24 +226,50 @@ class HFClip(ClipParent):
                 intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_text_text_similarity, labels) * text_weight
 
                 # print('intra loss: ,', intra_modality_loss)
+            if training_hyperparameters['rsa_loss']:
+                
+                text_text_cosine_similarities = text_embeds @ text_embeds.t()
+                image_image_cosine_similarities = image_embeds @ image_embeds.t()
+
+                # i can make intra-modality cosine sims and inter modality cosine sims as similiar as possible
+
+                inter_image_rsa = F.cosine_similarity(logits_per_image.reshape(1, -1), image_image_cosine_similarities.reshape(1, -1))
+                inter_text_rsa = F.cosine_similarity(logits_per_text.reshape(1, -1), text_text_cosine_similarities.reshape(1, -1))
+
+                rsa_loss = -(inter_image_rsa + inter_text_rsa) / 2
+
+                
+
+
+                # image_text_RSM = logits_per_image[torch.tril(torch.ones(logits_per_image.shape[0], logits_per_image.shape[1]), diagonal=-1).bool()]
+
+                # text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+                # image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+
+
+
+
+
+
+
             inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
 
             if training_hyperparameters['intra_modality_loss']:
                 loss = (intra_modality_loss + inter_modality_loss) / 2
+            elif training_hyperparameters['rsa_loss']:
+                loss = inter_modality_loss + rsa_loss
             else:
                 loss = inter_modality_loss
 
             if output_intra_modality_loss:
                 loss = {
                     'inter_modality': inter_modality_loss.item(),
-                    
+                    'rsa': rsa_loss.item() if training_hyperparameters['rsa_loss'] else -100,
+                    'intra_modality': intra_modality_loss.item() if training_hyperparameters['intra_modality_loss'] else -100,
                     'total': loss.item(),
                 }
-
-                if training_hyperparameters['intra_modality_loss']:
-                    loss['intra_modality'] = intra_modality_loss.item()
-                else:
-                    loss['intra_modality'] = -100
 
         outputs = CLIPOutput(
             loss=loss,
