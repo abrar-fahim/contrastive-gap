@@ -238,14 +238,28 @@ class HFClip(ClipParent):
 
                 rsa_loss = -(inter_image_rsa + inter_text_rsa) / 2
 
+            if training_hyperparameters['pearson_loss']:
+
+                '''
+                ACTUAL PEARSON CORRELATION IN RSA LOSS
+                '''
+
+                image_text_RSM = logits_per_image[torch.tril(torch.ones(logits_per_image.shape[0], logits_per_image.shape[1]), diagonal=-1).bool()] # shape: (k)
+
+                text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]    # shape: (k)
+
+                image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]   # shape: (k)
                 
+                # stack image_text RSM and text RSM 
+                # and then calculate pearson correlation
+                # then calculate loss
+                stacked_RSM_text = torch.stack([image_text_RSM, text_RSM], dim=0) # shape: (2, k)
+                stacked_RSM_image = torch.stack([image_text_RSM, image_RSM], dim=0) # shape: (2, k)
 
+                text_corr = torch.corrcoef(stacked_RSM_text) # shape: (2, 2)
+                image_corr = torch.corrcoef(stacked_RSM_image) # shape: (2, 2)
 
-                # image_text_RSM = logits_per_image[torch.tril(torch.ones(logits_per_image.shape[0], logits_per_image.shape[1]), diagonal=-1).bool()]
-
-                # text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
-
-                # image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
+                pearson_rsa_loss = -(text_corr[0, 1] + image_corr[0, 1]) / 2
 
 
 
@@ -260,6 +274,9 @@ class HFClip(ClipParent):
                 loss = (intra_modality_loss + inter_modality_loss) / 2
             elif training_hyperparameters['rsa_loss']:
                 loss = inter_modality_loss + rsa_loss
+            elif training_hyperparameters['pearson_loss']:
+                loss = inter_modality_loss + pearson_rsa_loss
+                
             else:
                 loss = inter_modality_loss
 
@@ -268,6 +285,7 @@ class HFClip(ClipParent):
                     'inter_modality': inter_modality_loss.item(),
                     'rsa': rsa_loss.item() if training_hyperparameters['rsa_loss'] else -100,
                     'intra_modality': intra_modality_loss.item() if training_hyperparameters['intra_modality_loss'] else -100,
+                    'pearson_rsa': pearson_rsa_loss.item() if training_hyperparameters['pearson_loss'] else -100,
                     'total': loss.item(),
                 }
 

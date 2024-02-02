@@ -258,6 +258,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         train_intra_loss = train_outputs.loss['intra_modality']
         train_rsa_loss = train_outputs.loss['rsa']
+        train_pearson_loss = train_outputs.loss['pearson_rsa']
         train_inter_loss = train_outputs.loss['inter_modality']
         train_loss = train_outputs.loss['total']
 
@@ -501,6 +502,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'train_intramodality_loss': train_intra_loss,
                     'train_intermodality_loss': train_inter_loss,
                     'train_rsa_loss': train_rsa_loss,
+                    'train_pearson_loss': train_pearson_loss,
                     'train_total_loss': train_loss,
                     'mean_cosine_similarity': mean_cosine_similarity.item(),
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
