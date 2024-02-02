@@ -232,8 +232,8 @@ class Trainer(TrainerParent):
             
             i += 1
 
-            if training_hyperparameters['train_only_one_batch']:
-                break
+            # if training_hyperparameters['train_only_one_batch']:
+            #     break
 
             if training_hyperparameters['max_steps'] is not None and i >= training_hyperparameters['max_steps']:
                 break

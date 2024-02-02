@@ -33,16 +33,18 @@ def set_hypers():
 
 sweep_configuration = {
     "method": "grid",
-    "name": "cifar_scratch",
+    # "method": "random",
+    "name": "lr_with_more_temps_scratch_toy",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
-        "temperature": {"values": [0.1, 0.01]},
+        "temperature": {"values": [1, 0.5, 0.1, 0.01]},
         # "intra_modality_loss": {"values": [True, False]},
         "intra_modality_loss": {"values": [False]},
         # "lr": {"max": 7e-5, "min": 1e-6},
-        "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+        # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+        "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
         # 'seed': {'values': [42, 10, 100]},
-        'seed': {'values': [21]},
+        'seed': {'values': [11]},
     },
 }
 
@@ -59,4 +61,4 @@ def main():
     wandb.finish()
 
 
-wandb.agent(sweep_id, function=main)
+wandb.agent(sweep_id, function=main, count=16)
