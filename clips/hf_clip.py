@@ -244,6 +244,9 @@ class HFClip(ClipParent):
                 ACTUAL PEARSON CORRELATION IN RSA LOSS
                 '''
 
+                text_text_cosine_similarities = text_embeds @ text_embeds.t()
+                image_image_cosine_similarities = image_embeds @ image_embeds.t()
+
                 image_text_RSM = logits_per_image[torch.tril(torch.ones(logits_per_image.shape[0], logits_per_image.shape[1]), diagonal=-1).bool()] # shape: (k)
 
                 text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]    # shape: (k)
