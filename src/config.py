@@ -58,6 +58,7 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
+    'text_only': False, # SET
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,

@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from clips.clip_parent import ClipParent
-from transformers import CLIPModel, AutoTokenizer, CLIPConfig
+from transformers import CLIPModel, AutoTokenizer, CLIPConfig, CLIPTextConfig, CLIPTextModel, CLIPTextModelWithProjection
 from src.utils import get_checkpoint_path
 from torch.functional import F
 
@@ -70,6 +70,12 @@ class HFClip(ClipParent):
         assert np.isclose(self.temperature, 1 / self.model.logit_scale.exp().item())
         # print('logit scale: ', self.model.logit_scale)
         print('temperature (T): ', self.temperature)
+
+        if training_hyperparameters['text_only']:
+            print('CLIP running in text only mode')
+
+
+
   
 
         print()
@@ -82,20 +88,35 @@ class HFClip(ClipParent):
             print('-- LOADING DEFAULT CLIP MODEL --')
             self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
         elif state == 'random':
-            print('-- LOADING CLIP MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
-            '''
-            These are from https://huggingface.co/docs/transformers/v4.36.1/en/model_doc/clip#transformers.CLIPConfig
-            '''
-            # Initializing a CLIPConfig with openai/clip-vit-base-patch32 style configuration
-            configuration = CLIPConfig()
 
-            # Initializing a CLIPModel (with random weights) from the openai/clip-vit-base-patch32 style configuration
-            self.model = CLIPModel(configuration)
-            self.model.init_weights()
+            if not training_hyperparameters['text_only']:
+            
+                print('-- LOADING CLIP MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
+                '''
+                These are from https://huggingface.co/docs/transformers/v4.36.1/en/model_doc/clip#transformers.CLIPConfig
+                '''
+                # Initializing a CLIPConfig with openai/clip-vit-base-patch32 style configuration
+                configuration = CLIPConfig()
+
+                # Initializing a CLIPModel (with random weights) from the openai/clip-vit-base-patch32 style configuration
+                self.model = CLIPModel(configuration)
+                self.model.init_weights()
+            else:
+                print('CLIP running in text only mode')
+                configuration = CLIPTextConfig()
+                self.model = None
+                self.text_model1 = CLIPTextModelWithProjection(configuration)    
+                self.text_model2 = CLIPTextModelWithProjection(configuration)
+
+                self.text_model1.init_weights()
+                self.text_model2.init_weights()
+
 
         # set model parameters requires_grad to True
         for param in self.model.parameters():
             param.requires_grad = True
+
+
 
         if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
 
@@ -187,25 +208,41 @@ class HFClip(ClipParent):
 
         # tokenized_captions = self.tokenize_captions(captions)
 
-        tokenized_captions = captions.to(self.device)
-        preprocessed_images = preprocessed_images.to(self.device)
+        if not training_hyperparameters['text_only']:
 
-        outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)
 
+            tokenized_captions = captions.to(self.device)
+            preprocessed_images = preprocessed_images.to(self.device)
+
+            outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)\
+            
+            image_embeds = outputs.image_embeds
+            text_embeds = outputs.text_embeds
+
+            logits_per_image = outputs.logits_per_image
+            logits_per_text = outputs.logits_per_text
+        else:
+            # in this case, "preprocessed_images" are actually captions
+            tokenized_captions1 = self.preprocessed_images.to(self.device)
+            tokenized_captions2 = captions.to(self.device)
+
+            outputs1 = self.text_model1(**tokenized_captions1)
+            outputs2 = self.text_model2(**tokenized_captions2)
+
+            image_embeds = outputs1.text_embeds
+            text_embeds = outputs2.text_embeds
+
+            logits_per_image = image_embeds @ text_embeds.t() * self.model.logit_scale.exp() # model.logit_scale.exp() is 1 / temperature, so 100 for 0.01
+            logits_per_text = text_embeds @ image_embeds.t() * self.model.logit_scale.exp()
 
         # this is exactly the same code (although I wrote it) as huggingface clip's loss as in https://github.dev/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
 
 
-        # normalize features
-        image_embeds = outputs.image_embeds
-        text_embeds = outputs.text_embeds
+       
 
         # normalized features
         image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
         text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
-
-        logits_per_image = outputs.logits_per_image
-        logits_per_text = outputs.logits_per_text
 
         labels = torch.arange(logits_per_image.shape[0]).to(self.device)
 
@@ -265,12 +302,6 @@ class HFClip(ClipParent):
                 pearson_rsa_loss = -(text_corr[0, 1] + image_corr[0, 1]) / 2
 
 
-
-
-
-
-
-
             inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
 
             if training_hyperparameters['intra_modality_loss']:
@@ -312,52 +343,3 @@ class HFClip(ClipParent):
         else:
             return logits_per_image, logits_per_text
 
-            
-
-        
-
-    def forward_1(self, preprocessed_images, captions, scale=False):
-
-        # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
-
-        preprocessed_images = preprocessed_images.to(self.device)
-
-        encoded_images = self.encode_image(preprocessed_images)
-
-        encoded_captions = self.encode_text(captions)
-
-         # normalize features
-        image_features = encoded_images / torch.norm(encoded_images, dim=1, keepdim=True)
-        text_features = encoded_captions / torch.norm(encoded_captions, dim=1, keepdim=True)
-
-        if scale:
-            logit_scale = self.logit_scale.exp()
-            logits_per_image = logit_scale * image_features @ text_features.t()
-        else:
-            logits_per_image = image_features @ text_features.t()
-        logits_per_text = logits_per_image.t()
-
-        # shape = [global_batch_size, global_batch_size]
-        return logits_per_image, logits_per_text
-    
-
-    def forward_old(self, preprocessed_images, captions, scale=True):
-
-        # inputs = self.processor(text=['captions', 'hello'], images=image, return_tensors="pt", padding=True)
-
-        preprocessed_images = preprocessed_images.to(self.device)
-
-        caption_inputs = self.tokenizer(captions, padding=True, return_tensors="pt")
-
-        # image_inputs = self.processor(text=captions, return_tensors="pt", padding=True)
-
-        
-
-        outputs = self.model(input_ids=caption_inputs['input_ids'].to(self.device), attention_mask=caption_inputs['attention_mask'].to(self.device), pixel_values=preprocessed_images)
-
-        logits_per_image, logits_per_text = outputs.logits_per_image, outputs.logits_per_text
-
-        logits_per_image, logits_per_text = logits_per_image / 100, logits_per_text / 100
-
-        return logits_per_image, logits_per_text
-    

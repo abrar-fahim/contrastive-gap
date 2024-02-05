@@ -60,6 +60,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
+
+        if training_hyperparameters['text_only']:
+            captions_2 = [caption[1] for caption in og_captions]
         if self.return_only_captions:
             return captions
 
@@ -89,6 +92,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         tokenized_captions = HFClip.static_tokenize_captions(captions)
+        if training_hyperparameters['text_only']:
+            tokenized_captions_2 = HFClip.static_tokenize_captions(captions_2)
+            return (tokenized_captions, tokenized_captions_2)
         
         # stacked_images = stacked_images.to(device)
 
