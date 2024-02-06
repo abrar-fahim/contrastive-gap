@@ -29,7 +29,10 @@ class HFClip(ClipParent):
 
         self.temperature = 0.01 # this is default temp
 
-        self.set_weights('default') # loads clip model and sets the logit scale param 
+        if training_hyperparameters['text_only']:
+            self.set_weights('random')
+        else:
+            self.set_weights('default') # loads clip model and sets the logit scale param 
 
         '''
         load CLIP from respective checkpoint regardless of training mode
@@ -66,8 +69,12 @@ class HFClip(ClipParent):
 
         print('selected clip model ', selected_clip_model.name)
 
-        # calculate temperature from logit scale and assert that its the same as temp
-        assert np.isclose(self.temperature, 1 / self.model.logit_scale.exp().item())
+        if training_hyperparameters['text_only']:
+            # calculate temperature from logit scale and assert that its the same as temp
+            assert np.isclose(self.temperature, 1 / self.logit_scale.exp().item())
+        else:
+            # calculate temperature from logit scale and assert that its the same as temp
+            assert np.isclose(self.temperature, 1 / self.model.logit_scale.exp().item())
         # print('logit scale: ', self.model.logit_scale)
         print('temperature (T): ', self.temperature)
 
@@ -238,6 +245,10 @@ class HFClip(ClipParent):
             image_embeds = outputs.image_embeds
             text_embeds = outputs.text_embeds
 
+            # normalized features
+            image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
+            text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
+
             logits_per_image = outputs.logits_per_image
             logits_per_text = outputs.logits_per_text
         else:
@@ -251,17 +262,16 @@ class HFClip(ClipParent):
             image_embeds = outputs1.text_embeds
             text_embeds = outputs2.text_embeds
 
+            # normalized features
+            image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
+            text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
+
             logits_per_image = image_embeds @ text_embeds.t() * self.logit_scale.exp() # logit_scale.exp() is 1 / temperature, so 100 for 0.01
             logits_per_text = text_embeds @ image_embeds.t() * self.logit_scale.exp()
 
         # this is exactly the same code (although I wrote it) as huggingface clip's loss as in https://github.dev/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
 
-
-       
-
-        # normalized features
-        image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
-        text_embeds = text_embeds / text_embeds.norm(p=2, dim=-1, keepdim=True)
+        
 
         labels = torch.arange(logits_per_image.shape[0]).to(self.device)
 

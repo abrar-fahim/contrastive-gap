@@ -9,15 +9,15 @@ class ClipCaptionModelMapping(Enum):
     MLP = 'mlp'
     TRANSFORMER = 'transformer'
 
-class OpenAIClipPretrainedModels(Enum):
+class OpenAIClipPretrainedModels(str, Enum):
     VIT = "ViT-B/32",
     RN50 = "RN50x4",
 
-class HFClipPretrainedModels(Enum):
+class HFClipPretrainedModels(str, Enum):
     VIT = "openai/clip-vit-base-patch32",
     RN50 = "mlunar/clip-variants-resnet-50x4",
 
-class ClipDatasets(Enum):
+class ClipDatasets(str, Enum):
     MSCOCO = 'mscoco',
     WIT400 = 'wit400'
 
@@ -42,8 +42,8 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 64,
-    'validation_batch_size': 64,
+    'validation_dataset_size': 2048,
+    'validation_batch_size': 2048,
     'cifar_batch_size': 128,
     'use_cached_val_batch': True, # SET
     'do_checkpointing': True,
@@ -62,8 +62,8 @@ training_hyperparameters = {
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,
-    'openai_clip_model': OpenAIClipPretrainedModels.VIT.value[0],
-    'hf_clip_model': HFClipPretrainedModels.VIT.value[0],
+    'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
+    'hf_clip_model': HFClipPretrainedModels.VIT.value,
     'train_only_one_batch': False, # SET
     'save_losses': False,
     'csv_path': 'stats/',

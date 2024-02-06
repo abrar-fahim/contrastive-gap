@@ -44,6 +44,7 @@ sweep_configuration = {
         "intra_modality_loss": {"values": [False]},
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
+        "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
 
         # "lr": {"max": 7e-5, "min": 1e-6},
         "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

@@ -2,6 +2,8 @@ import torch
 
 
 
+
+
 def loss(t):
     a = torch.tensor([0.7, 0.1, 0.1, 0.1])
     a = a / t

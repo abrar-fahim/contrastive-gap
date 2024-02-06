@@ -286,11 +286,21 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         cosine_similarities = val_logits_per_image.diag() # shape: [64]
         # get mean cosine similarity
         mean_cosine_similarity = torch.mean(cosine_similarities)
+
+        # scale with temperature
+        mean_cosine_similarity = mean_cosine_similarity * clip_model.temperature
+
         print('mean cosine similarity ', mean_cosine_similarity.item())
 
 
         # get mean of elements that are not on the diagonal
         non_similar_mean_cosine_similarity = val_logits_per_image[~torch.eye(val_logits_per_image.shape[0], dtype=bool)].mean()
+
+        # scale with temperature
+
+        non_similar_mean_cosine_similarity = non_similar_mean_cosine_similarity * clip_model.temperature
+
+
         print('non_similar_mean_cosine_similarity ', non_similar_mean_cosine_similarity * clip_model.temperature)
 
 
@@ -343,10 +353,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         '''
 
         # first, scale the cosine similarities by temperature
-        mean_cosine_similarity = mean_cosine_similarity * clip_model.temperature
-        non_similar_mean_cosine_similarity = non_similar_mean_cosine_similarity * clip_model.temperature
-        mean_text_text_cosine_similarity = mean_text_text_cosine_similarity
-        mean_image_image_cosine_similarity = mean_image_image_cosine_similarity
+
+
 
 
         '''
@@ -526,7 +534,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
-                step= int(epoch * 100 + index) # by 100 to maintain fair comparison with existing runs data
+                step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
+                
 
             )
         
