@@ -20,6 +20,8 @@ def set_hypers():
     config.training_hyperparameters['temperature'] = wandb.config.temperature
     config.training_hyperparameters['intra_modality_temperature'] = wandb.config.temperature
     config.training_hyperparameters['intra_modality_loss'] = wandb.config.intra_modality_loss
+    config.training_hyperparameters['rsa_loss'] = wandb.config.rsa_loss
+    config.training_hyperparameters['pearson_loss'] = wandb.config.pearson_loss
     config.training_hyperparameters['lr'] = wandb.config.lr
 
     # reload config
@@ -34,17 +36,20 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "lr_with_more_temps_scratch_toy",
+    "name": "Trying text only",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
-        "temperature": {"values": [1, 0.5, 0.1, 0.01]},
+        "temperature": {"values": [0.01]},
         # "intra_modality_loss": {"values": [True, False]},
         "intra_modality_loss": {"values": [False]},
+        "rsa_loss": {"values": [False]},
+        "pearson_loss": {"values": [False]},
+
         # "lr": {"max": 7e-5, "min": 1e-6},
-        # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-        "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
+        "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+        # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
         # 'seed': {'values': [42, 10, 100]},
-        'seed': {'values': [11]},
+        'seed': {'values': [2]},
     },
 }
 
@@ -61,4 +66,4 @@ def main():
     wandb.finish()
 
 
-wandb.agent(sweep_id, function=main, count=16)
+wandb.agent(sweep_id, function=main)

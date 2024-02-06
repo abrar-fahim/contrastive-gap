@@ -73,6 +73,7 @@ class HFClip(ClipParent):
 
         if training_hyperparameters['text_only']:
             print('CLIP running in text only mode')
+            # self.logit_scale = self.model.logit_scale.clone() # because upto here, self.model does exist.
 
 
 
@@ -101,6 +102,9 @@ class HFClip(ClipParent):
                 # Initializing a CLIPModel (with random weights) from the openai/clip-vit-base-patch32 style configuration
                 self.model = CLIPModel(configuration)
                 self.model.init_weights()
+                # set model parameters requires_grad to True
+                for param in self.model.parameters():
+                    param.requires_grad = True
             else:
                 print('CLIP running in text only mode')
                 configuration = CLIPTextConfig()
@@ -110,11 +114,15 @@ class HFClip(ClipParent):
 
                 self.text_model1.init_weights()
                 self.text_model2.init_weights()
+                for param in self.text_model1.parameters():
+                    param.requires_grad = True
+                for param in self.text_model2.parameters():
+                    param.requires_grad = True
+
+                
 
 
-        # set model parameters requires_grad to True
-        for param in self.model.parameters():
-            param.requires_grad = True
+        
 
 
 
@@ -126,10 +134,15 @@ class HFClip(ClipParent):
             self.intra_modality_logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.intra_modality_temperature), requires_grad=False, device=self.device)) # not self.model since clip_model doesn't have intra_modality_logit_scale
 
             self.intra_modality_logit_scale.requires_grad = False
+            
+            if training_hyperparameters['text_only']:
+                self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
+                self.logit_scale.requires_grad = False
+            else:
 
-            self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
+                self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
 
-            self.model.logit_scale.requires_grad = False
+                self.model.logit_scale.requires_grad = False
         
         self.to(self.device)
         
@@ -139,8 +152,11 @@ class HFClip(ClipParent):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
-
-        image_features = self.model.get_image_features(pixel_values=preprocessed_images)
+        if training_hyperparameters['text_only']:
+            # in this case, "preprocessed_images" is actually tokenized text
+            image_features = self.text_model2(**preprocessed_images).text_embeds
+        else:
+            image_features = self.model.get_image_features(pixel_values=preprocessed_images)
 
         # return pooled_output AFTER projection
         return image_features
@@ -186,7 +202,10 @@ class HFClip(ClipParent):
 
         # tokenized_captions = self.tokenize_captions(captions)
 
-        text_features = self.model.get_text_features(**tokenized_captions)
+        if training_hyperparameters['text_only']:
+            text_features = self.text_model1(**tokenized_captions).text_embeds
+        else:
+            text_features = self.model.get_text_features(**tokenized_captions)
 
         return text_features
     
@@ -223,7 +242,7 @@ class HFClip(ClipParent):
             logits_per_text = outputs.logits_per_text
         else:
             # in this case, "preprocessed_images" are actually captions
-            tokenized_captions1 = self.preprocessed_images.to(self.device)
+            tokenized_captions1 = preprocessed_images.to(self.device)
             tokenized_captions2 = captions.to(self.device)
 
             outputs1 = self.text_model1(**tokenized_captions1)
@@ -232,8 +251,8 @@ class HFClip(ClipParent):
             image_embeds = outputs1.text_embeds
             text_embeds = outputs2.text_embeds
 
-            logits_per_image = image_embeds @ text_embeds.t() * self.model.logit_scale.exp() # model.logit_scale.exp() is 1 / temperature, so 100 for 0.01
-            logits_per_text = text_embeds @ image_embeds.t() * self.model.logit_scale.exp()
+            logits_per_image = image_embeds @ text_embeds.t() * self.logit_scale.exp() # logit_scale.exp() is 1 / temperature, so 100 for 0.01
+            logits_per_text = text_embeds @ image_embeds.t() * self.logit_scale.exp()
 
         # this is exactly the same code (although I wrote it) as huggingface clip's loss as in https://github.dev/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
 
