@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from clips.clip_parent import ClipParent
-from transformers import CLIPModel, AutoTokenizer, CLIPConfig, CLIPTextConfig, CLIPTextModel, CLIPTextModelWithProjection
+from transformers import CLIPModel, AutoTokenizer, CLIPConfig, CLIPTextConfig, CLIPTextModelWithProjection
 from src.utils import get_checkpoint_path
 from torch.functional import F
 
@@ -11,7 +11,7 @@ from src.config import *
 import os
 
 
-
+ 
 
 class HFClip(ClipParent):
 
@@ -125,13 +125,6 @@ class HFClip(ClipParent):
                     param.requires_grad = True
                 for param in self.text_model2.parameters():
                     param.requires_grad = True
-
-                
-
-
-        
-
-
 
         if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
 
