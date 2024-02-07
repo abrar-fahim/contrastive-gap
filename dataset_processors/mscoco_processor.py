@@ -63,6 +63,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if training_hyperparameters['text_only']:
             captions_2 = [caption[1] for caption in og_captions]
+            # captions_2 = [caption[0] for caption in og_captions]
         if self.return_only_captions:
             return captions
 
