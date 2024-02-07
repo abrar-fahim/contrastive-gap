@@ -364,6 +364,11 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         image_centroid = image_encoder_outputs.mean(dim=0)
 
+        # euclidean distance between centroids
+        centroid_euclidean_distance = torch.norm(text_centroid - image_centroid)
+
+        print('centroid_euclidean_distance ', centroid_euclidean_distance)
+
         # normalize centroids
         text_centroid = text_centroid / torch.norm(text_centroid, dim=0, keepdim=True)
         image_centroid = image_centroid / torch.norm(image_centroid, dim=0, keepdim=True)
@@ -540,6 +545,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'train_total_loss': train_loss,
                     'mean_cosine_similarity': mean_cosine_similarity.item(),
                     'centroid_cosine_similarity': centroid_cosine_similarity.item(),
+                    'centroid_euclidean_distance': centroid_euclidean_distance.item(),
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
