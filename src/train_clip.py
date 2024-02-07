@@ -206,5 +206,30 @@ def main():
 
     clip_model.train()
 
+    print('--- TRAINING COMPLETE ---')
+
+
+
+    # delete validation batch cache
+    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
+    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
+
+    if os.path.exists(mscoco_batch_file_path):
+        os.remove(mscoco_batch_file_path)
+        print(f'removed {mscoco_batch_file_path}')
+    else:
+        print(f'{mscoco_batch_file_path} does not exist')
+    
+    if os.path.exists(mscoco_train_dataset_batch_file_path):
+        os.remove(mscoco_train_dataset_batch_file_path)
+        print(f'removed {mscoco_train_dataset_batch_file_path}')
+    else:
+        print(f'{mscoco_train_dataset_batch_file_path} does not exist')
+
+    
+    
+
+
+
 if __name__ == '__main__':
     main()
