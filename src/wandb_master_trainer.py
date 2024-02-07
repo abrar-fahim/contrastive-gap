@@ -36,7 +36,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "Trying text only",
+    "name": "Different caption both encoders",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
@@ -68,3 +68,4 @@ def main():
 
 
 wandb.agent(sweep_id, function=main)
+ 
