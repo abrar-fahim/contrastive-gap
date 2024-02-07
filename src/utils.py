@@ -364,12 +364,14 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         image_centroid = image_encoder_outputs.mean(dim=0)
 
+        # normalize centroids
+        text_centroid = text_centroid / torch.norm(text_centroid, dim=0, keepdim=True)
+        image_centroid = image_centroid / torch.norm(image_centroid, dim=0, keepdim=True)
+
         # cosine similarity between centroids
         centroid_cosine_similarity = text_centroid @ image_centroid.t()
 
         print('centroid_cosine_similarity ', centroid_cosine_similarity)
-
-
 
 
         '''
@@ -892,25 +894,40 @@ def plot_embeddings(clip_model, dataloader):
         text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are normalized
         image_embeds = outputs.image_embeds # normalized also
 
+        # find centroids
+        text_centroid = text_embeds.mean(dim=0)
+        image_centroid = image_embeds.mean(dim=0)
+
+
         pca = PCA(n_components=3)
         plot_captions = text_embeds.detach().cpu().numpy()
+        plot_caption_centroid = text_centroid.detach().cpu().numpy().reshape(1, -1)
         plot_images = image_embeds.detach().cpu().numpy()
+        plot_image_centroid = image_centroid.detach().cpu().numpy().reshape(1, -1)
 
-        all_embeddings = np.concatenate((plot_captions, plot_images), axis=0)
+        all_embeddings = np.concatenate((plot_captions, plot_caption_centroid, plot_images, plot_image_centroid), axis=0)
 
         pca.fit(all_embeddings)
 
         pca_coordinates = pca.transform(all_embeddings)
         
         caption_coordinates = pca_coordinates[:plot_captions.shape[0]]
-        image_coordinates = pca_coordinates[plot_captions.shape[0]:]
+        caption_centroid = pca_coordinates[plot_captions.shape[0]]
+        image_coordinates = pca_coordinates[plot_captions.shape[0] + 1: -1]
+        image_centroid = pca_coordinates[-1]
+
+
 
         # 3D scatter plot
         fig = plt.figure()
         ax = plt.axes(projection='3d')
 
-        ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
-        ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
+        # ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
+        # make centroid bigger
+        ax.scatter3D(caption_centroid[0], caption_centroid[1], caption_centroid[2], c='g', s=500)
+        # ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
+        ax.scatter3D(image_centroid[0], image_centroid[1], image_centroid[2], c='y', s=500)
+
 
         
 
