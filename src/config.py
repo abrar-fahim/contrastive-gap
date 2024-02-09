@@ -59,6 +59,7 @@ training_hyperparameters = {
         'text_to_image_weight': 0.5,
     },
     'text_only': True, # SET
+    'same_encoder': True, # SET # ONLY WORKS FOR text_only=True
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,
@@ -70,6 +71,7 @@ training_hyperparameters = {
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
     "code_snippet": {
+        # 'collate_fn': 'captions_2 = [caption[0] for caption in og_captions]'
         'collate_fn': 'captions_2 = [caption[1] for caption in og_captions]'
     }
     }

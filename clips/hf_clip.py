@@ -9,6 +9,7 @@ from transformers.models.clip.modeling_clip import CLIPOutput
 
 from src.config import *
 import os
+import copy
 
 
  
@@ -82,10 +83,6 @@ class HFClip(ClipParent):
             print('CLIP running in text only mode')
             # self.logit_scale = self.model.logit_scale.clone() # because upto here, self.model does exist.
 
-
-
-  
-
         print()
 
         # no need to load state dict for default, since it's the same as the pretrained model
@@ -116,8 +113,16 @@ class HFClip(ClipParent):
                 print('CLIP running in text only mode')
                 configuration = CLIPTextConfig()
                 self.model = None
-                self.text_model1 = CLIPTextModelWithProjection(configuration)    
-                self.text_model2 = CLIPTextModelWithProjection(configuration)
+
+                if training_hyperparameters['same_encoder']:
+                    print('CLIP running in same encoder mode')
+                    self.text_model1 = CLIPTextModelWithProjection(configuration)
+                    self.text_model2 = copy.deepcopy(self.text_model1)
+
+                else:
+                    print('CLIP running in different encoder mode')
+                    self.text_model1 = CLIPTextModelWithProjection(configuration)    
+                    self.text_model2 = CLIPTextModelWithProjection(configuration)
 
                 self.text_model1.init_weights()
                 self.text_model2.init_weights()
