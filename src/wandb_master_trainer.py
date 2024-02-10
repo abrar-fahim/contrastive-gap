@@ -13,11 +13,6 @@ import src.config as config
 
 import wandb
 
-import torch
-
-torch.use_deterministic_algorithms(True)
-torch.backends.cudnn.benchmark = False
-
 
 
 def set_hypers():
