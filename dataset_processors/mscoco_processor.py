@@ -78,7 +78,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # count repeats
         n_repeats = org_len - len(unique_captions)
-        print('n_repeats: ', n_repeats)
+        # print('n_repeats: ', n_repeats)
 
         captions = unique_captions
 
