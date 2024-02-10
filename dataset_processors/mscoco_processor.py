@@ -52,6 +52,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         imgs, og_captions = zip(*batch)
 
+
+
+
         if training_hyperparameters['show_incorrect_images']:
             # do preprocess here only if we're showing incorrect images at some point in training
             if not self.show_real_images_captions:
@@ -61,9 +64,33 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
 
+    
+
+        # remove repeats in captions and imgs
+
+        org_len = len(captions)
+        # get indices of unique captions
+        unique_captions = list(set(captions))
+        unique_captions_indices = [captions.index(caption) for caption in unique_captions]
+
+        # get unique imgs
+        imgs = [imgs[i] for i in unique_captions_indices]
+
+        # count repeats
+        n_repeats = org_len - len(unique_captions)
+        print('n_repeats: ', n_repeats)
+
+        captions = unique_captions
+
+        og_captions = [og_captions[i] for i in unique_captions_indices]
+
         if training_hyperparameters['text_only']:
-            captions_2 = [caption[1] for caption in og_captions]
-            # captions_2 = [caption[0] for caption in og_captions]
+
+            if training_hyperparameters['same_captions']:
+            
+                captions_2 = [caption[0] for caption in og_captions]
+            else:
+                captions_2 = [caption[1] for caption in og_captions]
         if self.return_only_captions:
             return captions
 

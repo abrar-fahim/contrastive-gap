@@ -104,16 +104,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), mscoco_batch_file_path)
 
-        
-        
-        
-       
-
 
         # print('batching')
         # (val_imgs, val_captions) = next(iter(val_dataloader))
         
 
+        
 
         if clip_caption_model_train_hyperparameters['show_real_images']:
 
@@ -136,30 +132,44 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
 
+        if training_hyperparameters['same_captions']:
+
+            print(' == ', torch.eq(mscoco_val_imgs['input_ids'], mscoco_val_captions['input_ids']).all())
+            assert torch.eq(mscoco_val_imgs['input_ids'], mscoco_val_captions['input_ids']).all(), 'captions are not same'
+
         
         # print('clipping')
         val_outputs = clip_model(mscoco_val_imgs, mscoco_val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
         # print('clipping done')
+
+
         '''
         1. Validation image classification accuracy
         '''
         val_logits_per_image = val_outputs.logits_per_image # shape of both: ([64, 64])
 
+        # image embeddings
+        image_embeds = val_outputs.image_embeds
+        text_embeds = val_outputs.text_embeds
+
+        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder']:
+            assert torch.eq(image_embeds, text_embeds).all(), 'embeddings are not same'
+
+            print('image and text embeddings are same')
+
 
         # softmax on logits_per_image
         val_image_class_probs = F.softmax(val_logits_per_image, dim=-1) # shape: ([64, 64])
+
 
        
         # calculate accuracy
         # get indices of max values
         val_image_class_preds = val_image_class_probs.argmax(dim=-1) # shape: ([64])
 
-        # print('val_image_class_preds ', val_image_class_preds)
 
-
-        
-        # get indices of correct predictions
         val_image_class_labels = torch.arange(val_image_class_probs.shape[0], device=val_image_class_probs.device) # shape: ([64])
+
 
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
@@ -261,6 +271,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         train_pearson_loss = train_outputs.loss['pearson_rsa']
         train_inter_loss = train_outputs.loss['inter_modality']
         train_loss = train_outputs.loss['total']
+
+        print('train_intermodality_loss ', train_inter_loss)
 
 
 
@@ -954,6 +966,17 @@ def plot_embeddings(clip_model, dataloader):
 
         plt.show()
 
+
+
+
+def remove_repeats_from_val_batch(val_batch):
+    val_images, val_captions = val_batch
+
+    # remove repeats using torch
+    unique_indices = torch.unique(val_captions, return_inverse=True)[1]
+
+    val_images = val_images[unique_indices]
+    val_captions = val_captions[unique_indices]
 
 
 

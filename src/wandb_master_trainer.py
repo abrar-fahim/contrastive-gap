@@ -13,6 +13,12 @@ import src.config as config
 
 import wandb
 
+import torch
+
+torch.use_deterministic_algorithms(True)
+torch.backends.cudnn.benchmark = False
+
+
 
 def set_hypers():
     config.training_hyperparameters['seed'] = wandb.config.seed
@@ -35,7 +41,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "Diff Captions Same Encoder",
+    "name": "Same Captions Same Encoder Sanity check",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},

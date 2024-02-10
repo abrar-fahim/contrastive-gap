@@ -60,6 +60,7 @@ training_hyperparameters = {
     },
     'text_only': True, # SET
     'same_encoder': True, # SET # ONLY WORKS FOR text_only=True
+    'same_captions': True, # SET # ONLY WORKS FOR text_only=True
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,

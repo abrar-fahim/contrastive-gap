@@ -110,26 +110,40 @@ class HFClip(ClipParent):
                 for param in self.model.parameters():
                     param.requires_grad = True
             else:
+                print('-- LOADING CLIP TEXT MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
                 print('CLIP running in text only mode')
                 configuration = CLIPTextConfig()
                 self.model = None
 
+                self.text_model1 = CLIPTextModelWithProjection(configuration)
+
+                self.text_model1.init_weights()
+                
+
                 if training_hyperparameters['same_encoder']:
                     print('CLIP running in same encoder mode')
-                    self.text_model1 = CLIPTextModelWithProjection(configuration)
+                    
                     self.text_model2 = copy.deepcopy(self.text_model1)
 
                 else:
                     print('CLIP running in different encoder mode')
-                    self.text_model1 = CLIPTextModelWithProjection(configuration)    
                     self.text_model2 = CLIPTextModelWithProjection(configuration)
+                    self.text_model2.init_weights()
 
-                self.text_model1.init_weights()
-                self.text_model2.init_weights()
+                
+                
                 for param in self.text_model1.parameters():
                     param.requires_grad = True
                 for param in self.text_model2.parameters():
                     param.requires_grad = True
+
+
+        # check if weights of text1 and text2 are the same
+        if training_hyperparameters['same_encoder']:
+            assert str(self.text_model1.state_dict()) == str(self.
+            text_model2.state_dict())
+
+            print('text model 1 and text model 2 have the same weights')
 
         if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
 
