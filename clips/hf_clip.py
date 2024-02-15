@@ -120,7 +120,7 @@ class HFClip(ClipParent):
                 self.text_model1.init_weights()
                 
 
-                if training_hyperparameters['same_encoder']:
+                if training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
                     print('CLIP running in same encoder mode')
                     
                     self.text_model2 = copy.deepcopy(self.text_model1)
@@ -139,7 +139,7 @@ class HFClip(ClipParent):
 
 
         # check if weights of text1 and text2 are the same
-        if training_hyperparameters['same_encoder']:
+        if training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
             assert str(self.text_model1.state_dict()) == str(self.
             text_model2.state_dict())
 

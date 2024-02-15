@@ -40,17 +40,25 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     # create seperate dataloaders for val and train dataset, seperate from the ones used in training, so that I get same train and val batch each time this runs
 
-    mscoco_val_dataset = dataset_processor.val_dataset
-    train_dataset = dataset_processor.train_dataset
     
-    # set caching to true only for inside do_validation
-    dataset_processor.use_cached_tokenized_captions = True
-    collate_fn = dataset_processor.collate_fn
     mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
     mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
-    mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    if not (os.path.exists(mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
+        # only create dataloaders if batch is not cached
+
+        mscoco_val_dataset = dataset_processor.val_dataset
+        collate_fn = dataset_processor.collate_fn
+        mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+
+       
+
+    if not (os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
+        collate_fn = dataset_processor.collate_fn
+        train_dataset = dataset_processor.train_dataset
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+
+    
         
         
     if val_dataset_processor != None:
@@ -86,8 +94,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
     with torch.no_grad():
         # get batch from validation set
 
-        # print('torch no grad')
-
         if os.path.exists(mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']:
             print('loading batch from cache')
 
@@ -104,9 +110,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), mscoco_batch_file_path)
 
+                del mscoco_val_dataloader
 
-        # print('batching')
-        # (val_imgs, val_captions) = next(iter(val_dataloader))
         
 
         
@@ -132,9 +137,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
 
-        if training_hyperparameters['same_captions']:
+        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
 
-            print(' == ', torch.eq(mscoco_val_imgs['input_ids'], mscoco_val_captions['input_ids']).all())
             assert torch.eq(mscoco_val_imgs['input_ids'], mscoco_val_captions['input_ids']).all(), 'captions are not same'
 
         
@@ -152,7 +156,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         image_embeds = val_outputs.image_embeds
         text_embeds = val_outputs.text_embeds
 
-        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder']:
+        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
             assert torch.eq(image_embeds, text_embeds).all(), 'embeddings are not same'
 
             print('image and text embeddings are same')
@@ -253,6 +257,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                 print('saving train batch to cache')
                 # save batch to cache
                 torch.save((train_imgs, train_captions), mscoco_train_dataset_batch_file_path)
+
+                del train_dataloader
             
 
         # (train_imgs, train_captions) = next(iter(train_dataloader))
@@ -272,11 +278,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         train_inter_loss = train_outputs.loss['inter_modality']
         train_loss = train_outputs.loss['total']
 
+        del train_outputs
+
         print('train_intermodality_loss ', train_inter_loss)
 
-
-
-        
 
         print('--- ACCURACY STUFF --- ')
 
@@ -316,17 +321,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         print('non_similar_mean_cosine_similarity ', non_similar_mean_cosine_similarity * clip_model.temperature)
 
 
-
-
-
-
-
         '''
         - Get text-text similarities
         '''
-        # print()
-        # print(' --- TEXT-TEXT SIMILARITIES --- ')
-        # print()
 
         text_encoder_outputs = clip_model.encode_text(mscoco_val_captions) # shape: ([batch_size, 512])
 
@@ -345,10 +342,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         - Get image-image similarities
         '''
 
-        # print()
-        # print(' --- IMAGE-IMAGE SIMILARITIES --- ')
-        # print()
-
         image_encoder_outputs = clip_model.encode_image(mscoco_val_imgs) # shape: ([batch_size, 512])
 
         # normalize features
@@ -363,9 +356,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
         print('mean_image_image_cosine_similarity ', mean_image_image_cosine_similarity)
-
-
-
 
         '''
         - Similarity between image and text centroids

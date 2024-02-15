@@ -198,11 +198,11 @@ class Trainer(TrainerParent):
             
             optimizer.step()
 
-            
-                    
-
             # print statistics
             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
+
+            del loss
+
 
             
 

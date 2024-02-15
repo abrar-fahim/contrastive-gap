@@ -36,7 +36,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 40, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -59,8 +59,8 @@ training_hyperparameters = {
         'text_to_image_weight': 0.5,
     },
     'text_only': True, # SET
-    'same_encoder': True, # SET # ONLY WORKS FOR text_only=True
-    'same_captions': True, # SET # ONLY WORKS FOR text_only=True
+    'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
+    'same_captions': False, # SET # ONLY WORKS FOR text_only=True
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,

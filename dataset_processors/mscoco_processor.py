@@ -118,7 +118,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
         #     if self.use_cached_tokenized_captions:
         #         self.val_tokenized_captions = tokenized_captions
 
-
         tokenized_captions = HFClip.static_tokenize_captions(captions)
         if training_hyperparameters['text_only']:
             tokenized_captions_2 = HFClip.static_tokenize_captions(captions_2)
@@ -237,14 +236,15 @@ class MSCOCOProcessor(DatasetProcessorParent):
         val_data_subset = Subset(self.train_dataset, val_indices)
 
 
-        val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+
+        # no need val dataloader as I'm creating it in do_validation in utils
+
+        # val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
 
 
         # set class variables
         self.val_dataset = val_data_subset
-        self.val_dataloader = val_dataloader
-
-        # most likely not using this val_dataloader anywhere
+        # self.val_dataloader = val_dataloader
 
     def print_dataset_stats(self):
 

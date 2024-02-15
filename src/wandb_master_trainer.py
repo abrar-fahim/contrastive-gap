@@ -36,7 +36,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "Same Captions Same Encoder Sanity check",
+    "name": "After bug fix diff encoders at init diff captions",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
