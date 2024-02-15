@@ -455,64 +455,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
         '''
-         - After interchanging
-        '''
-
-        # get random indices 
-        num_elements_to_switch = int(shuffle_ratio * text_encoder_outputs.shape[0])
-        random_indices = random.sample(range(text_encoder_outputs.shape[0]), num_elements_to_switch)
-
-        interchanged_text_encoder_outputs = text_encoder_outputs.clone()
-        interchanged_image_encoder_outputs = image_encoder_outputs.clone()
-
-        # switch elements at random indices
-        interchanged_text_encoder_outputs[random_indices], interchanged_image_encoder_outputs[random_indices] = interchanged_image_encoder_outputs[random_indices], interchanged_text_encoder_outputs[random_indices]
-
-        # cosine similarities between text-text pairs
-        interchanged_text_RSM = interchanged_text_encoder_outputs @ interchanged_text_encoder_outputs.t() # shape: ([batch_size, batch_size])
-        # get elements in lower traingle excluding diagonal
-        interchanged_text_RSM = interchanged_text_RSM[torch.tril(torch.ones(interchanged_text_RSM.shape[0], interchanged_text_RSM.shape[1]), diagonal=-1).bool()]
-
-        # cosine similarities between image-image pairs
-        interchanged_image_RSM = interchanged_image_encoder_outputs @ interchanged_image_encoder_outputs.t() # shape: ([batch_size, batch_size])
-
-
-        # get elements in lower traingle excluding diagonal
-        interchanged_image_RSM = interchanged_image_RSM[torch.tril(torch.ones(interchanged_image_RSM.shape[0], interchanged_image_RSM.shape[1]), diagonal=-1).bool()]
-
-
-
-        rho_interchanged_image_RSM_image_RSM = stats.spearmanr(interchanged_image_RSM.cpu(), image_RSM.cpu())
-
-        print('correlation between interchanged image RSM and original image RSM', rho_interchanged_image_RSM_image_RSM.correlation)
-
-        print('p value between interchanged image RSM and original image RSM ', rho_interchanged_image_RSM_image_RSM.pvalue)
-
-        rho_interchanged_text_RSM_text_RSM = stats.spearmanr(interchanged_text_RSM.cpu(), text_RSM.cpu())
-
-        print('correlation between interchanged text RSM and original text RSM', rho_interchanged_text_RSM_text_RSM.correlation)
-
-        print('p value between interchanged text RSM and original text RSM ', rho_interchanged_text_RSM_text_RSM.pvalue)
-
-
-        # result_after_shuffling = stats.spearmanr(interchanged_text_RSM.cpu(), interchanged_image_RSM.cpu())
-
-        image_rsa_after_interchanging = rho_interchanged_image_RSM_image_RSM.correlation
-
-        text_rsa_after_interchanging = rho_interchanged_text_RSM_text_RSM.correlation
-
-
-
-        '''
-        Compute consistency metric
-        '''
-
-        # average_linearity_cosine_sim = evaluate_linearity(clip_model)
-        average_consistency_accuracy, average_consistency_cosine_similarity = evaluate_consistency(image_encoder_outputs, text_encoder_outputs)
-
-        print('average_cosistency ', average_consistency_accuracy)
-
-        '''
         dump numbers to csv file
         '''
 
@@ -552,12 +494,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
                     'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
-                    'average_consistency_accuracy': average_consistency_accuracy,
-                    'average_consistency_cosine_sim': average_consistency_cosine_similarity,
-                    # 'average_linearity_cosine_similarity': average_linearity_cosine_sim,     
                     'rsa_before_interchanging': rsa_before_interchanging,
-                    'image_rsa_after_interchanging': image_rsa_after_interchanging,
-                    'text_rsa_after_interchanging': text_rsa_after_interchanging,
                     'text_intermodality_rsa': text_intermodality_rsa,
                     'image_intermodality_rsa': image_intermodality_rsa,
                     'cifar10_val_image_classification_accuracy': cifar10_val_image_classification_accuracy.item() if val_dataset_processor != None else 0,
