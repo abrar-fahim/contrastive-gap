@@ -68,6 +68,10 @@ def main():
 
     set_hypers()
 
+    if wandb.config.same_encoder and not wandb.config.same_captions:
+        print('skipping SCSE config')
+        return
+
     # do training
     train_clip.main()
     wandb.finish()

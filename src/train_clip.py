@@ -187,7 +187,7 @@ def main():
 
     clip_model.eval()
 
-    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
+    # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()

@@ -1,20 +1,7 @@
 import torch
 
-# tensor a
-a = torch.tensor([1, 2, 3], dtype=torch.float32)
 
-# normalize a
-a = a / a.norm()
+a = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=torch.float32)
+b = torch.tensor([[10, 20, 30], [40, 50, 60], [70, 80, 90]], dtype=torch.float32)
 
-# tensor b
-b = torch.tensor([6, 4, 2], dtype=torch.float32)
-
-# normalize b
-b = b / b.norm()
-
-# cosine similarity between a and b
-
-# dot product of a and b
-print(a @ b.t())
-
-print(a.dot(b))
+print(torch.norm(a-b, dim=-1)) # tensor([37.4162, 74.8322, 112.2483])

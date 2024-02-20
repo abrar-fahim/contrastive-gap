@@ -36,7 +36,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 40, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -53,12 +53,12 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
-    'save_every': 25,
+    'save_every': 500,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'text_only': False, # SET
+    'text_only': True, # SET
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'same_captions': False, # SET # ONLY WORKS FOR text_only=True
     'intra_modality_loss': False, 
@@ -69,7 +69,7 @@ training_hyperparameters = {
     'train_only_one_batch': False, # SET
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
     "code_snippet": {
         # 'collate_fn': 'captions_2 = [caption[0] for caption in og_captions]'

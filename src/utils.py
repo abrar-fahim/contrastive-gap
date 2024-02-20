@@ -6,8 +6,6 @@ from sklearn.decomposition import PCA
 from evaluate import load as load_evaluator
 from src.config import *
 import wandb
-
-import nltk
 import random
 from nltk.tokenize import word_tokenize
 from nltk.tag import pos_tag
@@ -294,8 +292,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         print('--- IMAGE-TEXT SIMILARITIES --- ')
 
-
-
         # print('logits_per_image ', logits_per_image)
 
         # print logits per image for first 5 images
@@ -357,6 +353,20 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         print('mean_image_image_cosine_similarity ', mean_image_image_cosine_similarity)
 
+
+        '''
+        Euclidean distance between image and text pairs
+        '''
+
+        # euclidean distance between image and text pairs
+        euclidean_distances = torch.norm(image_encoder_outputs - text_encoder_outputs, dim=-1)
+
+        # get mean euclidean distance
+        mean_euclidean_distance = euclidean_distances.mean()
+
+        print('mean_pairwise_euclidean_distance ', mean_euclidean_distance)
+
+
         '''
         - Similarity between image and text centroids
         '''
@@ -366,10 +376,14 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         image_centroid = image_encoder_outputs.mean(dim=0)
 
+
         # euclidean distance between centroids
         centroid_euclidean_distance = torch.norm(text_centroid - image_centroid)
 
         print('centroid_euclidean_distance ', centroid_euclidean_distance)
+
+    
+
 
         # normalize centroids
         text_centroid = text_centroid / torch.norm(text_centroid, dim=0, keepdim=True)
@@ -505,6 +519,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'train_rsa_loss': train_rsa_loss,
                     'train_pearson_loss': train_pearson_loss,
                     'train_total_loss': train_loss,
+                    'mean_pairwise_euclidean_distance': mean_euclidean_distance.item(), # this is the mean of the euclidean distances between image and text pairs
                     'mean_cosine_similarity': mean_cosine_similarity.item(),
                     'centroid_cosine_similarity': centroid_cosine_similarity.item(),
                     'centroid_euclidean_distance': centroid_euclidean_distance.item(),
@@ -521,19 +536,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'pearson_image_intermodality_rsa': pearson_image_intermodality_rsa,
                     'text_inter_slope': text_inter_slope,
                     'text_inter_intercept': text_inter_intercept,
-                    'text_inter_r_value': text_inter_r_value,
-                    'text_inter_p_value': text_inter_p_value,
-                    'text_inter_std_err': text_inter_std_err,
                     'image_inter_slope': image_inter_slope,
                     'image_inter_intercept': image_inter_intercept,
-                    'image_inter_r_value': image_inter_r_value,
-                    'image_inter_p_value': image_inter_p_value,
-                    'image_inter_std_err': image_inter_std_err,
                     'image_text_slope': image_text_slope,
                     'image_text_intercept': image_text_intercept,
-                    'image_text_r_value': image_text_r_value,
-                    'image_text_p_value': image_text_p_value,
-                    'image_text_std_err': image_text_std_err,
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -1300,6 +1306,23 @@ def generate_csv_file_name(clip_model):
             else:
                 trainmode = 'finetune'
             new_part = part.replace('trainmode', trainmode)
+
+        elif 'captionencoder' in part:
+
+            acronym = 'default'
+            if training_hyperparameters['text_only']:
+                if training_hyperparameters['same_captions']:
+                    acronym = 'SC'
+                else:
+                    acronym = 'DC'
+
+                if training_hyperparameters['same_encoder']:
+                    acronym += 'SE'
+                else:
+                    acronym += 'DE'
+
+            new_part = part.replace('captionencoder', acronym)
+
         else:
             new_part = part
 
