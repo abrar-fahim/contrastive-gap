@@ -206,7 +206,7 @@ class Trainer(TrainerParent):
 
             
 
-            if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
+            if i % save_every == 0 and training_hyperparameters['do_checkpointing'] and epoch % 5 == 0: # save every 5 epochs only
                 # do this in another thread
 
                 # for old_p in self.val_processes:

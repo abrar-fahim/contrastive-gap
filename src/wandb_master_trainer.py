@@ -39,7 +39,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "Sweeping through encoder caption combos",
+    "name": "Minimizing wandb logs",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
@@ -48,7 +48,7 @@ sweep_configuration = {
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-        "text_only": {"values": [True]},
+        "text_only": {"values": [True, False]},
         "same_encoder": {"values": [True, False]},
         "same_captions": {"values": [True, False]},
 
@@ -68,8 +68,13 @@ def main():
 
     set_hypers()
 
-    if wandb.config.same_encoder and not wandb.config.same_captions:
+    if wandb.config.same_encoder and wandb.config.same_captions:
         print('skipping SCSE config')
+        return
+    
+    if not wandb.config.text_only:
+        if wandb.config.same_encoder or wandb.config.same_captions:
+            print('Cant have same_encoder or same_captions with default CLIP. Skipping.')
         return
 
     # do training
