@@ -904,10 +904,10 @@ def plot_embeddings(clip_model, dataloader):
         fig = plt.figure()
         ax = plt.axes(projection='3d')
 
-        # ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
+        ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
         # make centroid bigger
         ax.scatter3D(caption_centroid[0], caption_centroid[1], caption_centroid[2], c='g', s=500)
-        # ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
+        ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
         ax.scatter3D(image_centroid[0], image_centroid[1], image_centroid[2], c='y', s=500)
 
 
@@ -926,6 +926,13 @@ def plot_embeddings(clip_model, dataloader):
         # set axes limits
         # plt.xlim(-1, 1)
         # plt.ylim(-1, 1)
+
+        # save the 3D points 
+        np.save('caption_coordinates_same.npy', caption_coordinates)
+        np.save('image_coordinates_same.npy', image_coordinates)
+        np.save('caption_centroid_same.npy', caption_centroid)
+        np.save('image_centroid_same.npy', image_centroid)
+
         
 
         plt.show()
