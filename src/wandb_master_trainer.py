@@ -23,6 +23,9 @@ def set_hypers():
     config.training_hyperparameters['rsa_loss'] = wandb.config.rsa_loss
     config.training_hyperparameters['pearson_loss'] = wandb.config.pearson_loss
     config.training_hyperparameters['lr'] = wandb.config.lr
+    config.training_hyperparameters['text_only'] = wandb.config.text_only
+    config.training_hyperparameters['same_encoder'] = wandb.config.same_encoder
+    config.training_hyperparameters['same_captions'] = wandb.config.same_captions
 
     # reload config
     # importlib.reload(config)
@@ -36,7 +39,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "After bug fix diff encoders at init diff captions",
+    "name": "Sweeping through encoder caption combos",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
@@ -45,6 +48,9 @@ sweep_configuration = {
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
+        "text_only": {"values": [True]},
+        "same_encoder": {"values": [True, False]},
+        "same_captions": {"values": [True, False]},
 
         # "lr": {"max": 7e-5, "min": 1e-6},
         "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

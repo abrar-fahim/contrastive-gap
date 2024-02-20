@@ -58,7 +58,7 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'text_only': True, # SET
+    'text_only': False, # SET
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'same_captions': False, # SET # ONLY WORKS FOR text_only=True
     'intra_modality_loss': False, 

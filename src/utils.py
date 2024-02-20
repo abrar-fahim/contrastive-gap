@@ -453,12 +453,30 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         pearson_image_intermodality_rsa = image_inter_pearson_result.statistic
 
 
+        '''
+        - Slope of linear regression between image-text RSM and text RSM
+        '''
 
+        # get slope of linear regression between image-text RSM and text RSM
+
+
+        text_inter_stats = stats.linregress(image_text_RSM.cpu(), text_RSM.cpu())
+
+        image_inter_stats = stats.linregress(image_text_RSM.cpu(), image_RSM.cpu())
+
+        image_text_stats = stats.linregress(image_RSM.cpu(), text_RSM.cpu())
+
+
+        text_inter_slope, text_inter_intercept, text_inter_r_value, text_inter_p_value, text_inter_std_err = text_inter_stats
+
+        image_inter_slope, image_inter_intercept, image_inter_r_value, image_inter_p_value, image_inter_std_err = image_inter_stats
+
+        image_text_slope, image_text_intercept, image_text_r_value, image_text_p_value, image_text_std_err = image_text_stats
+
+    
         '''
         dump numbers to csv file
         '''
-
-
 
         if training_hyperparameters['save_losses']:
 
@@ -500,9 +518,22 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'cifar10_val_image_classification_accuracy': cifar10_val_image_classification_accuracy.item() if val_dataset_processor != None else 0,
                     'pearson_rsa_before_interchanging': pearson_rsa_before_interchanging,
                     'pearson_text_intermodality_rsa': pearson_text_intermodality_rsa,
-                    'pearson_image_intermodality_rsa': pearson_image_intermodality_rsa
-                    
-
+                    'pearson_image_intermodality_rsa': pearson_image_intermodality_rsa,
+                    'text_inter_slope': text_inter_slope,
+                    'text_inter_intercept': text_inter_intercept,
+                    'text_inter_r_value': text_inter_r_value,
+                    'text_inter_p_value': text_inter_p_value,
+                    'text_inter_std_err': text_inter_std_err,
+                    'image_inter_slope': image_inter_slope,
+                    'image_inter_intercept': image_inter_intercept,
+                    'image_inter_r_value': image_inter_r_value,
+                    'image_inter_p_value': image_inter_p_value,
+                    'image_inter_std_err': image_inter_std_err,
+                    'image_text_slope': image_text_slope,
+                    'image_text_intercept': image_text_intercept,
+                    'image_text_r_value': image_text_r_value,
+                    'image_text_p_value': image_text_p_value,
+                    'image_text_std_err': image_text_std_err,
                     
                 },
                 # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
