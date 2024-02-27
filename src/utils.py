@@ -373,14 +373,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # get centroids
         text_centroid = text_encoder_outputs.mean(dim=0)
-
         image_centroid = image_encoder_outputs.mean(dim=0)
 
 
         # euclidean distance between centroids
         centroid_euclidean_distance = torch.norm(text_centroid - image_centroid)
 
-        print('centroid_euclidean_distance ', centroid_euclidean_distance)
 
     
 

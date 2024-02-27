@@ -20,31 +20,6 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def plots():
-    # load npy files
-    image_coordinates_same = np.load('image_coordinates_same.npy')
-    caption_coordinates_same = np.load('caption_coordinates_same.npy')
-
-    image_centroid_same = np.load('image_centroid_same.npy')
-    caption_centroid_same = np.load('caption_centroid_same.npy')
-
-    image_coordinates_different = np.load('image_coordinates_different.npy')
-    caption_coordinates_different = np.load('caption_coordinates_different.npy')
-
-    image_centroid_different = np.load('image_centroid_different.npy')
-    caption_centroid_different = np.load('caption_centroid_different.npy')
-
-    # translate image coordinates further away from caption coordinates
-    # find vector from image centroid to caption centroid
-    vector_same = caption_centroid_same - image_centroid_same
-    # translate image coordinates further away from caption coordinates
-    # image_coordinates_same += vector_same * 2
-    # caption_coordinates_same -= vector_same * 2
-
-    # find vector from image centroid to caption centroid
-    vector_different = caption_centroid_different - image_centroid_different
-    # # translate image coordinates further away from caption coordinates
-    # image_coordinates_different += vector_different * 2
-    # caption_coordinates_different -= vector_different * 2
 
 
     # plot 3d scatter plot in different subplots
@@ -102,8 +77,7 @@ def plots():
 # if main
 if __name__ == '__main__':
 
-    plots()
-    exit()
+    # plots()
     # load clip model
     clip_model = HFClip()
     # get mscoco dataset processor
@@ -115,8 +89,6 @@ if __name__ == '__main__':
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1024,
                                             collate_fn=dataset_processor.collate_fn,
                                             generator=torch.Generator().manual_seed(42))
-
-    plot_embeddings(clip_model, val_dataloader)
-
     
+    plot_embeddings(clip_model, val_dataloader)
 
