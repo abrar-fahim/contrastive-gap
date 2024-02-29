@@ -17,6 +17,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+import src.config as config
+
 
 
 def plots():
@@ -77,18 +79,61 @@ def plots():
 # if main
 if __name__ == '__main__':
 
-    # plots()
-    # load clip model
-    clip_model = HFClip()
-    # get mscoco dataset processor
-    dataset_processor = MSCOCOProcessor()
+    settings = [
+    {
+        'text_only': False,
+        'same_encoder': False,
+        'same_captions': False,
+        'name': 'Default'
+    },
+    {
+        'text_only': True,
+        'same_encoder': False,
+        'same_captions': False,
+        'name': 'DCDE'
+    },
+    {
+        'text_only': True,
+        'same_encoder': True,
+        'same_captions': False,
+        'name': 'DCSE'
+    },
+    {
+        'text_only': True,
+        'same_encoder': False,
+        'same_captions': True,
+        'name': 'SCDE'
 
-    val_dataset = dataset_processor.val_dataset
+    },
+    ]
 
-    # dataloader
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1024,
-                                            collate_fn=dataset_processor.collate_fn,
-                                            generator=torch.Generator().manual_seed(42))
+    clip_models = []
+    val_dataloaders = []
+
+    for setting in settings:
+        config.training_hyperparameters['text_only'] = setting['text_only']
+        config.training_hyperparameters['same_encoder'] = setting['same_encoder']
+        config.training_hyperparameters['same_captions'] = setting['same_captions']
+        clip_model = HFClip()
+        clip_models.append(clip_model)
+
+        # get mscoco dataset processor
+        dataset_processor = MSCOCOProcessor()
+
+        val_dataset = dataset_processor.val_dataset
+
+        # dataloader
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1024,
+                                                collate_fn=dataset_processor.collate_fn,
+                                                generator=torch.Generator().manual_seed(42))
+        val_dataloaders.append(val_dataloader)
+        
+
+
+
+
+
     
-    plot_embeddings(clip_model, val_dataloader)
+    
+    plot_embeddings(clip_models, val_dataloaders, names=[setting['name'] for setting in settings])
 

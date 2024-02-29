@@ -30,6 +30,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.use_cached_tokenized_captions = False
 
+        self.text_only = training_hyperparameters['text_only']
+        self.same_captions = training_hyperparameters['same_captions']
+        self.same_encoder = training_hyperparameters['same_encoder']
+
         # set seed
         torch.manual_seed(training_hyperparameters['seed'])
         random.seed(training_hyperparameters['seed'])
@@ -84,9 +88,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         og_captions = [og_captions[i] for i in unique_captions_indices]
 
-        if training_hyperparameters['text_only']:
+        if self.text_only:
 
-            if training_hyperparameters['same_captions']:
+            if self.same_captions:
             
                 captions_2 = [caption[0] for caption in og_captions]
             else:
@@ -119,7 +123,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         #         self.val_tokenized_captions = tokenized_captions
 
         tokenized_captions = HFClip.static_tokenize_captions(captions)
-        if training_hyperparameters['text_only']:
+        if self.text_only:
             tokenized_captions_2 = HFClip.static_tokenize_captions(captions_2)
             return (tokenized_captions, tokenized_captions_2)
         
