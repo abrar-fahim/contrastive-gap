@@ -30,6 +30,13 @@ class HFClip(ClipParent):
 
         self.temperature = 0.01 # this is default temp
 
+        # set text only status from config
+        self.text_only = training_hyperparameters['text_only']
+        self.same_encoder = training_hyperparameters['same_encoder']
+        self.same_captions = training_hyperparameters['same_captions']
+
+        print('text only: ', self.text_only)
+
         if training_hyperparameters['text_only']:
             self.set_weights('random')
         else:
@@ -94,7 +101,7 @@ class HFClip(ClipParent):
             self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
         elif state == 'random':
 
-            if not training_hyperparameters['text_only']:
+            if not self.text_only:
             
                 print('-- LOADING CLIP MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
                 '''
@@ -120,9 +127,7 @@ class HFClip(ClipParent):
                 self.text_model1.init_weights()
                 
 
-                if training_hyperparameters['same_encoder']:
-
-                    assert training_hyperparameters['text_only']
+                if self.same_encoder and self.text_only:
                     print('CLIP running in same encoder mode')
                     
                     self.text_model2 = copy.deepcopy(self.text_model1)
@@ -144,7 +149,7 @@ class HFClip(ClipParent):
 
 
         # check if weights of text1 and text2 are the same
-        if training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
+        if self.same_encoder and self.text_only:
             assert str(self.text_model1.state_dict()) == str(self.
             text_model2.state_dict())
 
@@ -159,7 +164,7 @@ class HFClip(ClipParent):
 
             self.intra_modality_logit_scale.requires_grad = False
             
-            if training_hyperparameters['text_only']:
+            if self.text_only:
                 self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
                 self.logit_scale.requires_grad = False
             else:
@@ -176,7 +181,7 @@ class HFClip(ClipParent):
 
         preprocessed_images = preprocessed_images.to(self.device)
 
-        if training_hyperparameters['text_only']:
+        if self.text_only:
             # in this case, "preprocessed_images" is actually tokenized text
             image_features = self.text_model2(**preprocessed_images).text_embeds
         else:
@@ -226,7 +231,7 @@ class HFClip(ClipParent):
 
         # tokenized_captions = self.tokenize_captions(captions)
 
-        if training_hyperparameters['text_only']:
+        if self.text_only:
             text_features = self.text_model1(**tokenized_captions).text_embeds
         else:
             text_features = self.model.get_text_features(**tokenized_captions)
@@ -251,13 +256,13 @@ class HFClip(ClipParent):
 
         # tokenized_captions = self.tokenize_captions(captions)
 
-        if not training_hyperparameters['text_only']:
+        if not self.text_only:
 
 
             tokenized_captions = captions.to(self.device)
             preprocessed_images = preprocessed_images.to(self.device)
 
-            outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)\
+            outputs = self.model(input_ids=tokenized_captions['input_ids'], attention_mask=tokenized_captions['attention_mask'], pixel_values=preprocessed_images, return_loss=output_loss)
             
             image_embeds = outputs.image_embeds
             text_embeds = outputs.text_embeds

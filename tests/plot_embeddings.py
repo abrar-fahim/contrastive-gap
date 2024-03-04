@@ -17,34 +17,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+import src.config as config
+
 
 
 def plots():
-    # load npy files
-    image_coordinates_same = np.load('image_coordinates_same.npy')
-    caption_coordinates_same = np.load('caption_coordinates_same.npy')
-
-    image_centroid_same = np.load('image_centroid_same.npy')
-    caption_centroid_same = np.load('caption_centroid_same.npy')
-
-    image_coordinates_different = np.load('image_coordinates_different.npy')
-    caption_coordinates_different = np.load('caption_coordinates_different.npy')
-
-    image_centroid_different = np.load('image_centroid_different.npy')
-    caption_centroid_different = np.load('caption_centroid_different.npy')
-
-    # translate image coordinates further away from caption coordinates
-    # find vector from image centroid to caption centroid
-    vector_same = caption_centroid_same - image_centroid_same
-    # translate image coordinates further away from caption coordinates
-    # image_coordinates_same += vector_same * 2
-    # caption_coordinates_same -= vector_same * 2
-
-    # find vector from image centroid to caption centroid
-    vector_different = caption_centroid_different - image_centroid_different
-    # # translate image coordinates further away from caption coordinates
-    # image_coordinates_different += vector_different * 2
-    # caption_coordinates_different -= vector_different * 2
 
 
     # plot 3d scatter plot in different subplots
@@ -102,21 +79,61 @@ def plots():
 # if main
 if __name__ == '__main__':
 
+    settings = [
+    {
+        'text_only': False,
+        'same_encoder': False,
+        'same_captions': False,
+        'name': 'Default'
+    },
+    {
+        'text_only': True,
+        'same_encoder': False,
+        'same_captions': False,
+        'name': 'DCDE'
+    },
+    {
+        'text_only': True,
+        'same_encoder': True,
+        'same_captions': False,
+        'name': 'DCSE'
+    },
+    {
+        'text_only': True,
+        'same_encoder': False,
+        'same_captions': True,
+        'name': 'SCDE'
 
-    # load clip model
-    clip_model = HFClip()
-    # exit()
-    # get mscoco dataset processor
-    dataset_processor = MSCOCOProcessor()
+    },
+    ]
 
-    val_dataset = dataset_processor.val_dataset
+    clip_models = []
+    val_dataloaders = []
 
-    # dataloader
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1024,
-                                            collate_fn=dataset_processor.collate_fn,
-                                            generator=torch.Generator().manual_seed(42))
+    for setting in settings:
+        config.training_hyperparameters['text_only'] = setting['text_only']
+        config.training_hyperparameters['same_encoder'] = setting['same_encoder']
+        config.training_hyperparameters['same_captions'] = setting['same_captions']
+        clip_model = HFClip()
+        clip_models.append(clip_model)
 
-    plot_embeddings(clip_model, val_dataloader)
+        # get mscoco dataset processor
+        dataset_processor = MSCOCOProcessor()
+
+        val_dataset = dataset_processor.val_dataset
+
+        # dataloader
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1024,
+                                                collate_fn=dataset_processor.collate_fn,
+                                                generator=torch.Generator().manual_seed(42))
+        val_dataloaders.append(val_dataloader)
+        
+
+
+
+
 
     
+    
+    plot_embeddings(clip_models, val_dataloaders, names=[setting['name'] for setting in settings])
 

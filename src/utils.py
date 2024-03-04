@@ -373,14 +373,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         # get centroids
         text_centroid = text_encoder_outputs.mean(dim=0)
-
         image_centroid = image_encoder_outputs.mean(dim=0)
 
 
         # euclidean distance between centroids
         centroid_euclidean_distance = torch.norm(text_centroid - image_centroid)
 
-        print('centroid_euclidean_distance ', centroid_euclidean_distance)
 
     
 
@@ -865,58 +863,117 @@ def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects
 
                 plt.show()
 
-def plot_embeddings(clip_model, dataloader):
+def plot_embeddings(clip_models, dataloaders, names):
 
     with torch.no_grad():
-        for batch in dataloader:
-            (imgs, captions) = batch
 
-        outputs = clip_model(imgs, captions, output_loss=False, return_all=True)
+        caption_coordinates_list = [] # ith index of list contains the 3D coordinates of ith clip model's captions
+        image_coordinates_list = []    
+        caption_centroid_list = []
+        image_centroid_list = []   
 
-        text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are normalized
-        image_embeds = outputs.image_embeds # normalized also
+        for clip_model, dataloader in zip(clip_models, dataloaders):
+            for batch in dataloader:
+                (imgs, captions) = batch
 
-        # find centroids
-        text_centroid = text_embeds.mean(dim=0)
-        image_centroid = image_embeds.mean(dim=0)
+            outputs = clip_model(imgs, captions, output_loss=False, return_all=True)
+
+            text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are normalized
+
+            image_embeds = outputs.image_embeds # normalized also
+
+            # find centroids
+            text_centroid = text_embeds.mean(dim=0)
+            image_centroid = image_embeds.mean(dim=0)
+
+            pca = PCA(n_components=3)
+            plot_captions = text_embeds.detach().cpu().numpy()
+            plot_caption_centroid = text_centroid.detach().cpu().numpy().reshape(1, -1)
+            plot_images = image_embeds.detach().cpu().numpy()
+            plot_image_centroid = image_centroid.detach().cpu().numpy().reshape(1, -1)
+
+            all_embeddings = np.concatenate((plot_captions, plot_caption_centroid, plot_images, plot_image_centroid), axis=0)
+            pca.fit(all_embeddings)
+            pca_coordinates = pca.transform(all_embeddings)
 
 
-        pca = PCA(n_components=3)
-        plot_captions = text_embeds.detach().cpu().numpy()
-        plot_caption_centroid = text_centroid.detach().cpu().numpy().reshape(1, -1)
-        plot_images = image_embeds.detach().cpu().numpy()
-        plot_image_centroid = image_centroid.detach().cpu().numpy().reshape(1, -1)
+            caption_coordinates = pca_coordinates[:plot_captions.shape[0]]
+            caption_centroid = pca_coordinates[plot_captions.shape[0]]
+            image_coordinates = pca_coordinates[plot_captions.shape[0] + 1: -1]
+            image_centroid = pca_coordinates[-1]
 
-        all_embeddings = np.concatenate((plot_captions, plot_caption_centroid, plot_images, plot_image_centroid), axis=0)
-
-        pca.fit(all_embeddings)
-
-        pca_coordinates = pca.transform(all_embeddings)
-        
-        caption_coordinates = pca_coordinates[:plot_captions.shape[0]]
-        caption_centroid = pca_coordinates[plot_captions.shape[0]]
-        image_coordinates = pca_coordinates[plot_captions.shape[0] + 1: -1]
-        image_centroid = pca_coordinates[-1]
-
+            caption_coordinates_list.append(caption_coordinates)
+            image_coordinates_list.append(image_coordinates)
+            caption_centroid_list.append(caption_centroid)
+            image_centroid_list.append(image_centroid)
 
 
         # 3D scatter plot
+        # make subplots for each clip model. Each subplot is a 3D scatter plot
         fig = plt.figure()
-        ax = plt.axes(projection='3d')
+        for i in range(len(clip_models)):
+            ax = fig.add_subplot(1, len(clip_models), i + 1, projection='3d')
+            ax.scatter3D(caption_coordinates_list[i][:, 0], caption_coordinates_list[i][:, 1], caption_coordinates_list[i][:, 2], c='b')
+            # make centroid bigger
+            ax.scatter3D(caption_centroid_list[i][0], caption_centroid_list[i][1], caption_centroid_list[i][2], c='g', s=10)
+            ax.scatter3D(image_coordinates_list[i][:, 0], image_coordinates_list[i][:, 1], image_coordinates_list[i][:, 2], c='r')
+            ax.scatter3D(image_centroid_list[i][0], image_centroid_list[i][1], image_centroid_list[i][2], c='y', s=10)
+            ax.set_xlim3d(-1, 1)
+            ax.set_ylim3d(-1, 1)
+            ax.set_zlim3d(-1, 1)
+            plt.title(f'{names[i]}')
 
-        ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
-        # make centroid bigger
-        ax.scatter3D(caption_centroid[0], caption_centroid[1], caption_centroid[2], c='g', s=500)
-        ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
-        ax.scatter3D(image_centroid[0], image_centroid[1], image_centroid[2], c='y', s=500)
+
+        
+        # for batch in dataloader:
+        #     (imgs, captions) = batch
+
+        # outputs = clip_model(imgs, captions, output_loss=False, return_all=True)
+
+        # text_embeds = outputs.text_embeds # shape: ([batch_size, 512]), these are normalized
+        # image_embeds = outputs.image_embeds # normalized also
+
+        # # find centroids
+        # text_centroid = text_embeds.mean(dim=0)
+        # image_centroid = image_embeds.mean(dim=0)
+
+
+        # pca = PCA(n_components=3)
+        # plot_captions = text_embeds.detach().cpu().numpy()
+        # plot_caption_centroid = text_centroid.detach().cpu().numpy().reshape(1, -1)
+        # plot_images = image_embeds.detach().cpu().numpy()
+        # plot_image_centroid = image_centroid.detach().cpu().numpy().reshape(1, -1)
+
+        # all_embeddings = np.concatenate((plot_captions, plot_caption_centroid, plot_images, plot_image_centroid), axis=0)
+
+        # pca.fit(all_embeddings)
+
+        # pca_coordinates = pca.transform(all_embeddings)
+        
+        # caption_coordinates = pca_coordinates[:plot_captions.shape[0]]
+        # caption_centroid = pca_coordinates[plot_captions.shape[0]]
+        # image_coordinates = pca_coordinates[plot_captions.shape[0] + 1: -1]
+        # image_centroid = pca_coordinates[-1]
+
+
+
+        # # 3D scatter plot
+        # fig = plt.figure()
+        # ax = plt.axes(projection='3d')
+
+        # ax.scatter3D(caption_coordinates[:, 0], caption_coordinates[:, 1], caption_coordinates[:, 2], c='b')
+        # # make centroid bigger
+        # ax.scatter3D(caption_centroid[0], caption_centroid[1], caption_centroid[2], c='g', s=500)
+        # ax.scatter3D(image_coordinates[:, 0], image_coordinates[:, 1], image_coordinates[:, 2], c='r')
+        # ax.scatter3D(image_centroid[0], image_centroid[1], image_centroid[2], c='y', s=500)
 
 
         
 
-        # set axes limits
-        ax.set_xlim3d(-1, 1)
-        ax.set_ylim3d(-1, 1)
-        ax.set_zlim3d(-1, 1)
+        # # set axes limits
+        # ax.set_xlim3d(-1, 1)
+        # ax.set_ylim3d(-1, 1)
+        # ax.set_zlim3d(-1, 1)
 
 
         # plt.title(f'PCA of image (red) and text (blue) projections.')
@@ -928,10 +985,10 @@ def plot_embeddings(clip_model, dataloader):
         # plt.ylim(-1, 1)
 
         # save the 3D points 
-        np.save('caption_coordinates_same.npy', caption_coordinates)
-        np.save('image_coordinates_same.npy', image_coordinates)
-        np.save('caption_centroid_same.npy', caption_centroid)
-        np.save('image_centroid_same.npy', image_centroid)
+        # np.save('caption_coordinates_same.npy', caption_coordinates)
+        # np.save('image_coordinates_same.npy', image_coordinates)
+        # np.save('caption_centroid_same.npy', caption_centroid)
+        # np.save('image_centroid_same.npy', image_centroid)
 
         
 
