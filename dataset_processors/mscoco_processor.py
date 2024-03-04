@@ -84,11 +84,20 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         og_captions = [og_captions[i] for i in unique_captions_indices]
 
+
+
         if training_hyperparameters['text_only']:
 
             if training_hyperparameters['same_captions']:
-            
-                captions_2 = [caption[0] for caption in og_captions]
+
+                if training_hyperparameters['second_caption_offset']:
+                    # add a constant string to each caption
+                    # captions_2 = ['A picture of ' + caption[0] for caption in og_captions]
+
+                    # shuffle the letters in each of captions_2
+                    captions_2 = [' '.join(random.sample(caption[0].split(), len(caption[0].split()))) for caption in og_captions]
+                else:
+                    captions_2 = [caption[0] for caption in og_captions]
             else:
                 captions_2 = [caption[1] for caption in og_captions]
         if self.return_only_captions:

@@ -39,7 +39,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "Minimizing wandb logs",
+    "name": "SCSE shuffling words",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
@@ -48,9 +48,10 @@ sweep_configuration = {
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-        "text_only": {"values": [True, False]},
-        "same_encoder": {"values": [True, False]},
-        "same_captions": {"values": [True, False]},
+        "text_only": {"values": [True]},
+        "same_encoder": {"values": [True]},
+        "same_captions": {"values": [True]},
+        'second_caption_offset': {'values': [True]},
 
         # "lr": {"max": 7e-5, "min": 1e-6},
         "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
@@ -68,19 +69,11 @@ def main():
 
     set_hypers()
 
-    if wandb.config.same_encoder and wandb.config.same_captions:
-        print('skipping SCSE config')
-        return
-    
-    if not wandb.config.text_only:
-        if wandb.config.same_encoder or wandb.config.same_captions:
-            print('Cant have same_encoder or same_captions with default CLIP. Skipping.')
-        return
-
     # do training
     train_clip.main()
-    wandb.finish()
+    wandb.finish() 
 
 
-wandb.agent(sweep_id, function=main)
+# wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
+wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
  

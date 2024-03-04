@@ -120,7 +120,9 @@ class HFClip(ClipParent):
                 self.text_model1.init_weights()
                 
 
-                if training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
+                if training_hyperparameters['same_encoder']:
+
+                    assert training_hyperparameters['text_only']
                     print('CLIP running in same encoder mode')
                     
                     self.text_model2 = copy.deepcopy(self.text_model1)
@@ -130,7 +132,10 @@ class HFClip(ClipParent):
                     self.text_model2 = CLIPTextModelWithProjection(configuration)
                     self.text_model2.init_weights()
 
-                
+                if training_hyperparameters['second_caption_offset']:
+                    # offset second caption by a fixed amount 
+
+                    print('CLIP running in second caption offset mode')
                 
                 for param in self.text_model1.parameters():
                     param.requires_grad = True

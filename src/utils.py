@@ -135,7 +135,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
 
 
-        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
+        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only'] and not training_hyperparameters['second_caption_offset']:
 
             assert torch.eq(mscoco_val_imgs['input_ids'], mscoco_val_captions['input_ids']).all(), 'captions are not same'
 
@@ -154,7 +154,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         image_embeds = val_outputs.image_embeds
         text_embeds = val_outputs.text_embeds
 
-        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only']:
+        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only'] and not training_hyperparameters['second_caption_offset']:
             assert torch.eq(image_embeds, text_embeds).all(), 'embeddings are not same'
 
             print('image and text embeddings are same')

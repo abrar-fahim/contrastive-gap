@@ -146,7 +146,7 @@ class GradCacheTrainer(TrainerParent):
 
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, loss.item()))
 
-                    if step % save_every == 0 and training_hyperparameters['do_checkpointing'] and epoch % 5 == 0: # save every 5 epochs only
+                    if step % save_every == 0 and training_hyperparameters['do_checkpointing']: 
 
                         # for old_p in self.val_processes:
                         #     old_p.join()
@@ -206,7 +206,7 @@ class Trainer(TrainerParent):
 
             
 
-            if i % save_every == 0 and training_hyperparameters['do_checkpointing'] and epoch % 5 == 0: # save every 5 epochs only
+            if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
                 # do this in another thread
 
                 # for old_p in self.val_processes:

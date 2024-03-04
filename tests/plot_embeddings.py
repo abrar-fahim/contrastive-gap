@@ -102,10 +102,10 @@ def plots():
 # if main
 if __name__ == '__main__':
 
-    plots()
-    exit()
+
     # load clip model
     clip_model = HFClip()
+    # exit()
     # get mscoco dataset processor
     dataset_processor = MSCOCOProcessor()
 
