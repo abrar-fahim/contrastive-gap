@@ -14,7 +14,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
         self.train_dataset = None
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
         _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
 
         self.train_dataset = None
@@ -53,12 +53,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
         '''
 
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         imgs, og_captions = zip(*batch)
-
-
-
 
         if training_hyperparameters['show_incorrect_images']:
             # do preprocess here only if we're showing incorrect images at some point in training
@@ -68,9 +65,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # keep only first caption for each image
         captions = [caption[0] for caption in og_captions]
-
-    
-
         # remove repeats in captions and imgs
 
         org_len = len(captions)
@@ -93,15 +87,15 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
             if self.same_captions:
 
-                if self.second_caption_offset:
+                # if self.second_caption_offset:
                     # add a constant string to each caption
                     # captions_2 = ['A picture of ' + caption[0] for caption in og_captions]
 
                     # shuffle the letters in each of captions_2
-                    captions_2 = [' '.join(random.sample(caption[0].split(), len(caption[0].split()))) for caption in og_captions]
-                else:
+                    # captions_2 = [' '.join(random.sample(caption[0].split(), len(caption[0].split()))) for caption in og_captions]
+                # else:
             
-                    captions_2 = [caption[0] for caption in og_captions]
+                captions_2 = [caption[0] for caption in og_captions]
             else:
                 captions_2 = [caption[1] for caption in og_captions]
         if self.return_only_captions:
@@ -133,8 +127,13 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         tokenized_captions = HFClip.static_tokenize_captions(captions)
         if self.text_only:
-            tokenized_captions_2 = HFClip.static_tokenize_captions(captions_2)
-            return (tokenized_captions, tokenized_captions_2)
+
+            if self.second_caption_offset:
+
+                tokenized_captions2 = HFClip.static_tokenize_captions(captions_2, tokenizer=2)
+            else:
+                tokenized_captions2 = HFClip.static_tokenize_captions(captions_2, tokenizer=1)
+            return (tokenized_captions, tokenized_captions2)
         
         # stacked_images = stacked_images.to(device)
 

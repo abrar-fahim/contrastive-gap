@@ -103,7 +103,7 @@ def plot_scatter(image_image_cosine_similarity, text_text_cosine_similarity, tit
 # set seed
 torch.manual_seed(training_hyperparameters['seed'])
 random.seed(training_hyperparameters['seed'])
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
 batch_size = 256
 shuffle_ratio = 0.5 # percentage of texts and images to shuffle

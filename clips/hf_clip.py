@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from clips.clip_parent import ClipParent
-from transformers import CLIPModel, AutoTokenizer, CLIPConfig, CLIPTextConfig, CLIPTextModelWithProjection
+from transformers import CLIPModel, AutoTokenizer, CLIPConfig, CLIPTextConfig, CLIPTextModelWithProjection, GPT2Tokenizer
 from src.utils import get_checkpoint_path
 from torch.functional import F
 
@@ -17,15 +17,20 @@ import copy
 class HFClip(ClipParent):
 
     tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
+    tokenizer2 = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
+
+    tokenizer2.pad_token = tokenizer2.eos_token
 
     def __init__(self):
         super().__init__()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         print('CLIP device ', self.device)
 
 
         self.tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
+
+        
        
 
         self.temperature = 0.01 # this is default temp
@@ -34,6 +39,12 @@ class HFClip(ClipParent):
         self.text_only = training_hyperparameters['text_only']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.same_captions = training_hyperparameters['same_captions']
+        self.second_caption_offset = training_hyperparameters['second_caption_offset']
+
+
+        if self.second_caption_offset:
+            self.tokenizer2 = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
+            self.tokenizer2.pad_token = self.tokenizer2.eos_token
 
         print('text only: ', self.text_only)
 
@@ -137,7 +148,7 @@ class HFClip(ClipParent):
                     self.text_model2 = CLIPTextModelWithProjection(configuration)
                     self.text_model2.init_weights()
 
-                if training_hyperparameters['second_caption_offset']:
+                if self.second_caption_offset:
                     # offset second caption by a fixed amount 
 
                     print('CLIP running in second caption offset mode')
@@ -191,10 +202,15 @@ class HFClip(ClipParent):
         return image_features
     
     @staticmethod
-    def static_tokenize_captions(captions):
+    def static_tokenize_captions(captions, tokenizer=1):
 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        tokenized_captions = HFClip.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
+        device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+        
+
+        if tokenizer == 1:
+            tokenized_captions = HFClip.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
+        elif tokenizer == 2:
+            tokenized_captions = HFClip.tokenizer2(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
 
         # tokenized_captions = tokenized_captions.to(device)
 

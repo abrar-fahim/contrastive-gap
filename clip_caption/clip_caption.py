@@ -138,7 +138,7 @@ class ClipCocoDataset(Dataset):
     def __init__(self, data_path: str,  prefix_length: int, gpt2_type: str = "gpt2",
                  normalize_prefix=False):
         
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
         self.tokenizer = GPT2Tokenizer.from_pretrained(gpt2_type)
         self.prefix_length = prefix_length
         self.normalize_prefix = normalize_prefix

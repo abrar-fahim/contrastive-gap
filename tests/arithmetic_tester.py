@@ -6,7 +6,7 @@ from clips.openai_clip import OpenAIClip
 
 from PIL import Image
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
 model, preprocess = clip.load("ViT-B/32", device=device)
 

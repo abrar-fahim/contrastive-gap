@@ -44,7 +44,7 @@ CPU = torch.device('cpu')
 class Predictor(cog.BasePredictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
         self.clip_model, self.preprocess = clip.load(
             training_hyperparameters['openai_clip_model'], device=self.device, jit=False
         )

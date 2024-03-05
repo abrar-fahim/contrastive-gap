@@ -31,6 +31,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
+    'cuda_device': 'cuda:5', # SET index of GPU
     'seed': 2,
     'dataset': ClipDatasets.MSCOCO,
     'batch_size': 256,
@@ -61,7 +62,6 @@ training_hyperparameters = {
     'text_only': True, # SET
     'same_encoder': True, # SET # ONLY WORKS FOR text_only=True
     'same_captions': True, # SET # ONLY WORKS FOR text_only=True
-    'encoders_same_centroid': False, # SET
     'second_caption_offset': True, # SET # ONLY WORKS FOR text_only=True
     'intra_modality_loss': False, 
     'rsa_loss': False,

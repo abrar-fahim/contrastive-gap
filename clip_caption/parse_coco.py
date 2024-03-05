@@ -13,7 +13,7 @@ from clips.hf_clip import HFClip
 
 def main(clip_model_type: str):
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
     clip_model_name = clip_model_type.replace('/', '_')
     out_path = f"./caption_dataset/{clip_model_name}_train.pkl"
     clip_model, preprocess = clip.load(clip_model_type, device=device, jit=False)

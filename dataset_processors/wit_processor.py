@@ -14,7 +14,7 @@ class WITProcessor(DatasetProcessorParent):
 
     def __init__(self) -> None:
         self.train_dataset = None
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
         _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
 
         self.train_dataset = None

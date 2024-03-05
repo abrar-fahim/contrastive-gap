@@ -17,7 +17,7 @@ torch.manual_seed(42)
 
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 model, preprocess = clip.load("ViT-B/32", device=device)
 validation_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
     annFile = 'datasets/mscoco/annotations/captions_val2014.json',

@@ -37,7 +37,7 @@ def calculate_coverage(clip_model: HFClip, dataset_processor):
     5. Calculate average distance
     '''
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
     n = configs['n']
     batch_size = configs['val_batch_size']
@@ -113,7 +113,7 @@ def main():
 
     torch.manual_seed(42)
     random.seed(42)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
     dataset_processor = MSCOCOProcessor()
 
     '''

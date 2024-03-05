@@ -53,7 +53,7 @@ def main():
 
 
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
     print('device ', device)
 

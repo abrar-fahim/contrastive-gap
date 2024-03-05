@@ -20,7 +20,7 @@ class CIFAR10Processor(DatasetProcessorParent):
         self.val_dataset = None
         self.classes = None
         
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
         _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
         # set seed
         torch.manual_seed(training_hyperparameters['seed'])

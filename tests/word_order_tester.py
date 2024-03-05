@@ -16,7 +16,7 @@ from src.utils import collate_fn, do_validation
 import random
 from tqdm import tqdm
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
 model, preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=device)
 

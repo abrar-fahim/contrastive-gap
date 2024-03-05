@@ -39,7 +39,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "SCSE shuffling words",
+    "name": "SCSE different tokenizers",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
