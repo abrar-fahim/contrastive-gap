@@ -33,6 +33,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.text_only = training_hyperparameters['text_only']
         self.same_captions = training_hyperparameters['same_captions']
         self.same_encoder = training_hyperparameters['same_encoder']
+        self.second_caption_offset = training_hyperparameters['second_caption_offset']
 
         # set seed
         torch.manual_seed(training_hyperparameters['seed'])
@@ -91,8 +92,16 @@ class MSCOCOProcessor(DatasetProcessorParent):
         if self.text_only:
 
             if self.same_captions:
+
+                if self.second_caption_offset:
+                    # add a constant string to each caption
+                    # captions_2 = ['A picture of ' + caption[0] for caption in og_captions]
+
+                    # shuffle the letters in each of captions_2
+                    captions_2 = [' '.join(random.sample(caption[0].split(), len(caption[0].split()))) for caption in og_captions]
+                else:
             
-                captions_2 = [caption[0] for caption in og_captions]
+                    captions_2 = [caption[0] for caption in og_captions]
             else:
                 captions_2 = [caption[1] for caption in og_captions]
         if self.return_only_captions:
