@@ -37,6 +37,7 @@ from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.wit_processor import WITProcessor
 from dataset_processors.cifar10_processor import CIFAR10Processor
 from trainer import Trainer, GradCacheTrainer
+from clips.clip_assembler import ClipAssembler
 
 
 
@@ -70,7 +71,10 @@ def main():
     # clip_model = MyClip().to(device)
     # clip_model = OpenAIClip().to(device)
 
-    clip_model = HFClip().to(device)
+
+    clip_model = ClipAssembler().clip_model.to(device)
+
+    # clip_model = HFClip().to(device)
 
 
     '''
@@ -96,17 +100,6 @@ def main():
 
 
     i_loaded_from_checkpoint = False
-
-    if training_hyperparameters['train_from_scratch']:
-        '''
-        By default clip model is initialized depending on selected_clip_model
-        '''
-
-        print()
-        print('--- TRAINING FROM SCRATCH ---')
-        print()
-        clip_model.set_weights('random')
-
 
     
     

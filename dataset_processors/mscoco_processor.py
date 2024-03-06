@@ -13,8 +13,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
         self.train_dataset = None
-        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
-        _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
 
         self.train_dataset = None
         self.train_dataloader = None
@@ -52,14 +50,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         '''
 
 
-        device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
-
         imgs, og_captions = zip(*batch)
-
-        if training_hyperparameters['show_incorrect_images']:
-            # do preprocess here only if we're showing incorrect images at some point in training
-            if not self.show_real_images_captions:
-                imgs = tuple(self.preprocess(img) for img in imgs)
 
 
         # keep only first caption for each image
@@ -94,9 +85,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
                     # captions_2 = [' '.join(random.sample(caption[0].split(), len(caption[0].split()))) for caption in og_captions]
                 # else:
             
-                captions_2 = [caption[0] for caption in og_captions]
+                captions2 = [caption[0] for caption in og_captions]
             else:
-                captions_2 = [caption[1] for caption in og_captions]
+                captions2 = [caption[1] for caption in og_captions]
         if self.return_only_captions:
             return captions
 
@@ -107,21 +98,13 @@ class MSCOCOProcessor(DatasetProcessorParent):
         
         if self.show_real_images_captions:
             return (imgs, captions)
-        
-        tokenized_captions = HFClip.static_tokenize_captions(captions)
 
         if self.text_only:
-
-            if self.second_caption_offset:
-
-                tokenized_captions2 = HFClip.static_tokenize_captions(captions_2, tokenizer=2)
-
-                
-            else:
-                tokenized_captions2 = HFClip.static_tokenize_captions(captions_2, tokenizer=1)
-            return (tokenized_captions2, tokenized_captions) # since dataloader is imgs, captions format
+            return (captions2, captions) # since dataloader is imgs, captions format
         
         # stacked_images = stacked_images.to(device)
+
+        return (imgs, captions)
 
         if self.return_org_imgs_collate_fn:
 
@@ -165,7 +148,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
             train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
             # transform=[transforms.PILToTensor()])
-            transform=self.preprocess,
+            # transform=self.preprocess,
             )
 
         subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 

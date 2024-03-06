@@ -10,10 +10,11 @@ from transformers.models.clip.modeling_clip import CLIPOutput
 from src.config import *
 import clip
 
-from encoder import Encoder
-from text_encoder import TextEncoder
-from image_encoder import ImageEncoder
+from clips.encoder import Encoder
+from clips.text_encoder import TextEncoder
+from clips.image_encoder import ImageEncoder
 import copy
+from clips.hf_clip import HFClip
 
 
 
@@ -33,8 +34,8 @@ class ClipAssembler():
 
         if training_hyperparameters['second_caption_offset']:
             self.gpt_tokenizer = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
-            self.gpt_tokenizer.pad_token = self.tokenizer.pad_token
-            self.gpt_tokenizer.eos_token = self.tokenizer.eos_token
+            self.gpt_tokenizer.pad_token = self.clip_tokenizer.pad_token
+            self.gpt_tokenizer.eos_token = self.clip_tokenizer.eos_token
 
         '''
         Setting image preprocessors
@@ -67,12 +68,12 @@ class ClipAssembler():
             print()
             print("--- TEXT ONLY MODE --- ")
             print()
-            self.encoder1 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=training_hyperparameters['train_from_scratch'], name='CLIP Text Encoder')
+            self.encoder1 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name='CLIP Text Encoder')
         else:
             print()
             print("--- IMAGE + TEXT MODE --- ")
             print()
-            self.encoder1 = ImageEncoder(self.image_preprocessor, self.clip_vision_config,from_pretrained=training_hyperparameters['train_from_scratch'], name='CLIP Image Encoder')
+            self.encoder1 = ImageEncoder(self.image_preprocessor, self.clip_vision_config,from_pretrained=(not training_hyperparameters['train_from_scratch']), name='CLIP Image Encoder')
 
         if training_hyperparameters['same_encoder']:
             print()
@@ -89,11 +90,20 @@ class ClipAssembler():
             self.encoder2.tokenizer = self.gpt_tokenizer
 
 
+
         '''
         Setting CLIP model
         '''
 
-        self.clip_model = HFClip(self.encoder1.model, self.encoder2.model)
+        self.clip_model = HFClip(self.encoder1, self.encoder2)
+
+        '''
+        Check 
+        '''
+
+        if training_hyperparameters['same_encoder']:
+            assert str(self.encoder1.state_dict()) == str(self.
+            encoder1.state_dict())
 
 
 

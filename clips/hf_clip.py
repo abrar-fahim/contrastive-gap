@@ -9,52 +9,42 @@ from transformers.models.clip.modeling_clip import CLIPOutput
 
 from src.config import *
 import os
-import copy
+from clips.image_encoder import ImageEncoder
+from clips.text_encoder import TextEncoder
 
 
  
 
 class HFClip(ClipParent):
 
-    tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
-    tokenizer2 = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
 
-    tokenizer2.pad_token = tokenizer.pad_token # keeping pad tokens same
-    tokenizer2.eos_token = tokenizer.eos_token # keeping eos tokens same
-
-    def __init__(self):
+    def __init__(self, encoder1, encoder2):
         super().__init__()
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
-        print('CLIP device ', self.device)
 
+        '''
+        Set config variables to self
+        '''
 
-        self.tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
-
-        
-       
-
-        self.temperature = 0.01 # this is default temp
-
-        # set text only status from config
         self.text_only = training_hyperparameters['text_only']
-        self.same_encoder = training_hyperparameters['same_encoder']
         self.same_captions = training_hyperparameters['same_captions']
+        self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
 
+        '''
+        Set encoders
+        1 is image (or text if text_only is True)
+        2 is text
+        '''
 
-        if self.second_caption_offset:
-            self.tokenizer2 = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
-            self.tokenizer2.pad_token = self.tokenizer.pad_token
-            self.tokenizer2.eos_token = self.tokenizer.eos_token
+        self.encoder1 = encoder1
+        self.encoder2 = encoder2
 
-
-        print('text only: ', self.text_only)
-
-        if training_hyperparameters['text_only']:
-            self.set_weights('random')
-        else:
-            self.set_weights('default') # loads clip model and sets the logit scale param 
+        print('CLIP device ', self.device)
+    
+        self.temperature = training_hyperparameters['temperature']
+        self.set_temperature()
 
         '''
         load CLIP from respective checkpoint regardless of training mode
@@ -91,12 +81,9 @@ class HFClip(ClipParent):
 
         print('selected clip model ', selected_clip_model.name)
 
-        if training_hyperparameters['text_only']:
-            # calculate temperature from logit scale and assert that its the same as temp
-            assert np.isclose(self.temperature, 1 / self.logit_scale.exp().item())
-        else:
-            # calculate temperature from logit scale and assert that its the same as temp
-            assert np.isclose(self.temperature, 1 / self.model.logit_scale.exp().item())
+    
+        assert np.isclose(self.temperature, 1 / self.logit_scale.exp().item())
+
         # print('logit scale: ', self.model.logit_scale)
         print('temperature (T): ', self.temperature)
 
@@ -109,167 +96,221 @@ class HFClip(ClipParent):
         # no need to load state dict for default, since it's the same as the pretrained model
 
 
-    def set_weights(self, state='default'):
-        if state == 'default':
-            print('-- LOADING DEFAULT CLIP MODEL --')
-            self.model = CLIPModel.from_pretrained(training_hyperparameters['hf_clip_model'], )
-        elif state == 'random':
+    def set_temperature(self):
+        
 
-            if not self.text_only:
-            
-                print('-- LOADING CLIP MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
-                '''
-                These are from https://huggingface.co/docs/transformers/v4.36.1/en/model_doc/clip#transformers.CLIPConfig
-                '''
-                # Initializing a CLIPConfig with openai/clip-vit-base-patch32 style configuration
-                configuration = CLIPConfig()
+        self.temperature = training_hyperparameters['temperature']
+        self.intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
 
-                # Initializing a CLIPModel (with random weights) from the openai/clip-vit-base-patch32 style configuration
-                self.model = CLIPModel(configuration)
-                self.model.init_weights()
-                # set model parameters requires_grad to True
-                for param in self.model.parameters():
-                    param.requires_grad = True
-            else:
-                print('-- LOADING CLIP TEXT MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
-                print('CLIP running in text only mode')
+        self.intra_modality_logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.intra_modality_temperature), requires_grad=False, device=self.device)) # not self.model since clip_model doesn't have intra_modality_logit_scale
 
-                if self.second_caption_offset:
-                    configuration = CLIPTextConfig(vocab_size=self.tokenizer2.vocab_size)
-                    # set vocab size of BOTH encoders to gpt2 tokenizer's vocab size since that's higher. out of bounds error otherwise
-                else:
-                    configuration = CLIPTextConfig()
-                self.model = None
-
-                self.text_model1 = CLIPTextModelWithProjection(configuration)
-
-                self.text_model1.init_weights()
-                
-
-                if self.same_encoder and self.text_only:
-                    print('CLIP running in same encoder mode')
-                    
-                    self.text_model2 = copy.deepcopy(self.text_model1)
-
-                else:
-                    print('CLIP running in different encoder mode')
-                    self.text_model2 = CLIPTextModelWithProjection(configuration)
-                    self.text_model2.init_weights()
-
-                if self.second_caption_offset:
-                    # offset second caption by a fixed amount
-
-                    print('CLIP running in second caption offset mode')
-                
-                for param in self.text_model1.parameters():
-                    param.requires_grad = True
-                for param in self.text_model2.parameters():
-                    param.requires_grad = True
-
-
-        # check if weights of text1 and text2 are the same
-        if self.same_encoder and self.text_only:
-            assert str(self.text_model1.state_dict()) == str(self.
-            text_model2.state_dict())
-
-            print('text model 1 and text model 2 have the same weights')
-
-        if selected_clip_model == ClipModels.FINETUNED_TEMP or selected_clip_model == ClipModels.WARM:
-
-            self.temperature = training_hyperparameters['temperature']
-            self.intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
-
-            self.intra_modality_logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.intra_modality_temperature), requires_grad=False, device=self.device)) # not self.model since clip_model doesn't have intra_modality_logit_scale
-
-            self.intra_modality_logit_scale.requires_grad = False
-            
-            if self.text_only:
-                self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
-                self.logit_scale.requires_grad = False
-            else:
-
-                self.model.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
-
-                self.model.logit_scale.requires_grad = False
+        self.intra_modality_logit_scale.requires_grad = False
+        
+    
+        self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
+        self.logit_scale.requires_grad = False
+      
         
         self.to(self.device)
         
 
 
-    def encode_image(self, preprocessed_images):
+    def encode_image(self, images):
+        '''
+        Find which encoder is image
+        '''
 
-        preprocessed_images = preprocessed_images.to(self.device)
+        if isinstance(self.encoder1, ImageEncoder) and isinstance(self.encoder2, ImageEncoder):
+            raise ValueError('Ambigious! Both encoders are image encoders')
 
-        if self.text_only:
-            # in this case, "preprocessed_images" is actually tokenized text
-            image_features = self.text_model2(**preprocessed_images).text_embeds
+        if isinstance(self.encoder1, ImageEncoder):
+            image_encoder = self.encoder1
+        elif isinstance(self.encoder2, ImageEncoder):
+            image_encoder = self.encoder2
         else:
-            image_features = self.model.get_image_features(pixel_values=preprocessed_images)
+            raise ValueError('No image encoder found')
+
+        preprocessed_images = image_encoder.preprocess_images(images)
+
+        image_features = image_encoder(preprocessed_images)
 
         # return pooled_output AFTER projection
         return image_features
+
     
-    @staticmethod
-    def static_tokenize_captions(captions, tokenizer=1):
-
-        device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
-        
-
-        if tokenizer == 1:
-            tokenized_captions = HFClip.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
-
-            
-
-        elif tokenizer == 2:
-            tokenized_captions = HFClip.tokenizer2(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
-
-            
-
-        # tokenized_captions = tokenized_captions.to(device)
-
-        return tokenized_captions
-
-
-    def tokenize_captions(self, captions):
-        tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
-
-        tokenized_captions = tokenized_captions.to(self.device)
-
-        return tokenized_captions
-    
-    def encode_text(self, tokenized_captions):
+    def encode_text(self, captions):
         '''
         Returns pooled_output AFTER projection
         '''
-        # # assuming raw captions input, so need to tokenize and stuff
-        # tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
 
-        # tokenized_captions = tokenized_captions.to(self.device)
+        if isinstance(self.encoder1, TextEncoder) and isinstance(self.encoder2, TextEncoder):
+            raise ValueError('Ambigious! Both encoders are text encoders')
 
-        # outputs = self.text_model(**tokenized_captions)
-
-        # last_hidden_states = outputs.last_hidden_state
-        # pooled_output = outputs.pooler_output # pooled (EOS token) states, text encoding just before CLIP's linear projection. shape: ([batch_size, 512])
-
-        # return pooled_output
-
-        # assuming raw captions input, so need to tokenize and stuff
-        # tokenized_captions = self.tokenizer(captions, padding=True, return_tensors="pt")
-
-        # tokenized_captions = tokenized_captions.to(self.device)
-
-        # tokenized_captions = self.tokenize_captions(captions)
-
-        if self.text_only:
-            text_features = self.text_model1(**tokenized_captions).text_embeds
+        # find which encoder is text
+        if isinstance(self.encoder1, TextEncoder):
+            text_encoder = self.encoder1
+        elif isinstance(self.encoder2, TextEncoder):
+            text_encoder = self.encoder2
         else:
-            text_features = self.model.get_text_features(**tokenized_captions)
+            raise ValueError('No text encoder found')
+    
+
+        text_features = text_encoder(captions)
 
         return text_features
     
+
+    def encoder1_features(self, inputs):
+
+        return self.encoder1(inputs)
+    
+
+
+    def encoder2_features(self, inputs):
+
+        return self.encoder2(inputs)
+
+    
+
+    def forward(self, encoder1_inputs, encoder2_inputs, output_loss=True, return_all=False, output_intra_modality_loss=False):
+        '''
+        outputs = CLIPOutput(
+            loss=loss,
+            logits_per_image= logits_per_image,
+            logits_per_text= logits_per_text,
+            text_embeds= text_embeds,
+            image_embeds= image_embeds,
+        )
+        '''
+
+        encoder1_outputs = self.encoder1(encoder1_inputs)
+        encoder2_outputs = self.encoder2(encoder2_inputs)
+
+        # normalize features
+        normalized_encoder1_embeds = encoder1_outputs / encoder1_outputs.norm(p=2, dim=-1, keepdim=True)
+        normalized_encoder2_embeds = encoder2_outputs / encoder2_outputs.norm(p=2, dim=-1, keepdim=True)
+
+        if self.same_captions:
+              assert (encoder1_inputs == encoder2_inputs), 'captions are not same'
+
+        if self.same_encoder and self.same_captions and not self.second_caption_offset:
+
+            assert torch.eq(normalized_encoder1_embeds, normalized_encoder2_embeds).all(), 'embeddings are not same'
+
+
+
+        logits_per_encoder1_embeds = normalized_encoder1_embeds @ normalized_encoder2_embeds.t() * self.logit_scale.exp() # logit_scale.exp() is 1 / temperature, so 100 for 0.01
+        logits_per_encoder2_embeds = normalized_encoder2_embeds @ normalized_encoder1_embeds.t() * self.logit_scale.exp()
+
+        labels = torch.arange(normalized_encoder1_embeds.shape[0]).to(self.device)
+
+        encoder1_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
+        encoder2_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
+
+        loss = 0
+
+        if output_loss == True:
+
+            if training_hyperparameters['intra_modality_loss']:
+                # find cosine similarities between image embeddings themselves
+                scaled_image_image_similarity = normalized_encoder1_embeds @ normalized_encoder1_embeds.t() * self.intra_modality_logit_scale.exp()
+
+                # find cosine similarities between text embeddings themselves
+                scaled_text_text_similarity = normalized_encoder2_embeds @ normalized_encoder2_embeds.t() * self.intra_modality_logit_scale.exp()
+
+                intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * encoder1_weight + self.loss(scaled_text_text_similarity, labels) * encoder2_weight
+
+                # print('intra loss: ,', intra_modality_loss)
+            if training_hyperparameters['rsa_loss']:
+                
+                text_text_cosine_similarities = normalized_encoder2_embeds @ normalized_encoder2_embeds.t()
+                image_image_cosine_similarities = normalized_encoder1_embeds @ normalized_encoder1_embeds.t()
+
+                # i can make intra-modality cosine sims and inter modality cosine sims as similiar as possible
+
+                inter_image_rsa = F.cosine_similarity(logits_per_encoder1_embeds.reshape(1, -1), image_image_cosine_similarities.reshape(1, -1))
+                inter_text_rsa = F.cosine_similarity(logits_per_text.reshape(1, -1), text_text_cosine_similarities.reshape(1, -1))
+
+                rsa_loss = -(inter_image_rsa + inter_text_rsa) / 2
+
+            if training_hyperparameters['pearson_loss']:
+
+                logits_per_image = logits_per_encoder1_embeds
+                logits_per_text = logits_per_encoder2_embeds
+
+                '''
+                ACTUAL PEARSON CORRELATION IN RSA LOSS
+                '''
+
+                text_text_cosine_similarities = normalized_encoder2_embeds @ normalized_encoder2_embeds.t()
+                image_image_cosine_similarities = normalized_encoder1_embeds @ normalized_encoder1_embeds.t()
+
+                image_text_RSM = logits_per_image[torch.tril(torch.ones(logits_per_image.shape[0], logits_per_image.shape[1]), diagonal=-1).bool()] # shape: (k)
+
+                text_RSM = text_text_cosine_similarities[torch.tril(torch.ones(text_text_cosine_similarities.shape[0], text_text_cosine_similarities.shape[1]), diagonal=-1).bool()]    # shape: (k)
+
+                image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]   # shape: (k)
+                
+                # stack image_text RSM and text RSM 
+                # and then calculate pearson correlation
+                # then calculate loss
+                stacked_RSM_text = torch.stack([image_text_RSM, text_RSM], dim=0) # shape: (2, k)
+                stacked_RSM_image = torch.stack([image_text_RSM, image_RSM], dim=0) # shape: (2, k)
+
+                text_corr = torch.corrcoef(stacked_RSM_text) # shape: (2, 2)
+                image_corr = torch.corrcoef(stacked_RSM_image) # shape: (2, 2)
+
+                pearson_rsa_loss = -(text_corr[0, 1] + image_corr[0, 1]) / 2
+
+
+            inter_modality_loss = self.loss(logits_per_encoder1_embeds, labels) * encoder1_weight + self.loss(logits_per_encoder2_embeds, labels) * encoder2_weight 
+
+            if training_hyperparameters['intra_modality_loss']:
+                loss = (intra_modality_loss + inter_modality_loss) / 2
+            elif training_hyperparameters['rsa_loss']:
+                loss = inter_modality_loss + rsa_loss
+            elif training_hyperparameters['pearson_loss']:
+                loss = inter_modality_loss + pearson_rsa_loss
+                
+            else:
+                loss = inter_modality_loss
+
+            if output_intra_modality_loss:
+                loss = {
+                    'inter_modality': inter_modality_loss.item(),
+                    'rsa': rsa_loss.item() if training_hyperparameters['rsa_loss'] else -100,
+                    'intra_modality': intra_modality_loss.item() if training_hyperparameters['intra_modality_loss'] else -100,
+                    'pearson_rsa': pearson_rsa_loss.item() if training_hyperparameters['pearson_loss'] else -100,
+                    'total': loss.item(),
+                }
+
+
+
+        outputs = CLIPOutput(
+            loss=loss,
+            logits_per_image = logits_per_encoder1_embeds,
+            logits_per_text = logits_per_encoder2_embeds,
+            image_embeds = normalized_encoder1_embeds,
+            text_embeds = normalized_encoder2_embeds,
+        )
+
+
+        if return_all:
+            return outputs
+        
+        logits_per_image = logits_per_encoder1_embeds
+        logits_per_text = logits_per_encoder2_embeds
+        if output_loss:
+            
+            return logits_per_image, logits_per_text, loss
+        else:
+            return logits_per_image, logits_per_text
+
+
+
     
   
-    def forward(self, preprocessed_images, captions, output_loss=True, return_all=False, output_intra_modality_loss=False):
+    def forward_old(self, preprocessed_images, captions, output_loss=True, return_all=False, output_intra_modality_loss=False):
 
         '''
         outputs = CLIPOutput(

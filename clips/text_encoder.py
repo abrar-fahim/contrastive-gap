@@ -5,7 +5,7 @@ from transformers.models.clip.modeling_clip import CLIPOutput
 
 from src.config import *
 
-from encoder import Encoder
+from clips.encoder import Encoder
 
 
  
@@ -19,6 +19,8 @@ class TextEncoder(Encoder):
         '''
         super().__init__()
 
+        self.tokenizer = tokenizer
+
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         if from_pretrained:
@@ -31,16 +33,17 @@ class TextEncoder(Encoder):
             print()
             print(f" --- Initializing {name} from scratch --- ")
             print()
-            self.tokenizer = tokenizer
-            self.text_model = CLIPTextModelWithProjection(CLIPTextConfig()).to(self.device)
-
+            
+            self.text_model = CLIPTextModelWithProjection(CLIPTextConfig).to(self.device)
             self.text_model.init_weights()
 
         for param in self.text_model.parameters():
             param.requires_grad = True
 
 
-    def forward(self, tokenized_captions):
+    def forward(self, captions):
+
+        tokenized_captions = self.tokenize_captions(captions)
 
         text_features = self.text_model(**tokenized_captions).text_embeds
 

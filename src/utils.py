@@ -133,12 +133,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             plt.show()
 
 
-
-
-        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only'] and not training_hyperparameters['second_caption_offset']:
-
-            assert torch.eq(mscoco_val_imgs['input_ids'], mscoco_val_captions['input_ids']).all(), 'captions are not same'
-
         
         # print('clipping')
         val_outputs = clip_model(mscoco_val_imgs, mscoco_val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
@@ -153,11 +147,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # image embeddings
         image_embeds = val_outputs.image_embeds
         text_embeds = val_outputs.text_embeds
-
-        if training_hyperparameters['same_captions'] and training_hyperparameters['same_encoder'] and training_hyperparameters['text_only'] and not training_hyperparameters['second_caption_offset']:
-            assert torch.eq(image_embeds, text_embeds).all(), 'embeddings are not same'
-
-            print('image and text embeddings are same')
 
 
         # softmax on logits_per_image
@@ -320,8 +309,11 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         '''
         - Get text-text similarities
         '''
-
-        text_encoder_outputs = clip_model.encode_text(mscoco_val_captions) # shape: ([batch_size, 512])
+        if not training_hyperparameters['text_only']:
+            text_encoder_outputs = clip_model.encode_text(mscoco_val_captions) # shape: ([batch_size, 512])
+        else:
+            text_encoder_outputs = clip_model.encoder2_features(mscoco_val_captions) # shape: ([batch_size, 512]
+    
 
         # normalize features
         text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
@@ -338,7 +330,11 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         - Get image-image similarities
         '''
 
-        image_encoder_outputs = clip_model.encode_image(mscoco_val_imgs) # shape: ([batch_size, 512])
+        if not training_hyperparameters['text_only']:
+
+            image_encoder_outputs = clip_model.encode_image(mscoco_val_imgs) # shape: ([batch_size, 512])
+        else:
+            image_encoder_outputs = clip_model.encoder1_features(mscoco_val_imgs)
 
         # normalize features
         image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)

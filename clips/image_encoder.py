@@ -5,7 +5,7 @@ from transformers.models.clip.modeling_clip import CLIPOutput
 
 from src.config import *
 
-from encoder import Encoder
+from clips.encoder import Encoder
 
 
 
@@ -34,7 +34,7 @@ class ImageEncoder(Encoder):
             print(f" --- Initializing {name} from scratch --- ")
             print()
 
-            self.image_model = CLIPVisionModelWithProjection(CLIPVisionConfig()).to(self.device)
+            self.image_model = CLIPVisionModelWithProjection(CLIPVisionConfig).to(self.device)
 
             self.image_model.init_weights()
 
@@ -42,7 +42,9 @@ class ImageEncoder(Encoder):
             param.requires_grad = True
 
 
-    def forward(self, preprocessed_images):
+    def forward(self, images):
+
+        preprocessed_images = self.preprocess_images(images)
 
         image_features = self.image_model(pixel_values=preprocessed_images)
 
