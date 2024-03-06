@@ -31,7 +31,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 '''
 
 training_hyperparameters = {
-    'cuda_device': 'cuda:5', # SET index of GPU
+    'cuda_device': 'cuda:0', # SET index of GPU
     'seed': 2,
     'dataset': ClipDatasets.MSCOCO,
     'batch_size': 256,

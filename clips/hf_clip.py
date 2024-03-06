@@ -19,7 +19,8 @@ class HFClip(ClipParent):
     tokenizer = AutoTokenizer.from_pretrained(training_hyperparameters['hf_clip_model'])
     tokenizer2 = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
 
-    tokenizer2.pad_token = tokenizer2.eos_token
+    tokenizer2.pad_token = tokenizer.pad_token # keeping pad tokens same
+    tokenizer2.eos_token = tokenizer.eos_token # keeping eos tokens same
 
     def __init__(self):
         super().__init__()
@@ -44,7 +45,9 @@ class HFClip(ClipParent):
 
         if self.second_caption_offset:
             self.tokenizer2 = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
-            self.tokenizer2.pad_token = self.tokenizer2.eos_token
+            self.tokenizer2.pad_token = self.tokenizer.pad_token
+            self.tokenizer2.eos_token = self.tokenizer.eos_token
+
 
         print('text only: ', self.text_only)
 
@@ -130,7 +133,12 @@ class HFClip(ClipParent):
             else:
                 print('-- LOADING CLIP TEXT MODEL WITH RANDOM WEIGHTS FROM SCRATCH --')
                 print('CLIP running in text only mode')
-                configuration = CLIPTextConfig()
+
+                if self.second_caption_offset:
+                    configuration = CLIPTextConfig(vocab_size=self.tokenizer2.vocab_size)
+                    # set vocab size of BOTH encoders to gpt2 tokenizer's vocab size since that's higher. out of bounds error otherwise
+                else:
+                    configuration = CLIPTextConfig()
                 self.model = None
 
                 self.text_model1 = CLIPTextModelWithProjection(configuration)
@@ -149,7 +157,7 @@ class HFClip(ClipParent):
                     self.text_model2.init_weights()
 
                 if self.second_caption_offset:
-                    # offset second caption by a fixed amount 
+                    # offset second caption by a fixed amount
 
                     print('CLIP running in second caption offset mode')
                 
@@ -303,6 +311,8 @@ class HFClip(ClipParent):
 
             outputs1 = self.text_model1(**tokenized_captions1)
             outputs2 = self.text_model2(**tokenized_captions2)
+
+
 
             text_embeds = outputs1.text_embeds
             image_embeds = outputs2.text_embeds

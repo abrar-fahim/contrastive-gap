@@ -113,36 +113,22 @@ class MSCOCOProcessor(DatasetProcessorParent):
         if self.show_real_images_captions:
             return (imgs, captions)
         
-       
-        
-        # # tokenize captions and return tokens directly
-        # if self.use_cached_tokenized_captions and self.val_tokenized_captions is not None:
-        #     tokenized_captions = self.val_tokenized_captions
 
-        # else:
-        #     tokenized_captions = HFClip.static_tokenize_captions(captions)
-
-        #     if self.use_cached_tokenized_captions:
-        #         self.val_tokenized_captions = tokenized_captions
 
         tokenized_captions = HFClip.static_tokenize_captions(captions)
 
-        print('tokenized captions 1 input ids, ', tokenized_captions['input_ids'].shape)
-        print('tokenized captions 1 attention mask, ', tokenized_captions['attention_mask'].shape)
 
-
+    
         if self.text_only:
 
             if self.second_caption_offset:
 
                 tokenized_captions2 = HFClip.static_tokenize_captions(captions_2, tokenizer=2)
 
-                print('tokenized captions 2 , ', tokenized_captions['input_ids'].shape)
-
-                print('tokenized captions 2 attention mask, ', tokenized_captions['attention_mask'].shape)
+                
             else:
                 tokenized_captions2 = HFClip.static_tokenize_captions(captions_2, tokenizer=1)
-            return (tokenized_captions, tokenized_captions2)
+            return (tokenized_captions2, tokenized_captions) # since dataloader is imgs, captions format
         
         # stacked_images = stacked_images.to(device)
 
