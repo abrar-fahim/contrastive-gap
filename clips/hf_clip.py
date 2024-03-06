@@ -209,8 +209,13 @@ class HFClip(ClipParent):
 
         if tokenizer == 1:
             tokenized_captions = HFClip.tokenizer(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
+
+            
+
         elif tokenizer == 2:
             tokenized_captions = HFClip.tokenizer2(captions, padding=True, return_tensors="pt", truncation=True, max_length=77)
+
+            
 
         # tokenized_captions = tokenized_captions.to(device)
 
@@ -291,14 +296,17 @@ class HFClip(ClipParent):
             logits_per_text = outputs.logits_per_text
         else:
             # in this case, "preprocessed_images" are actually captions
-            tokenized_captions1 = preprocessed_images.to(self.device)
-            tokenized_captions2 = captions.to(self.device)
+
+            tokenized_captions1 = captions.to(self.device)
+            tokenized_captions2 = preprocessed_images.to(self.device)
+            
 
             outputs1 = self.text_model1(**tokenized_captions1)
             outputs2 = self.text_model2(**tokenized_captions2)
 
-            image_embeds = outputs1.text_embeds
-            text_embeds = outputs2.text_embeds
+            text_embeds = outputs1.text_embeds
+            image_embeds = outputs2.text_embeds
+            
 
             # normalized features
             image_embeds = image_embeds / image_embeds.norm(p=2, dim=-1, keepdim=True)
