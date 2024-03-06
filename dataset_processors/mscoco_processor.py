@@ -6,7 +6,6 @@ import random
 from torch.utils.data import DataLoader, Subset
 from src.utils import  get_checkpoint_path
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
-import os
 from clips.hf_clip import HFClip
 import numpy as np
 
@@ -106,19 +105,11 @@ class MSCOCOProcessor(DatasetProcessorParent):
             # return (torch.stack(imgs), captions)
             return (imgs, captions)    
         
-
-        
-        
-        
         if self.show_real_images_captions:
             return (imgs, captions)
         
-
-
         tokenized_captions = HFClip.static_tokenize_captions(captions)
 
-
-    
         if self.text_only:
 
             if self.second_caption_offset:
