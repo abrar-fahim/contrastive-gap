@@ -3,10 +3,14 @@ from torch import nn
 
 from abc import ABC, abstractmethod
 
+from src.config import training_hyperparameters
+
 
 class ClipParent(nn.Module):
     def __init__(self):
         super().__init__()
+
+        assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
 
         pass
 

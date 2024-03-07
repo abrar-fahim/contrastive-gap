@@ -1,16 +1,7 @@
 import torch
-import numpy as np
-from clips.clip_parent import ClipParent
-from transformers import CLIPModel, AutoTokenizer, CLIPConfig, CLIPTextConfig, CLIPTextModelWithProjection,GPT2Tokenizer, CLIPVisionConfig
-from src.utils import get_checkpoint_path
-from torch.functional import F
-
-from transformers.models.clip.modeling_clip import CLIPOutput
-
+from transformers import AutoTokenizer, CLIPTextConfig,GPT2Tokenizer, CLIPVisionConfig
 from src.config import *
 import clip
-
-from clips.encoder import Encoder
 from clips.text_encoder import TextEncoder
 from clips.image_encoder import ImageEncoder
 import copy
@@ -26,6 +17,8 @@ class ClipAssembler():
         '''
         Setting tokenizers
         '''
+
+        assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
 
         self.validate_config()
         self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
@@ -83,6 +76,14 @@ class ClipAssembler():
         else:
             self.encoder2 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=training_hyperparameters['train_from_scratch'], name='Text Encoder with GPT2 tokenizer')
 
+        '''
+        Check 
+        '''
+
+        if training_hyperparameters['same_encoder']:
+            assert str(self.encoder1.state_dict()) == str(self.
+            encoder2.state_dict()), "Encoder 1 and Encoder 2 are not same at init"
+
         
         if training_hyperparameters['second_caption_offset']:
             print()
@@ -97,13 +98,7 @@ class ClipAssembler():
 
         self.clip_model = HFClip(self.encoder1, self.encoder2)
 
-        '''
-        Check 
-        '''
-
-        if training_hyperparameters['same_encoder']:
-            assert str(self.encoder1.state_dict()) == str(self.
-            encoder1.state_dict())
+       
 
 
 

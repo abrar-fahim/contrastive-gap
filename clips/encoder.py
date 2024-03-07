@@ -10,6 +10,15 @@ class Encoder(nn.Module):
     Parent class for Image and Text Encoders.
     Includes projection layer.
     '''
+
+    def __init__(self):
+        
+        super().__init__()
+
+        assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
+
+
+        
     def forward(self, input):
         '''
         Encode method.

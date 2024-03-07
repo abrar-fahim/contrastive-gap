@@ -38,6 +38,7 @@ from dataset_processors.wit_processor import WITProcessor
 from dataset_processors.cifar10_processor import CIFAR10Processor
 from trainer import Trainer, GradCacheTrainer
 from clips.clip_assembler import ClipAssembler
+import numpy as np
 
 
 
@@ -51,6 +52,10 @@ def main():
     # set seed
     torch.manual_seed(training_hyperparameters['seed'])
     random.seed(training_hyperparameters['seed'])
+    np.random.seed(training_hyperparameters['seed'])
+    torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True)
+    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
 
 
@@ -192,7 +197,7 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, dataset_processor.train_dataloader, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'], val_dataset_processor=cifar_dataset_processor)
+        trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'], val_dataset_processor=cifar_dataset_processor)
 
         i_loaded_from_checkpoint = False
         epoch += 1

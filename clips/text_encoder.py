@@ -36,6 +36,8 @@ class TextEncoder(Encoder):
             
             self.text_model = CLIPTextModelWithProjection(CLIPTextConfig).to(self.device)
             self.text_model.init_weights()
+            
+            
 
         for param in self.text_model.parameters():
             param.requires_grad = True

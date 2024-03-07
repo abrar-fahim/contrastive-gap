@@ -19,8 +19,6 @@ from torchvision.datasets import CIFAR10
 
 pca = None
 
-random.seed(training_hyperparameters['seed']) # random used in evaluate_concept_arrangement
-
 
 
 

@@ -38,8 +38,8 @@ class HFClip(ClipParent):
         2 is text
         '''
 
-        self.encoder1 = encoder1
-        self.encoder2 = encoder2
+        self.encoder1 = encoder2
+        self.encoder2 = encoder1
 
         print('CLIP device ', self.device)
     

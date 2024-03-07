@@ -8,7 +8,7 @@ from src.utils import  get_checkpoint_path
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 from clips.hf_clip import HFClip
 import numpy as np
-
+from collections import OrderedDict
 class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
@@ -33,8 +33,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
 
         # set seed
-        torch.manual_seed(training_hyperparameters['seed'])
-        random.seed(training_hyperparameters['seed'])
+        assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
+        # random.seed(training_hyperparameters['seed'])
+        # np.random.seed(training_hyperparameters['seed'])
+
 
         # always need to first load train then load val dataset. Fix this confusing requirement later
         self.load_train_dataset()
@@ -59,7 +61,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         org_len = len(captions)
         # get indices of unique captions
-        unique_captions = list(set(captions))
+        
+        # unique_captions = list(set(captions))
+        unique_captions = list(OrderedDict.fromkeys(captions))
         unique_captions_indices = [captions.index(caption) for caption in unique_captions]
 
         # get unique imgs
@@ -72,6 +76,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         captions = unique_captions
 
         og_captions = [og_captions[i] for i in unique_captions_indices]
+
+        
 
         if self.text_only:
 
@@ -100,7 +106,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
             return (imgs, captions)
 
         if self.text_only:
-            return (captions2, captions) # since dataloader is imgs, captions format
+            return (captions, captions2) # since dataloader is imgs, captions format
         
         # stacked_images = stacked_images.to(device)
 
@@ -151,7 +157,14 @@ class MSCOCOProcessor(DatasetProcessorParent):
             # transform=self.preprocess,
             )
 
+
+
         subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 
+
+        # no problems upto here
+
+
+
         # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
 
         dataset_to_use = None
@@ -164,7 +177,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
 
         #     '''
-        #     Load from checkpoint
+        #     Load from checkpoint``
         #     '''
         #     print('Loading dataloader from checkpoint...')
 
@@ -191,16 +204,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
             dataset_to_use = train_dataset
             batch_size = training_hyperparameters['batch_size']
         
-
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
         self.train_subset_indices = subset_indices
-
-
-
-    
-
 
     def load_val_dataset(self):
 

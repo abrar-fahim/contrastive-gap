@@ -35,8 +35,6 @@ class TrainerParent(ABC):
         '''
         dataset_processor needed to do validation
         '''
-        self.train_dataset = dataset_processor.train_dataset
-        self.val_dataset = dataset_processor.val_dataset
         self.dataset_processor = dataset_processor
         self.wandb = wandb
         self.val_processes = []
@@ -47,7 +45,7 @@ class TrainerParent(ABC):
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
         pass
 
-    def save_checkpoint_and_validate(self, clip_model, train_dataloader, optimizer, epoch, i, val_dataset_processor=None):
+    def save_checkpoint_and_validate(self, clip_model, epoch, i, val_dataset_processor=None):
 
         clip_model.eval()
         print()
@@ -174,7 +172,7 @@ class Trainer(TrainerParent):
     def __init__(self, dataset_processor, wandb) -> None:
         super().__init__(dataset_processor, wandb)
 
-    def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10, val_dataset_processor=None):
+    def train_one_epoch(self, clip_model, optimizer, i=0, epoch=0, save_every=10, val_dataset_processor=None):
         '''
         i is parameter because we might be starting in the middle of an epoch from a checkpoint
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
@@ -185,7 +183,8 @@ class Trainer(TrainerParent):
 
         clip_model.train()
 
-        for (imgs, captions) in train_dataloader:
+        for (imgs, captions) in self.dataset_processor.train_dataloader:
+
 
             optimizer.zero_grad()
 
@@ -227,7 +226,7 @@ class Trainer(TrainerParent):
 
 
 
-                self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, i, val_dataset_processor=val_dataset_processor)
+                self.save_checkpoint_and_validate(clip_model, epoch, i, val_dataset_processor=val_dataset_processor)
                 pass
             
             i += 1
