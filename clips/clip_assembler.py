@@ -74,7 +74,7 @@ class ClipAssembler():
             print()
             self.encoder2 = copy.deepcopy(self.encoder1)
         else:
-            self.encoder2 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=training_hyperparameters['train_from_scratch'], name='Text Encoder with GPT2 tokenizer')
+            self.encoder2 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name='Text Encoder with GPT2 tokenizer')
 
         '''
         Check 

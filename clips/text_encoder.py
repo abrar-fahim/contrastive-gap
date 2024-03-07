@@ -21,6 +21,8 @@ class TextEncoder(Encoder):
 
         self.tokenizer = tokenizer
 
+        self.name = name
+
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         if from_pretrained:
@@ -53,6 +55,15 @@ class TextEncoder(Encoder):
 
     def tokenize_captions(self, captions):
         return self.tokenizer(captions, padding=True, truncation=True, return_tensors="pt").to(self.device)
+    
+
+    def reset_weights_to_init(self):
+
+        print()
+        print(f" --- Initializing {self.name} from scratch --- ")
+        print()
+        self.text_model.init_weights()
+
 
 
 

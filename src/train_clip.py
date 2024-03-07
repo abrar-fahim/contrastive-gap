@@ -76,6 +76,16 @@ def main():
     # clip_model = MyClip().to(device)
     # clip_model = OpenAIClip().to(device)
 
+    checkpoint_path = get_checkpoint_path()
+
+    if training_hyperparameters['train_from_scratch']:
+        # delete checkpoint file if it exists
+        if os.path.exists(checkpoint_path):
+            os.remove(checkpoint_path)
+            print(f'removed {checkpoint_path}')
+        else:
+            print(f'{checkpoint_path} does not exist')
+
 
     clip_model = ClipAssembler().clip_model.to(device)
 
@@ -101,11 +111,24 @@ def main():
 
     print('training from scratch ', training_hyperparameters['train_from_scratch'])
 
-    checkpoint_path = get_checkpoint_path()
+
+
+
+
+
+
 
 
     i_loaded_from_checkpoint = False
 
+    if training_hyperparameters['train_from_scratch']:
+        '''
+        Need this section becuase HFCLip as of now is loaded from checkpoint instead of from init
+        '''
+        print()
+        print('--- TRAINING FROM SCRATCH ---')
+        print()
+        clip_model.reset_weights_to_init()
     
     
 

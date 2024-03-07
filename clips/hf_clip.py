@@ -115,6 +115,27 @@ class HFClip(ClipParent):
         
 
 
+    def reset_weights_to_init(self):
+        '''
+        Need this function becuase in train clip
+        1. Encoders are initialized randomly
+        2. HFCLIP is created, and encoders are added to clip
+        3. HFClip sees that checkpoint exists, then loads the checkpoint
+        4. Encoders are now loaded from checkpoint. Which we dont want
+
+        Train clip can call this to reset everything to random init
+        '''
+
+        self.encoder1.reset_weights_to_init()
+        self.encoder2.reset_weights_to_init()
+
+
+
+
+
+        
+
+
     def encode_image(self, images):
         '''
         Find which encoder is image
