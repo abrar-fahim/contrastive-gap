@@ -27,7 +27,9 @@ class HFClip(ClipParent):
         Set config variables to self
         '''
 
-        self.text_only = training_hyperparameters['text_only']
+        self.encoder1_modality = training_hyperparameters['encoder1_modality']
+        self.encoder2_modality = training_hyperparameters['encoder2_modality']
+        self.image_only = training_hyperparameters['image_only']
         self.same_inputs = training_hyperparameters['same_inputs']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
@@ -87,12 +89,6 @@ class HFClip(ClipParent):
 
         # print('logit scale: ', self.model.logit_scale)
         print('temperature (T): ', self.temperature)
-
-        if training_hyperparameters['text_only']:
-            print('CLIP running in text only mode')
-            # self.logit_scale = self.model.logit_scale.clone() # because upto here, self.model does exist.
-
-        print()
 
         # no need to load state dict for default, since it's the same as the pretrained model
 

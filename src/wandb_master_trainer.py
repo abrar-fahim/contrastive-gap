@@ -23,7 +23,9 @@ def set_hypers():
     config.training_hyperparameters['rsa_loss'] = wandb.config.rsa_loss
     config.training_hyperparameters['pearson_loss'] = wandb.config.pearson_loss
     config.training_hyperparameters['lr'] = wandb.config.lr
-    config.training_hyperparameters['text_only'] = wandb.config.text_only
+    config.training_hyperparameters['encoder1_modality'] = wandb.config.encoder1_modality
+    config.training_hyperparameters['encoder2_modality'] = wandb.config.encoder2_modality
+    config.training_hyperparameters['second_caption_offset'] = wandb.config.second_caption_offset
     config.training_hyperparameters['same_encoder'] = wandb.config.same_encoder
     config.training_hyperparameters['same_inputs'] = wandb.config.same_inputs
 
@@ -48,7 +50,8 @@ sweep_configuration = {
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-        "text_only": {"values": [True, False]},
+        "encoder1_modality": {"values": ["text", "image"]},
+        "encoder2_modality": {"values": ["text", "image"]},
         "same_encoder": {"values": [True, False]},
         "same_inputs": {"values": [False, True]},
         'second_caption_offset': {'values': [False, True]},
@@ -68,9 +71,9 @@ sweep_id = wandb.sweep(sweep=sweep_configuration, project="clipverse")
 def main():
     wandb.init()
 
-    if not wandb.config.text_only:
+    if wandb.config.encoder1_modality != wandb.config.encoder2_modality:
         if wandb.config.same_encoder or wandb.config.same_inputs or wandb.config.second_caption_offset:
-            print("Can't set same_encoder, same_inputs, second_caption_offset to True when text_only is False")
+            print("Can't set same_encoder, same_inputs, second_caption_offset to True when modalites are different")
             return
         
     

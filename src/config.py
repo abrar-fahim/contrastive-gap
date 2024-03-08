@@ -59,12 +59,12 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'text_only': True, # SET
-    'image_only': False, # SET
+    'encoder1_modality': 'text', # SET
+    'encoder2_modality': 'text', # SET
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text_only=True
-    'one_encoder': False, # SET
+    'one_encoder': False, # SET # modality depends on text_only or image_only
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,

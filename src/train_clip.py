@@ -148,10 +148,6 @@ def main():
         epoch = 0
         i = 0
 
-        
-
-
-
 
         if not training_hyperparameters['train_from_scratch']:
             # guess I can delete checkpoint file here too. 
@@ -181,6 +177,9 @@ def main():
 
 
     # setup trainer
+        
+
+    
 
 
 

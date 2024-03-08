@@ -304,10 +304,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         '''
         - Get text-text similarities
         '''
-        if not training_hyperparameters['text_only']:
-            text_encoder_outputs = text_embeds # shape: ([batch_size, 512])
-        else:
-            text_encoder_outputs = text_embeds # shape: ([batch_size, 512]
+        
+        text_encoder_outputs = text_embeds # shape: ([batch_size, 512])
     
 
         # normalize features
@@ -325,11 +323,10 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         - Get image-image similarities
         '''
 
-        if not training_hyperparameters['text_only']:
+        
 
-            image_encoder_outputs = image_embeds # shape: ([batch_size, 512])
-        else:
-            image_encoder_outputs = image_embeds
+        image_encoder_outputs = image_embeds # shape: ([batch_size, 512])
+
 
         # normalize features
         image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
@@ -1376,7 +1373,7 @@ def generate_csv_file_name(clip_model):
         elif 'captionencoder' in part:
 
             acronym = 'default'
-            if training_hyperparameters['text_only']:
+            if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality'] == 'text':
                 if training_hyperparameters['same_inputs']:
                     acronym = 'SC'
                 else:

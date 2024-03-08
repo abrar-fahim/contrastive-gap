@@ -27,7 +27,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.use_cached_tokenized_captions = False
 
-        self.text_only = training_hyperparameters['text_only']
+        self.encoder1_modality = training_hyperparameters['encoder1_modality']
+        self.encoder2_modality = training_hyperparameters['encoder2_modality']
         self.same_inputs = training_hyperparameters['same_inputs']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
@@ -77,6 +78,32 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         og_captions = [og_captions[i] for i in unique_captions_indices]
 
+        if self.encoder1_modality == 'text':
+            outputs1 = captions
+
+        elif self.encoder1_modality == 'image':
+            outputs1 = imgs
+
+
+        if self.encoder2_modality == 'text':
+            if self.same_inputs:
+                captions2 = [caption[0] for caption in og_captions]
+            else:
+                captions2 = [caption[1] for caption in og_captions]
+
+        elif self.encoder2_modality == 'image':
+            if self.same_inputs:
+                
+                outputs2 = imgs
+            else:
+                # images should be augmented somehow
+                raise NotImplementedError
+
+
+        return (outputs1, outputs2)
+
+
+
         
 
         if self.text_only:
@@ -94,6 +121,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
                 captions2 = [caption[0] for caption in og_captions]
             else:
                 captions2 = [caption[1] for caption in og_captions]
+
+
+
+        
         if self.return_only_captions:
             return captions
 

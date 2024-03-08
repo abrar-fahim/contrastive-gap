@@ -57,21 +57,25 @@ class ClipAssembler():
         Setting Encoders
         '''
 
-        if training_hyperparameters['text_only']:
+        if training_hyperparameters['encoder1_modality'] == 'text':
             print()
-            print("--- TEXT ONLY MODE --- ")
+            print("--- ENCODER 1 = TEXT--- ")
             print()
             self.encoder1 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name='CLIP Text Encoder')
-        else:
+
+        elif training_hyperparameters['encoder1_modality'] == 'image':
             print()
-            print("--- IMAGE + TEXT MODE --- ")
+            print("--- ENCODER 1 = IMAGE --- ")
             print()
             self.encoder1 = ImageEncoder(self.image_preprocessor, self.clip_vision_config,from_pretrained=(not training_hyperparameters['train_from_scratch']), name='CLIP Image Encoder')
+
+        else:
+            raise ValueError("Encoder 1 modality not set properly")
 
 
         if training_hyperparameters['one_encoder']:
             print()
-            print("---  second encoder to be None. ONE ENCODER ONLY --- ")
+            print("---  ENCODER 2 =  None. ONE ENCODER ONLY --- ")
             print()
             self.encoder2 = None
 
@@ -80,8 +84,20 @@ class ClipAssembler():
             print("--- Initializing text encoders to be SAME AT INIT --- ")
             print()
             self.encoder2 = copy.deepcopy(self.encoder1)
-        else:
+
+        elif training_hyperparameters['encoder2_modality'] == 'image':
+            print()
+            print("--- ENCODER 2 = IMAGE --- ")
+            print()
+            self.encoder2 = ImageEncoder(self.image_preprocessor, self.clip_vision_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name='Image Encoder 2')
+        elif training_hyperparameters['encoder2_modality'] == 'text':
+            print()
+            print("--- ENCODER 2 = TEXT --- ")
+            print()
             self.encoder2 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name='Text Encoder with GPT2 tokenizer')
+
+        else:
+            raise ValueError("Encoder 2 modality not set properly")
 
         '''
         Check 
@@ -90,6 +106,8 @@ class ClipAssembler():
         if training_hyperparameters['same_encoder']:
             assert str(self.encoder1.state_dict()) == str(self.
             encoder2.state_dict()), "Encoder 1 and Encoder 2 are not same at init"
+
+        
 
         
         if training_hyperparameters['second_caption_offset']:
@@ -108,11 +126,17 @@ class ClipAssembler():
 
     def validate_config(self):
 
-        if training_hyperparameters['second_caption_offset'] or training_hyperparameters['same_inputs'] or training_hyperparameters['same_encoder']:
-            assert training_hyperparameters['text_only'], "second_caption_offset, same_inputs, same_encoder only work when text_only is True"
+        assert training_hyperparameters['encoder1_modality'] in ['text', 'image'], "encoder1_modality not set properly"
+        assert training_hyperparameters['encoder2_modality'] in ['text', 'image'], "encoder2_modality not set properly"
 
+        # make sure second_caption_offset, same_inputs, same_encoder are only set when text_only is True
+        if training_hyperparameters['second_caption_offset'] or training_hyperparameters['same_inputs'] or training_hyperparameters['same_encoder']:
+            assert training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality'], "second_caption_offset, same_inputs, same_encoder can only be set when encoders have same modality"
 
         if training_hyperparameters['one_encoder']:
+            # make sure same_encoder, second_caption_offset, same_inputs are not set when one_encoder is set
             assert not training_hyperparameters['same_encoder'] and not training_hyperparameters['second_caption_offset'] and not training_hyperparameters['same_inputs'], "one_encoder cannot be set with same_encoder, second_caption_offset, same_inputs"
+
+            
 
         return
