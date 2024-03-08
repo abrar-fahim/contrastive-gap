@@ -286,6 +286,8 @@ class HFClip(ClipParent):
 
             inter_modality_loss = self.loss(logits_per_encoder1_embeds, labels) * encoder1_weight + self.loss(logits_per_encoder2_embeds, labels) * encoder2_weight 
 
+            del labels
+
             if training_hyperparameters['intra_modality_loss']:
                 loss = (intra_modality_loss + inter_modality_loss) / 2
             elif training_hyperparameters['rsa_loss']:
@@ -318,6 +320,8 @@ class HFClip(ClipParent):
 
         if return_all:
             return outputs
+        
+        del outputs, normalized_encoder1_embeds, normalized_encoder2_embeds
         
         logits_per_image = logits_per_encoder1_embeds
         logits_per_text = logits_per_encoder2_embeds
