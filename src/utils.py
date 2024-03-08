@@ -1377,7 +1377,7 @@ def generate_csv_file_name(clip_model):
 
             acronym = 'default'
             if training_hyperparameters['text_only']:
-                if training_hyperparameters['same_captions']:
+                if training_hyperparameters['same_inputs']:
                     acronym = 'SC'
                 else:
                     acronym = 'DC'

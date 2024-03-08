@@ -25,7 +25,7 @@ def set_hypers():
     config.training_hyperparameters['lr'] = wandb.config.lr
     config.training_hyperparameters['text_only'] = wandb.config.text_only
     config.training_hyperparameters['same_encoder'] = wandb.config.same_encoder
-    config.training_hyperparameters['same_captions'] = wandb.config.same_captions
+    config.training_hyperparameters['same_inputs'] = wandb.config.same_inputs
 
     # reload config
     # importlib.reload(config)
@@ -50,7 +50,7 @@ sweep_configuration = {
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
         "text_only": {"values": [True, False]},
         "same_encoder": {"values": [True, False]},
-        "same_captions": {"values": [False, True]},
+        "same_inputs": {"values": [False, True]},
         'second_caption_offset': {'values': [False, True]},
 
         # "lr": {"max": 7e-5, "min": 1e-6},
@@ -69,8 +69,8 @@ def main():
     wandb.init()
 
     if not wandb.config.text_only:
-        if wandb.config.same_encoder or wandb.config.same_captions or wandb.config.second_caption_offset:
-            print("Can't set same_encoder, same_captions, second_caption_offset to True when text_only is False")
+        if wandb.config.same_encoder or wandb.config.same_inputs or wandb.config.second_caption_offset:
+            print("Can't set same_encoder, same_inputs, second_caption_offset to True when text_only is False")
             return
         
     

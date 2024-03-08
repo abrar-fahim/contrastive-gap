@@ -108,11 +108,11 @@ class ClipAssembler():
 
     def validate_config(self):
 
-        if training_hyperparameters['second_caption_offset'] or training_hyperparameters['same_captions'] or training_hyperparameters['same_encoder']:
-            assert training_hyperparameters['text_only'], "second_caption_offset, same_captions, same_encoder only work when text_only is True"
+        if training_hyperparameters['second_caption_offset'] or training_hyperparameters['same_inputs'] or training_hyperparameters['same_encoder']:
+            assert training_hyperparameters['text_only'], "second_caption_offset, same_inputs, same_encoder only work when text_only is True"
 
 
         if training_hyperparameters['one_encoder']:
-            assert not training_hyperparameters['same_encoder'] and not training_hyperparameters['second_caption_offset'] and not training_hyperparameters['same_captions'], "one_encoder cannot be set with same_encoder, second_caption_offset, same_captions"
+            assert not training_hyperparameters['same_encoder'] and not training_hyperparameters['second_caption_offset'] and not training_hyperparameters['same_inputs'], "one_encoder cannot be set with same_encoder, second_caption_offset, same_inputs"
 
         return

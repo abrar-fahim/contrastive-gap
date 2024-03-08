@@ -28,7 +28,7 @@ class HFClip(ClipParent):
         '''
 
         self.text_only = training_hyperparameters['text_only']
-        self.same_captions = training_hyperparameters['same_captions']
+        self.same_inputs = training_hyperparameters['same_inputs']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
         self.one_encoder = training_hyperparameters['one_encoder']
@@ -206,10 +206,10 @@ class HFClip(ClipParent):
         normalized_encoder1_embeds = encoder1_outputs / encoder1_outputs.norm(p=2, dim=-1, keepdim=True)
         normalized_encoder2_embeds = encoder2_outputs / encoder2_outputs.norm(p=2, dim=-1, keepdim=True)
 
-        if self.same_captions:
+        if self.same_inputs:
               assert (encoder1_inputs == encoder2_inputs), 'captions are not same'
 
-        if self.same_encoder and self.same_captions and not self.second_caption_offset:
+        if self.same_encoder and self.same_inputs and not self.second_caption_offset:
 
             assert torch.eq(normalized_encoder1_embeds, normalized_encoder2_embeds).all(), 'embeddings are not same'
 

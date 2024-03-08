@@ -28,7 +28,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.use_cached_tokenized_captions = False
 
         self.text_only = training_hyperparameters['text_only']
-        self.same_captions = training_hyperparameters['same_captions']
+        self.same_inputs = training_hyperparameters['same_inputs']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
 
@@ -81,7 +81,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if self.text_only:
 
-            if self.same_captions:
+            if self.same_inputs:
 
                 # if self.second_caption_offset:
                     # add a constant string to each caption

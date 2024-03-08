@@ -83,25 +83,25 @@ if __name__ == '__main__':
     {
         'text_only': False,
         'same_encoder': False,
-        'same_captions': False,
+        'same_inputs': False,
         'name': 'Default'
     },
     {
         'text_only': True,
         'same_encoder': False,
-        'same_captions': False,
+        'same_inputs': False,
         'name': 'DCDE'
     },
     {
         'text_only': True,
         'same_encoder': True,
-        'same_captions': False,
+        'same_inputs': False,
         'name': 'DCSE'
     },
     {
         'text_only': True,
         'same_encoder': False,
-        'same_captions': True,
+        'same_inputs': True,
         'name': 'SCDE'
 
     },
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     for setting in settings:
         config.training_hyperparameters['text_only'] = setting['text_only']
         config.training_hyperparameters['same_encoder'] = setting['same_encoder']
-        config.training_hyperparameters['same_captions'] = setting['same_captions']
+        config.training_hyperparameters['same_inputs'] = setting['same_inputs']
         clip_model = HFClip()
         clip_models.append(clip_model)
 
