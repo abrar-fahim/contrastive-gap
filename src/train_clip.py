@@ -112,13 +112,6 @@ def main():
     print('training from scratch ', training_hyperparameters['train_from_scratch'])
 
 
-
-
-
-
-
-
-
     i_loaded_from_checkpoint = False
 
     if training_hyperparameters['train_from_scratch']:
@@ -221,6 +214,8 @@ def main():
             i = 0
 
         trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'], val_dataset_processor=cifar_dataset_processor)
+
+        
 
         i_loaded_from_checkpoint = False
         epoch += 1

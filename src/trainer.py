@@ -7,6 +7,7 @@ from config import *
 import torch
 from utils import get_checkpoint_path, do_validation
 from abc import ABC, abstractmethod
+from torch.autograd.profiler import record_function
 
 # import torch.multiprocessing as mp
 # import pathos.multiprocessing as mp
@@ -178,64 +179,102 @@ class Trainer(TrainerParent):
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
         '''
 
-        if training_hyperparameters['train_only_one_batch']:
-            torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
-        clip_model.train()
+        with torch.profiler.profile(
+            activities=[
+                torch.profiler.ProfilerActivity.CPU,
+                torch.profiler.ProfilerActivity.CUDA
+            ],
+            schedule=torch.profiler.schedule(wait=1, warmup=1, active=3, repeat=2),
+            record_shapes=True,
+            profile_memory=True,
+            with_stack=True,
+            on_trace_ready=torch.profiler.tensorboard_trace_handler('./log')
+        ) as prof:
+        # with True:
+        
 
-        for (imgs, captions) in self.dataset_processor.train_dataloader:
+            if training_hyperparameters['train_only_one_batch']:
+                torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
+            clip_model.train()
 
-            optimizer.zero_grad()
+            i = 0
 
-            # captions is a list of batch_size strings 
+            for (imgs, captions) in self.dataset_processor.train_dataloader:
+                # prof.step()
 
-            _, _, loss = clip_model(imgs, captions, output_loss=True)
-
-            loss.backward()
-
-            
-            optimizer.step()
-
-            # print statistics
-            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
-
-            del loss
-
-
-            
-
-            if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
-                # do this in another thread
-
-                # for old_p in self.val_processes:
-                #     print('waiting')
-                #     old_p.join()
-
-                # print('waiting done. clearing val processes')
-                # self.val_processes = []
-
-                # p = mp.Process(target=self.save_checkpoint_and_validate, args=(clip_model, train_dataloader, optimizer, epoch, i))
-                # # p = mp.Process(target=top_validate, args=(self, clip_model, train_dataloader, optimizer, epoch, i))
-                # # self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, step)
-                # p.start()
-                # self.val_processes.append(p)
-                # print('joining')
-                # p.join()
-                # print('joining done')
+                # captions is a list of batch_size strings 
+                # with record_function("forward"):
+                #     logits_per_image, logits_per_text, loss = clip_model(imgs, captions, output_loss=True)
+                    # del logits_per_image
+                    # del logits_per_text
+                logits_per_image, logits_per_text, loss = clip_model(imgs, captions, output_loss=True)
+                del logits_per_image
+                del logits_per_text
 
 
 
-                self.save_checkpoint_and_validate(clip_model, epoch, i, val_dataset_processor=val_dataset_processor)
-                pass
-            
-            i += 1
+                # with record_function("backward"):
+                #     loss.backward()
+                #     pass
 
-            # if training_hyperparameters['train_only_one_batch']:
-            #     break
+                loss.backward()
 
-            if training_hyperparameters['max_steps'] is not None and i >= training_hyperparameters['max_steps']:
-                break
+                # with record_function("optimizer_step"):
+                #     optimizer.step()
+
+                #     optimizer.zero_grad()
+
+                optimizer.step()
+
+                optimizer.zero_grad()
+
+                # print statistics
+                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
+
+                del loss
+
+                del imgs, captions
+
+                if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
+                    # do this in another thread
+
+                    # for old_p in self.val_processes:
+                    #     print('waiting')
+                    #     old_p.join()
+
+                    # print('waiting done. clearing val processes')
+                    # self.val_processes = []
+
+                    # p = mp.Process(target=self.save_checkpoint_and_validate, args=(clip_model, train_dataloader, optimizer, epoch, i))
+                    # # p = mp.Process(target=top_validate, args=(self, clip_model, train_dataloader, optimizer, epoch, i))
+                    # # self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, step)
+                    # p.start()
+                    # self.val_processes.append(p)
+                    # print('joining')
+                    # p.join()
+                    # print('joining done')
+
+
+
+                    self.save_checkpoint_and_validate(clip_model, epoch, i, val_dataset_processor=val_dataset_processor)
+                    pass
+                
+                i += 1
+
+                # if training_hyperparameters['train_only_one_batch']:
+                #     break
+
+                if training_hyperparameters['max_steps'] is not None and i >= training_hyperparameters['max_steps']:
+                    break
+
+                torch.cuda.empty_cache()
+
+                i += 1
+                if i > 8:
+                    # prof.export_memory_timeline("memory_trace.html", device='cuda:0')
+                    pass
 
             
 

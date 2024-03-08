@@ -79,11 +79,6 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
     # create dataloader for train set
     # train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
-   
-
-    
-
-
 
 
 
@@ -135,6 +130,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # print('clipping')
         val_outputs = clip_model(mscoco_val_imgs, mscoco_val_captions, output_loss=False, return_all=True) # so that I get cosine similarities directly
         # print('clipping done')
+
+        del mscoco_val_imgs, mscoco_val_captions
 
 
         '''
@@ -308,9 +305,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         - Get text-text similarities
         '''
         if not training_hyperparameters['text_only']:
-            text_encoder_outputs = clip_model.encode_text(mscoco_val_captions) # shape: ([batch_size, 512])
+            text_encoder_outputs = text_embeds # shape: ([batch_size, 512])
         else:
-            text_encoder_outputs = clip_model.encoder2_features(mscoco_val_captions) # shape: ([batch_size, 512]
+            text_encoder_outputs = text_embeds # shape: ([batch_size, 512]
     
 
         # normalize features
@@ -330,9 +327,9 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         if not training_hyperparameters['text_only']:
 
-            image_encoder_outputs = clip_model.encode_image(mscoco_val_imgs) # shape: ([batch_size, 512])
+            image_encoder_outputs = image_embeds # shape: ([batch_size, 512])
         else:
-            image_encoder_outputs = clip_model.encoder1_features(mscoco_val_imgs)
+            image_encoder_outputs = image_embeds
 
         # normalize features
         image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
@@ -368,6 +365,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # get centroids
         text_centroid = text_encoder_outputs.mean(dim=0)
         image_centroid = image_encoder_outputs.mean(dim=0)
+
+        del text_encoder_outputs, image_encoder_outputs
 
 
         # euclidean distance between centroids
@@ -412,6 +411,8 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         image_RSM = image_image_cosine_similarities[torch.tril(torch.ones(image_image_cosine_similarities.shape[0], image_image_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
+        del text_text_cosine_similarities, image_image_cosine_similarities
+
         result = stats.spearmanr(text_RSM.cpu(), image_RSM.cpu())
         pearson_result = stats.pearsonr(text_RSM.cpu(), image_RSM.cpu())
 
@@ -425,12 +426,15 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
 
         rsa_before_interchanging = result.correlation
 
-        val_logits_per_image = val_outputs.logits_per_image # shape of both: ([batch_size, batch_size])
 
         # scale with temp
         image_text_cosine_similarities = val_logits_per_image * clip_model.temperature
 
+        del val_logits_per_image
+
         image_text_RSM = image_text_cosine_similarities[torch.tril(torch.ones(image_text_cosine_similarities.shape[0], image_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+        del image_text_cosine_similarities
 
         text_inter_result = stats.spearmanr(image_text_RSM.cpu(), text_RSM.cpu())
         image_inter_result = stats.spearmanr(image_text_RSM.cpu(), image_RSM.cpu())
@@ -574,8 +578,12 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
             incorrect_images = [item for keep, item in zip(incorrect_preds_mask, images) if keep]
             label_captions = [item for keep, item in zip(incorrect_preds_mask, true_captions) if keep]
 
+
+            del val_image_class_labels
             # get predicted captions
             incorrect_predicted_caption_indices = val_image_class_preds[incorrect_preds_mask] # shape: ([n_wrong])
+
+            del val_image_class_preds
 
             # get predicted captions
             incorrect_predicted_captions = [item for keep, item in zip(incorrect_predicted_caption_indices, true_captions) if keep] # shape: ([n_wrong])

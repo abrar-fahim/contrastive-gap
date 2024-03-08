@@ -50,6 +50,7 @@ class TextEncoder(Encoder):
         tokenized_captions = self.tokenize_captions(captions)
 
         text_features = self.text_model(**tokenized_captions).text_embeds
+        del tokenized_captions
 
         return text_features
 

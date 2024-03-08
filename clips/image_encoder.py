@@ -47,6 +47,7 @@ class ImageEncoder(Encoder):
         preprocessed_images = self.preprocess_images(images)
 
         image_features = self.image_model(pixel_values=preprocessed_images)
+        del preprocessed_images
 
         return image_features
     

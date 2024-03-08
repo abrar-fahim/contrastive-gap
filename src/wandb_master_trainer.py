@@ -39,7 +39,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "SCSE caption 2 GPT2 tokenizer",
+    "name": "SCSE caption 2 GPT2 tokenizer AFTER CODE CLEAN UP",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
