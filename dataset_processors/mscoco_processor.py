@@ -106,7 +106,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
             return (imgs, captions)
 
         if self.text_only:
-            return (captions, captions2) # since dataloader is imgs, captions format
+            return (captions2, captions) # since dataloader is imgs, captions format
         
         # stacked_images = stacked_images.to(device)
 

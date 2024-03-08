@@ -37,7 +37,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 40, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -51,7 +51,7 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256,
+    'small_train_loader_batch_size': 128,
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
     'save_every': 25,
@@ -60,9 +60,10 @@ training_hyperparameters = {
         'text_to_image_weight': 0.5,
     },
     'text_only': True, # SET
-    'same_encoder': True, # SET # ONLY WORKS FOR text_only=True
-    'same_captions': True, # SET # ONLY WORKS FOR text_only=True
-    'second_caption_offset': True, # SET # ONLY WORKS FOR text_only=True
+    'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
+    'same_captions': False, # SET # ONLY WORKS FOR text_only=True
+    'second_caption_offset': False, # SET # ONLY WORKS FOR text_only=True
+    'one_encoder': False, # SET
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,

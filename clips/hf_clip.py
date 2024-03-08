@@ -31,6 +31,7 @@ class HFClip(ClipParent):
         self.same_captions = training_hyperparameters['same_captions']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
+        self.one_encoder = training_hyperparameters['one_encoder']
 
         '''
         Set encoders
@@ -38,8 +39,8 @@ class HFClip(ClipParent):
         2 is text
         '''
 
-        self.encoder1 = encoder2
-        self.encoder2 = encoder1
+        self.encoder1 = encoder1
+        self.encoder2 = encoder2
 
         print('CLIP device ', self.device)
     
@@ -114,28 +115,6 @@ class HFClip(ClipParent):
         self.to(self.device)
         
 
-
-    def reset_weights_to_init(self):
-        '''
-        Need this function becuase in train clip
-        1. Encoders are initialized randomly
-        2. HFCLIP is created, and encoders are added to clip
-        3. HFClip sees that checkpoint exists, then loads the checkpoint
-        4. Encoders are now loaded from checkpoint. Which we dont want
-
-        Train clip can call this to reset everything to random init
-        '''
-
-        self.encoder1.reset_weights_to_init()
-        self.encoder2.reset_weights_to_init()
-
-
-
-
-
-        
-
-
     def encode_image(self, images):
         '''
         Find which encoder is image
@@ -143,6 +122,9 @@ class HFClip(ClipParent):
 
         if isinstance(self.encoder1, ImageEncoder) and isinstance(self.encoder2, ImageEncoder):
             raise ValueError('Ambigious! Both encoders are image encoders')
+        
+        if self.one_encoder:
+            return self.encoder1(images)
 
         if isinstance(self.encoder1, ImageEncoder):
             image_encoder = self.encoder1
@@ -164,8 +146,13 @@ class HFClip(ClipParent):
         Returns pooled_output AFTER projection
         '''
 
+
+
         if isinstance(self.encoder1, TextEncoder) and isinstance(self.encoder2, TextEncoder):
             raise ValueError('Ambigious! Both encoders are text encoders')
+
+        if self.one_encoder:
+            return self.encoder1(captions)
 
         # find which encoder is text
         if isinstance(self.encoder1, TextEncoder):
@@ -189,6 +176,9 @@ class HFClip(ClipParent):
 
     def encoder2_features(self, inputs):
 
+        if self.one_encoder:
+            return self.encoder1(inputs)
+
         return self.encoder2(inputs)
 
     
@@ -205,7 +195,12 @@ class HFClip(ClipParent):
         '''
 
         encoder1_outputs = self.encoder1(encoder1_inputs)
-        encoder2_outputs = self.encoder2(encoder2_inputs)
+
+
+        if self.one_encoder:
+            encoder2_outputs = self.encoder1(encoder2_inputs)
+        else:
+            encoder2_outputs = self.encoder2(encoder2_inputs)
 
         # normalize features
         normalized_encoder1_embeds = encoder1_outputs / encoder1_outputs.norm(p=2, dim=-1, keepdim=True)

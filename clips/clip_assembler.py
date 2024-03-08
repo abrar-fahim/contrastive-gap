@@ -68,7 +68,14 @@ class ClipAssembler():
             print()
             self.encoder1 = ImageEncoder(self.image_preprocessor, self.clip_vision_config,from_pretrained=(not training_hyperparameters['train_from_scratch']), name='CLIP Image Encoder')
 
-        if training_hyperparameters['same_encoder']:
+
+        if training_hyperparameters['one_encoder']:
+            print()
+            print("---  second encoder to be None. ONE ENCODER ONLY --- ")
+            print()
+            self.encoder2 = None
+
+        elif training_hyperparameters['same_encoder']:
             print()
             print("--- Initializing text encoders to be SAME AT INIT --- ")
             print()
@@ -98,14 +105,14 @@ class ClipAssembler():
 
         self.clip_model = HFClip(self.encoder1, self.encoder2)
 
-       
-
-
-
 
     def validate_config(self):
 
         if training_hyperparameters['second_caption_offset'] or training_hyperparameters['same_captions'] or training_hyperparameters['same_encoder']:
             assert training_hyperparameters['text_only'], "second_caption_offset, same_captions, same_encoder only work when text_only is True"
+
+
+        if training_hyperparameters['one_encoder']:
+            assert not training_hyperparameters['same_encoder'] and not training_hyperparameters['second_caption_offset'] and not training_hyperparameters['same_captions'], "one_encoder cannot be set with same_encoder, second_caption_offset, same_captions"
 
         return

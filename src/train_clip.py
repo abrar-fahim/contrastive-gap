@@ -22,7 +22,7 @@ import os
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# add sibling directory to path
+# add sibling directory to path 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from clips.hf_clip import HFClip
@@ -42,6 +42,12 @@ import numpy as np
 
 
 
+def delete_checkpoint_file(checkpoint_path):
+    if os.path.exists(checkpoint_path):
+        os.remove(checkpoint_path)
+        print(f'removed {checkpoint_path}')
+    else:
+        print(f'{checkpoint_path} does not exist')
 
 
 
@@ -80,11 +86,7 @@ def main():
 
     if training_hyperparameters['train_from_scratch']:
         # delete checkpoint file if it exists
-        if os.path.exists(checkpoint_path):
-            os.remove(checkpoint_path)
-            print(f'removed {checkpoint_path}')
-        else:
-            print(f'{checkpoint_path} does not exist')
+        delete_checkpoint_file(checkpoint_path)
 
 
     clip_model = ClipAssembler().clip_model.to(device)
@@ -113,15 +115,6 @@ def main():
 
 
     i_loaded_from_checkpoint = False
-
-    if training_hyperparameters['train_from_scratch']:
-        '''
-        Need this section becuase HFCLip as of now is loaded from checkpoint instead of from init
-        '''
-        print()
-        print('--- TRAINING FROM SCRATCH ---')
-        print()
-        clip_model.reset_weights_to_init()
     
     
 
@@ -155,9 +148,18 @@ def main():
         epoch = 0
         i = 0
 
-        if not training_hyperparameters['train_from_scratch']:
+        
 
-            clip_model.set_weights('default') # because CLIP loads from latest checkpoint in init for inference
+
+
+
+        if not training_hyperparameters['train_from_scratch']:
+            # guess I can delete checkpoint file here too. 
+            delete_checkpoint_file(checkpoint_path)
+
+            # clip_model.set_weights('default') # because CLIP loads from latest checkpoint in init for inference
+
+
 
         # setup adamW optimizer
 
@@ -202,7 +204,7 @@ def main():
     clip_model.eval()
 
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
-    # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
+    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()
 

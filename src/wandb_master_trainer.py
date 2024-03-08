@@ -39,7 +39,7 @@ def set_hypers():
 sweep_configuration = {
     "method": "grid",
     # "method": "random",
-    "name": "SCSE caption 2 GPT2 tokenizer AFTER CODE CLEAN UP",
+    "name": "Text only configs AFTER CODE CLEAN UP, 1024 batch size",
     "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
     "parameters": {
         "temperature": {"values": [0.01]},
@@ -48,10 +48,10 @@ sweep_configuration = {
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-        "text_only": {"values": [True]},
-        "same_encoder": {"values": [True]},
-        "same_captions": {"values": [True]},
-        'second_caption_offset': {'values': [True]},
+        "text_only": {"values": [True, False]},
+        "same_encoder": {"values": [True, False]},
+        "same_captions": {"values": [False, True]},
+        'second_caption_offset': {'values': [False, True]},
 
         # "lr": {"max": 7e-5, "min": 1e-6},
         "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
@@ -64,8 +64,18 @@ sweep_configuration = {
 sweep_id = wandb.sweep(sweep=sweep_configuration, project="clipverse")
 
 
+
 def main():
     wandb.init()
+
+    if not wandb.config.text_only:
+        if wandb.config.same_encoder or wandb.config.same_captions or wandb.config.second_caption_offset:
+            print("Can't set same_encoder, same_captions, second_caption_offset to True when text_only is False")
+            return
+        
+    
+
+
 
     set_hypers()
 
