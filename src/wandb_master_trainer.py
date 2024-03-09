@@ -55,6 +55,7 @@ sweep_configuration = {
         "same_encoder": {"values": [True, False]},
         "same_inputs": {"values": [False, True]},
         'second_caption_offset': {'values': [False, True]},
+        'one_encoder': {'values': [True, False]},
 
         # "lr": {"max": 7e-5, "min": 1e-6},
         "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

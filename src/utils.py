@@ -16,6 +16,7 @@ from tqdm import tqdm
 from scipy import stats
 
 from torchvision.datasets import CIFAR10
+from sklearn.linear_model import LogisticRegression
 
 pca = None
 
@@ -390,6 +391,69 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
         # first, scale the cosine similarities by temperature
 
 
+        '''
+        Linear seperability of image and text embeddings
+        '''
+
+        # Split validation dataset into train and test splits
+        # train on 20% of the data and test on 80%
+
+        normalized_image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
+        normalized_text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
+
+        # check if normalization happened properly as expected
+        assert torch.allclose(torch.norm(normalized_image_embeds, dim=1), torch.ones(normalized_image_embeds.shape[0]))
+        assert torch.allclose(torch.norm(normalized_text_embeds, dim=1), torch.ones(normalized_text_embeds.shape[0]))
+
+        n_train = int(0.2 * len(image_embeds))
+        n_test = len(image_embeds) - n_train
+
+        # get random indices
+
+        indices = torch.randperm(len(image_embeds))
+
+        train_indices = indices[:n_train]
+
+        test_indices = indices[n_train:]
+
+        train_image_embeds = normalized_image_embeds[train_indices]
+        test_image_embeds = normalized_image_embeds[test_indices]
+
+        train_text_embeds = normalized_text_embeds[train_indices]
+        test_text_embeds = normalized_text_embeds[test_indices]
+
+        # Generate train dataset
+        train_image_text_embeds = torch.cat((train_image_embeds, train_text_embeds), dim=0)
+        # generate labels
+        train_labels = torch.cat((torch.zeros(n_train), torch.ones(n_train))) # 0 for image, 1 for text
+
+        # shuffle
+        shuffle_indices = torch.randperm(2 * n_train)
+
+        train_image_text_embeds = train_image_text_embeds[shuffle_indices]
+        train_labels = train_labels[shuffle_indices]
+
+        # Generate test dataset
+        test_image_text_embeds = torch.cat((test_image_embeds, test_text_embeds), dim=0)
+        # generate labels
+        test_labels = torch.cat((torch.zeros(n_test), torch.ones(n_test))) # 0 for image, 1 for text
+
+        # shuffle
+        test_shuffle_indices = torch.randperm(2 * n_test)
+
+        test_image_text_embeds = test_image_text_embeds[test_shuffle_indices]
+        test_labels = test_labels[test_shuffle_indices]
+
+        
+
+        
+
+        # fit linear classifier on train set to predict text embeddings from image embeddings
+        clf = LogisticRegression(random_state=0).fit(train_image_text_embeds.cpu(), train_labels.cpu())
+
+        # get accuracy on test set
+        linear_seperability_accuracy = clf.score(test_image_text_embeds.cpu(), test_labels.cpu())
+        
 
 
         '''
@@ -514,6 +578,7 @@ def do_validation(dataset_processor, clip_model, index=0, epoch=0, captioning_mo
                     'train_total_loss': train_loss,
                     'mean_pairwise_euclidean_distance': mean_euclidean_distance.item(), # this is the mean of the euclidean distances between image and text pairs
                     'mean_cosine_similarity': mean_cosine_similarity.item(),
+                    'linear_seperability_accuracy': linear_seperability_accuracy,
                     'centroid_cosine_similarity': centroid_cosine_similarity.item(),
                     'centroid_euclidean_distance': centroid_euclidean_distance.item(),
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
@@ -1373,18 +1438,50 @@ def generate_csv_file_name(clip_model):
         elif 'captionencoder' in part:
 
             acronym = 'default'
-            if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality'] == 'text':
-                if training_hyperparameters['same_inputs']:
-                    acronym = 'SC'
-                else:
-                    acronym = 'DC'
+            'I1C2E1E2' # Default 
+            'I1I1E1E1' # Same images, same encoder
+            'I1I2E1' # Different images, one encoder
+            'C1C2E1E1' # different captions, same encoder
 
-                if training_hyperparameters['same_encoder']:
-                    acronym += 'SE'
-                else:
-                    acronym += 'DE'
+            input1 = 'I1' if training_hyperparameters['encoder1_modality'] == 'image' else 'C'
+            input2 = 'I' if training_hyperparameters['encoder2_modality'] == 'image' else 'C'
+
+            if training_hyperparameters['same_inputs']:
+                input2 = input1
+
+            else:
+                input2 += '2'
+
+            encoder1 = 'E1'
+
+            if training_hyperparameters['same_encoder']:
+                encoder2 = encoder1
+
+            elif training_hyperparameters['one_encoder']:
+                encoder2 = ''
+
+            else:
+                encoder2 = 'E2'
+
+
+
+            # if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality'] == 'text':
+            #     if training_hyperparameters['same_inputs']:
+            #         acronym = 'SC'
+            #     else:
+            #         acronym = 'DC'
+
+            #     if training_hyperparameters['same_encoder']:
+            #         acronym += 'SE'
+            #     else:
+            #         acronym += 'DE'
+
+            acronym = input1 + input2 + encoder1 + encoder2
 
             new_part = part.replace('captionencoder', acronym)
+                
+            
+            # new_part = part.replace('captionencoder', acronym)
 
         else:
             new_part = part
