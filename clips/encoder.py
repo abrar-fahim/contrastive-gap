@@ -27,7 +27,7 @@ class Encoder(nn.Module):
 
         pass
 
-    def pool_hidden_state(self, hidden_state: torch.FloatTensor, input_ids: torch.Tensor):
+    def pool_hidden_state(self, hidden_state: torch.FloatTensor, input_ids: torch.Tensor) -> torch.FloatTensor:
         '''
         Pool hidden states
         '''

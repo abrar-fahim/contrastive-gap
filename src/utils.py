@@ -776,6 +776,10 @@ def init_stats_csv_file(clip_model):
             f.write('\n')
             f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, mean_cosine_similarity,non_similar_mean_cosine_similarity,mean_text_text_cosine_similarity,mean_image_image_cosine_similarity\n')
 
+
+def get_embeddings_path():
+    return 'embeddings/' + generate_csv_file_name(None) + '.pt'
+
 def get_checkpoint_path():
     '''
     Get path of model to load

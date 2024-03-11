@@ -13,6 +13,9 @@ from scipy import stats
 from torchvision.datasets import CIFAR10
 from sklearn.linear_model import LogisticRegression
 from typing import Any, Optional, Tuple, Union
+import pickle
+
+from src.utils import get_embeddings_path
 
 import sys
 import os
@@ -150,8 +153,12 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         val_logits_per_image = val_outputs.logits_per_image # shape of both: ([64, 64])
 
         # image embeddings
-        image_embeds = val_outputs.image_embeds
-        text_embeds = val_outputs.text_embeds
+        image_embeds = val_outputs.image_embeds # normalized_encoder1 embeds. Shape: ([batch_size, 512])
+        text_embeds = val_outputs.text_embeds # normalized_encoder2 embeds
+
+        # normalize
+        normalized_encoder1_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
+        normalized_encoder2_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
 
 
         # softmax on logits_per_image
@@ -356,6 +363,7 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
             encoder1_pooled_hidden_states.append(e1_pool)
             encoder2_pooled_hidden_states.append(e2_pool)
+
 
         e1_e2_mean_cosine_similarities = [] # tracks mean cosine similarity between embeddings of each layer in layers_to_use
 
@@ -739,6 +747,55 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
         image_text_slope, image_text_intercept, image_text_r_value, image_text_p_value, image_text_std_err = image_text_stats
 
+
+        '''
+        Save encoder pooled hidden states to file
+        '''
+
+        
+
+        if training_hyperparameters['save_encoder_hidden_states']:
+
+            save_path = get_embeddings_path()
+
+            print('saving encoder hidden states to ', save_path)
+
+            n_to_save = training_hyperparameters['n_embeds_to_save']
+
+            # take first n_to_save embeds from each layer
+            encoder1_pooled_hidden_states_to_save = [e1_pool[:n_to_save] for e1_pool in encoder1_pooled_hidden_states]
+
+            # e_pool shape = [batch_size, CLIPConfig.hidden_size]
+
+            encoder2_pooled_hidden_states_to_save = [e2_pool[:n_to_save] for e2_pool in encoder2_pooled_hidden_states]
+
+
+            step_data = {
+                    'step': int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index),
+                    'epoch': epoch,
+                    'index': index,
+                    'encoder1_pooled_hidden_states': encoder1_pooled_hidden_states_to_save, # normalized. 
+                    'encoder2_pooled_hidden_states': encoder2_pooled_hidden_states_to_save, # normalized
+                    'encoder1_final_embeds': normalized_encoder1_embeds[:n_to_save],
+                    'encoder2_final_embeds': normalized_encoder2_embeds[:n_to_save],
+                }
+
+            # append step_data to array saved in save_path
+
+            if os.path.exists(save_path):
+                # load existing data
+                with open(save_path, 'rb') as f:
+                    data = pickle.load(f)
+                    data.append(step_data)
+
+                # save data
+                with open(save_path, 'wb') as f:
+                    pickle.dump(data, f)
+            else:
+                # save data
+                with open(save_path, 'wb') as f:
+                    pickle.dump([step_data], f)
+
         '''
         log to wandb
         '''
@@ -788,8 +845,8 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                     'image_text_intercept': image_text_intercept,
                     
                 },
-                # step= int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
-                step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
+                step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
+                # step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
                 
 
             )

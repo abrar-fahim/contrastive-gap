@@ -71,6 +71,8 @@ training_hyperparameters = {
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
     'hf_clip_model': HFClipPretrainedModels.VIT.value,
     'train_only_one_batch': False, # SET
+    'save_encoder_hidden_states': True, # SET
+    'n_embeds_to_save': 256, # SET
     'save_losses': False,
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
