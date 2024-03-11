@@ -11,6 +11,7 @@ from src.config import *
 import os
 from clips.image_encoder import ImageEncoder
 from clips.text_encoder import TextEncoder
+from clips.encoder import Encoder
 from collections import OrderedDict
 from typing import Any, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -46,6 +47,8 @@ class HFClipOutput(OrderedDict):
     image_embeds: torch.FloatTensor = None
     encoder1_hidden_states: Tuple[torch.FloatTensor] = None
     encoder2_hidden_states: Tuple[torch.FloatTensor] = None
+    encoder1_input_ids: torch.LongTensor = None
+    encoder2_input_ids: torch.LongTensor = None
 
 
 
@@ -54,7 +57,7 @@ class HFClipOutput(OrderedDict):
 class HFClip(ClipParent):
 
 
-    def __init__(self, encoder1, encoder2):
+    def __init__(self, encoder1: Encoder, encoder2: Encoder):
         super().__init__()
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
@@ -213,6 +216,21 @@ class HFClip(ClipParent):
         return self.encoder2(inputs)
 
     
+    def pool_hidden_states(self, hidden_state: torch.FloatTensor):
+        '''
+        `hidden_state` is `torch.FloatTensor` of shape `(batch_size, sequence_length, hidden_size)`
+        `LayerNorm` without trainable params before pooling
+        Need to normalize since we'll eventually compute cosine similarity, but maybe dont do that here?
+        '''
+
+        
+
+
+
+
+
+
+
 
     def forward(self, encoder1_inputs, encoder2_inputs, output_loss=True, return_all=False, output_intra_modality_loss=False, output_hidden_states=False):
         '''
@@ -228,6 +246,7 @@ class HFClip(ClipParent):
         encoder1_outputs = self.encoder1(encoder1_inputs, output_hidden_states)
 
         encoder1_hidden_states  = encoder1_outputs['hidden_states']
+        encoder1_input_ids = encoder1_outputs['input_ids']
         encoder1_outputs = encoder1_outputs['embeds']
 
         assert encoder1_outputs.shape[1] == 512, 'encoder1 output shape is not 512'
@@ -241,6 +260,7 @@ class HFClip(ClipParent):
             encoder2_outputs = self.encoder2(encoder2_inputs, output_hidden_states)
 
         encoder2_hidden_states  = encoder2_outputs['hidden_states']
+        encoder2_input_ids = encoder2_outputs['input_ids']
         encoder2_outputs = encoder2_outputs['embeds']
 
         assert encoder2_outputs.shape[1] == 512, 'encoder2 output shape is not 512'
@@ -368,7 +388,9 @@ class HFClip(ClipParent):
             text_embeds = normalized_encoder2_embeds,
             image_embeds = normalized_encoder1_embeds,
             encoder1_hidden_states=encoder1_hidden_states,
-            encoder2_hidden_states=encoder2_hidden_states
+            encoder2_hidden_states=encoder2_hidden_states,
+            encoder1_input_ids = encoder1_outputs['input_ids'],
+            encoder2_input_ids = encoder2_outputs['input_ids']
         )
 
 

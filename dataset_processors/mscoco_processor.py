@@ -9,6 +9,8 @@ from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 from clips.hf_clip import HFClip
 import numpy as np
 from collections import OrderedDict
+
+from torchvision.transforms import v2
 class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
@@ -39,6 +41,16 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # np.random.seed(training_hyperparameters['seed'])
 
 
+        if self.same_inputs and self.encoder1_modality == 'image':
+            self.same_image_transforms = v2.Compose([
+                v2.RandomResizedCrop(size=(224, 224), antialias=True),
+                v2.RandomHorizontalFlip(p=0.5),
+                v2.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
+                v2.ToDtype(torch.float32, scale=True),
+            ])
+
+
+
         # always need to first load train then load val dataset. Fix this confusing requirement later
         self.load_train_dataset()
         self.load_val_dataset()
@@ -52,6 +64,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
         caption is a tuple of strings
         '''
 
+
+        imgs: list
+        og_captions: list
 
         imgs, og_captions = zip(*batch)
 
@@ -96,8 +111,24 @@ class MSCOCOProcessor(DatasetProcessorParent):
                 
                 outputs2 = imgs
             else:
-                # images should be augmented somehow
-                raise NotImplementedError
+                if self.encoder1_modality == "image":
+                    # images should be augmented somehow
+
+                    outputs2 = self.same_image_transforms(imgs)
+
+                    # ensure that outputs2 and outputs1 are same type
+                    assert type(outputs2[0]) == type(outputs1[0]), f"outputs2[0] {type(outputs2[0])} and outputs1[0] {type(outputs1[0])} are not same type"
+
+                    assert len(outputs2) == len(outputs1), f"outputs2 {len(outputs2)} and outputs1 {len(outputs2)} are not same length"
+
+
+                else:
+                    outputs2 = imgs
+
+
+
+
+                
 
 
         return (outputs1, outputs2)

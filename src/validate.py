@@ -310,15 +310,78 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
         print('non_similar_mean_cosine_similarity ', non_similar_mean_cosine_similarity * clip_model.temperature)
 
-        print('encoder 1 hidden states', val_outputs.encoder1_hidden_states[0].shape)
 
-        print('encoder 2 hidden states', val_outputs.encoder2_hidden_states[0].shape)
+    
+
+        '''
+        - Get mean cosine similarity between encoder outputs at different layers
+        '''
+
+        # both image and text encoders have 13 outputs in the hidden_states list
+        # image encoder each hidden state shape = ([batch_size, 50, 768]) == (batch_size, sequence_length, hidden_size)
+        # text encoder each hidden state shape = ([batch_size, 26, 512]) == (batch_size, sequence_length, hidden_size)
+
+        # get mean cosine similarity between encoder outputs at different layers
+        encoder1_hidden_states = val_outputs.encoder1_hidden_states
+        encoder2_hidden_states = val_outputs.encoder2_hidden_states
+
+        layers_to_use = [0, 3, 6, 9, 12] # these are the layers to use for computing mean cosine similarity
+
+        encoder1_pooled_hidden_states = []
+
+        encoder2_pooled_hidden_states = []
+
+        for layer in layers_to_use:
+
+            # pool hidden states to convert from sequence to single value
+
+            e1_pool = clip_model.encoder1.pool_hidden_state(encoder1_hidden_states[layer], val_outputs.encoder1_input_ids)
+
+            e2_pool = clip_model.encoder2.pool_hidden_state(encoder2_hidden_states[layer], val_outputs.encoder2_input_ids)
+
+
+            # pooled_hidden_states shape: ([batch_size, hidden_size])
+
+            # following assertions work because in HFClipOutput, image_embeds = encoder1 and text_embeds = encoder2
+
+            assert e1_pool.shape == (image_embeds.shape[0], image_embeds.shape[1]), f'e1_pool.shape = {e1_pool.shape}, image_embeds.shape = {image_embeds.shape}'
+
+            assert e2_pool.shape == (text_embeds.shape[0], text_embeds.shape[1]), f'e2_pool.shape = {e2_pool.shape}, text_embeds.shape = {text_embeds.shape}'
+
+
+
+            # normalize features
+            e1_pool = e1_pool / torch.norm(e1_pool, dim=1, keepdim=True)
+            e2_pool = e2_pool / torch.norm(e2_pool, dim=1, keepdim=True)
+
+            encoder1_pooled_hidden_states.append(e1_pool)
+            encoder2_pooled_hidden_states.append(e2_pool)
+
+        e1_e2_mean_cosine_similarities = [] # tracks mean cosine similarity between embeddings of each layer in layers_to_use
+
+        for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
+
+            # cosine similarities between e1_pool and e2_pool
+            e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
+
+            # get mean of elements that are on the diagonal
+            e1_e2_mean_cosine_similarity = e1_e2_cosine_similarities.diag().mean()
+
+            assert e1_e2_mean_cosine_similarity <= 1 and e1_e2_mean_cosine_similarity >= -1, f'e1_e2_mean_cosine_similarity = {e1_e2_mean_cosine_similarity}'
+
+            e1_e2_mean_cosine_similarities.append(e1_e2_mean_cosine_similarity)
 
 
 
 
-        print('encoder 1 num hidden states ', len(val_outputs.encoder1_hidden_states))
-        print('encoder 2 num hidden states ', len(val_outputs.encoder2_hidden_states))
+
+
+
+
+
+
+
+
 
 
         '''
@@ -369,10 +432,41 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         # euclidean distance between image and text pairs
         euclidean_distances = torch.norm(image_encoder_outputs - text_encoder_outputs, dim=-1)
 
+        assert torch.all(euclidean_distances >= 0) and torch.all(euclidean_distances <= 2), f'euclidean_distances = {euclidean_distances}'
+
         # get mean euclidean distance
         mean_euclidean_distance = euclidean_distances.mean()
 
+        assert mean_euclidean_distance >= 0 and mean_euclidean_distance <= 2, f'mean_euclidean_distance = {mean_euclidean_distance}'
+
+
+
         print('mean_pairwise_euclidean_distance ', mean_euclidean_distance)
+
+        '''
+        - Euclidean distance between centroids of hidden_states from each layer
+        '''
+
+        e1_e2_centroid_euclidean_distances = [] # tracks mean euclidean distance between centroids of each layer in layers_to_use
+
+
+        for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
+
+            # euclidean distance between e1_pool and e2_pool
+            e1_e2_euclidean_distances = torch.norm(e1_pool - e2_pool, dim=-1)
+
+            # ensure that all euclidean distances are between 0 and 2
+            assert torch.all(e1_e2_euclidean_distances >= 0) and torch.all(e1_e2_euclidean_distances <= 2), f'e1_e2_euclidean_distances = {e1_e2_euclidean_distances}'
+
+            # get mean euclidean distance
+            e1_e2_mean_euclidean_distance = e1_e2_euclidean_distances.mean()
+
+            assert e1_e2_mean_euclidean_distance >= 0 and e1_e2_mean_euclidean_distance <= 2, f'e1_e2_mean_euclidean_distance = {e1_e2_mean_euclidean_distance}'
+            # <= 2 since the maximum euclidean distance between two normalized vectors is 2
+
+            e1_e2_centroid_euclidean_distances.append(e1_e2_mean_euclidean_distance)
+
+        
 
 
         '''
@@ -468,13 +562,47 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         
         print('fitting linear classifier')
         # fit linear classifier on train set to predict text embeddings from image embeddings
-        clf = LogisticRegression(random_state=0).fit(train_image_text_embeds.cpu(), train_labels.cpu())
+        clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_image_text_embeds.cpu(), train_labels.cpu())
 
         # get accuracy on test set
         linear_seperability_accuracy = clf.score(test_image_text_embeds.cpu(), test_labels.cpu())
 
         print('linear_seperability_accuracy ', linear_seperability_accuracy) 
         
+
+        '''
+        - Linear seperability of encoder outputs at different layers
+        '''
+
+        e1_e2_linear_seperability_accuracies = [] # tracks linear seperability accuracy of each layer in layers_to_use
+
+        for e1_pool, e2_pool in tqdm(zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states)):
+
+            # generate train dataset taking first n_train elements from each pool
+            train_e1_pool = e1_pool[:n_train]
+            train_e2_pool = e2_pool[:n_train]
+
+            # generate test dataset taking last n_test elements from each pool
+            test_e1_pool = e1_pool[n_train:]
+            test_e2_pool = e2_pool[n_train:]
+
+            # Generate train dataset
+            train_e1_e2_pool = torch.cat((train_e1_pool, train_e2_pool), dim=0)
+            # generate labels
+            train_e1_e2_labels = torch.cat((torch.zeros(n_train), torch.ones(n_train))) # 0 for image, 1 for text
+
+            # generate test dataset
+            test_e1_e2_pool = torch.cat((test_e1_pool, test_e2_pool), dim=0)
+            # generate labels
+            test_e1_e2_labels = torch.cat((torch.zeros(n_test), torch.ones(n_test))) # 0 for image, 1 for text
+
+            clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
+
+            # get accuracy on test set
+            e1_e2_linear_seperability_accuracy = clf.score(test_e1_e2_pool.cpu(), test_e1_e2_labels.cpu())
+
+            e1_e2_linear_seperability_accuracies.append(e1_e2_linear_seperability_accuracy)
+
 
 
         '''
@@ -545,6 +673,52 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         pearson_image_intermodality_rsa = image_inter_pearson_result.statistic
 
 
+        e1_e2_inter_intra_rsas = [] # tracks RSA between inter and intra modality for each layer in layers_to_use
+
+        e1_e2_rsas = [] # tracks RSA between e1 and e2 hidden states for each layer in layers_to_use
+
+        e1_cosine_similarities = [] # tracks cosine similarities within e1 hidden states (intra e1 cos sim) for each layer in layers_to_use
+        e2_cosine_similarities = [] # tracks cosine similarities within e2 hidden states (intra e2 cos sim) for each layer in layers_to_use
+
+        for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
+
+            # get RSMs
+            e1_cosine_similarity_mat = e1_pool @ e1_pool.t()
+            e2_cosine_similarity_mat = e2_pool @ e2_pool.t()
+
+            mean_e1_cosine_similarity = e1_cosine_similarity_mat[torch.tril(torch.ones(e1_cosine_similarity_mat.shape[0], e1_cosine_similarity_mat.shape[1]), diagonal=-1).bool()].mean()
+
+            mean_e2_cosine_similarity = e2_cosine_similarity_mat[torch.tril(torch.ones(e2_cosine_similarity_mat.shape[0], e2_cosine_similarity_mat.shape[1]), diagonal=-1).bool()].mean()
+
+            # make sure number of elements in lower triangle is correct
+            assert len(mean_e1_cosine_similarity) == (e1_cosine_similarity_mat.shape[0] * (e1_cosine_similarity_mat.shape[0] - 1)) / 2
+
+
+            e1_cosine_similarities.append(mean_e1_cosine_similarity)
+            e2_cosine_similarities.append(mean_e2_cosine_similarity)
+
+        
+            e1_RSM = e1_cosine_similarity_mat[torch.tril(torch.ones(e1_cosine_similarity_mat.shape[0], e1_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
+
+            e2_RSM = e2_cosine_similarity_mat[torch.tril(torch.ones(e2_cosine_similarity_mat.shape[0], e2_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
+
+            e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
+
+            e1_e2_RSM = e1_e2_cosine_similarities[torch.tril(torch.ones(e1_e2_cosine_similarities.shape[0], e1_e2_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+            # get RSA between e1 and e2 hidden states
+            e1_e2_rsa = stats.spearmanr(e1_RSM.cpu(), e2_RSM.cpu()).correlation
+            e1_inter_rsa = stats.spearmanr(e1_RSM.cpu(), e1_e2_RSM.cpu()).correlation
+            e2_inter_rsa = stats.spearmanr(e2_RSM.cpu(), e1_e2_RSM.cpu()).correlation
+
+            mean_inter_intra_rsa = (e1_inter_rsa + e2_inter_rsa) / 2
+
+            e1_e2_rsas.append(e1_e2_rsa)
+            e1_e2_inter_intra_rsas.append(mean_inter_intra_rsa)
+
+            
+
+
         '''
         - Slope of linear regression between image-text RSM and text RSM
         '''
@@ -587,6 +761,14 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                     'linear_seperability_accuracy': linear_seperability_accuracy,
                     'centroid_cosine_similarity': centroid_cosine_similarity.item(),
                     'centroid_euclidean_distance': centroid_euclidean_distance.item(),
+                    # logging hidden state metrics
+                    'e1_e2_mean_cosine_similarities': e1_e2_mean_cosine_similarities,
+                    'mean_e1_e2_centroid_euclidean_distances': e1_e2_centroid_euclidean_distances,
+                    'e1_e2_linear_seperability_accuracies': e1_e2_linear_seperability_accuracies,
+                    'e1_e2_rsas': e1_e2_rsas,
+                    'e1_e2_inter_intra_rsas': e1_e2_inter_intra_rsas,
+                    'e1_cosine_similarities': e1_cosine_similarities,
+                    'e2_cosine_similarities': e2_cosine_similarities,
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
