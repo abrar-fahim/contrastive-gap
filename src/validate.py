@@ -262,7 +262,7 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
         # (train_imgs, train_captions) = next(iter(train_dataloader))
 
-        train_outputs: HFClipOutput = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so tha I get cosine similarities directly
+        train_outputs: HFClipOutput = clip_model(train_imgs, train_captions, output_loss=True, return_all=True, output_intra_modality_loss=True) # so that I get cosine similarities directly
         train_logits_per_image = train_outputs.logits_per_image # shape of both: ([64, 64])
         train_image_class_probs = F.softmax(train_logits_per_image, dim=-1) # shape: ([64, 64])
         train_image_class_preds = train_image_class_probs.argmax(dim=-1) # shape: ([64])
@@ -351,9 +351,9 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
             # following assertions work because in HFClipOutput, image_embeds = encoder1 and text_embeds = encoder2
 
-            assert e1_pool.shape == (image_embeds.shape[0], image_embeds.shape[1]), f'e1_pool.shape = {e1_pool.shape}, image_embeds.shape = {image_embeds.shape}'
+            assert e1_pool.shape == (image_embeds.shape[0], clip_model.encoder1.hidden_size), f'e1_pool.shape = {e1_pool.shape}, expected shape = ({image_embeds.shape[0]}, {clip_model.encoder1.hidden_size})'
 
-            assert e2_pool.shape == (text_embeds.shape[0], text_embeds.shape[1]), f'e2_pool.shape = {e2_pool.shape}, text_embeds.shape = {text_embeds.shape}'
+            assert e2_pool.shape == (text_embeds.shape[0], clip_model.encoder2.hidden_size), f"e2_pool.shape = {e2_pool.shape}, expected shape = ({text_embeds.shape[0]}, {clip_model.encoder2.hidden_size})"
 
 
 
@@ -365,31 +365,25 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
             encoder2_pooled_hidden_states.append(e2_pool)
 
 
-        e1_e2_mean_cosine_similarities = [] # tracks mean cosine similarity between embeddings of each layer in layers_to_use
+        
 
-        for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
-
-            # cosine similarities between e1_pool and e2_pool
-            e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
-
-            # get mean of elements that are on the diagonal
-            e1_e2_mean_cosine_similarity = e1_e2_cosine_similarities.diag().mean()
-
-            assert e1_e2_mean_cosine_similarity <= 1 and e1_e2_mean_cosine_similarity >= -1, f'e1_e2_mean_cosine_similarity = {e1_e2_mean_cosine_similarity}'
-
-            e1_e2_mean_cosine_similarities.append(e1_e2_mean_cosine_similarity)
+        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+            # can only measure modality gap if the two modalities are same
 
 
 
+            e1_e2_mean_cosine_similarities = [] # tracks mean cosine similarity between embeddings of each layer in layers_to_use
+            for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
 
+                # cosine similarities between e1_pool and e2_pool
+                e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
 
+                # get mean of elements that are on the diagonal
+                e1_e2_mean_cosine_similarity = e1_e2_cosine_similarities.diag().mean()
 
+                assert e1_e2_mean_cosine_similarity <= 1 and e1_e2_mean_cosine_similarity >= -1, f'e1_e2_mean_cosine_similarity = {e1_e2_mean_cosine_similarity}'
 
-
-
-
-
-
+                e1_e2_mean_cosine_similarities.append(e1_e2_mean_cosine_similarity)
 
 
         '''
@@ -455,24 +449,26 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         - Euclidean distance between centroids of hidden_states from each layer
         '''
 
-        e1_e2_centroid_euclidean_distances = [] # tracks mean euclidean distance between centroids of each layer in layers_to_use
+        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+
+            e1_e2_centroid_euclidean_distances = [] # tracks mean euclidean distance between centroids of each layer in layers_to_use
 
 
-        for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
+            for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
 
-            # euclidean distance between e1_pool and e2_pool
-            e1_e2_euclidean_distances = torch.norm(e1_pool - e2_pool, dim=-1)
+                # euclidean distance between e1_pool and e2_pool
+                e1_e2_euclidean_distances = torch.norm(e1_pool - e2_pool, dim=-1)
 
-            # ensure that all euclidean distances are between 0 and 2
-            assert torch.all(e1_e2_euclidean_distances >= 0) and torch.all(e1_e2_euclidean_distances <= 2), f'e1_e2_euclidean_distances = {e1_e2_euclidean_distances}'
+                # ensure that all euclidean distances are between 0 and 2
+                assert torch.all(e1_e2_euclidean_distances >= 0) and torch.all(e1_e2_euclidean_distances <= 2), f'e1_e2_euclidean_distances = {e1_e2_euclidean_distances}'
 
-            # get mean euclidean distance
-            e1_e2_mean_euclidean_distance = e1_e2_euclidean_distances.mean()
+                # get mean euclidean distance
+                e1_e2_mean_euclidean_distance = e1_e2_euclidean_distances.mean()
 
-            assert e1_e2_mean_euclidean_distance >= 0 and e1_e2_mean_euclidean_distance <= 2, f'e1_e2_mean_euclidean_distance = {e1_e2_mean_euclidean_distance}'
-            # <= 2 since the maximum euclidean distance between two normalized vectors is 2
+                assert e1_e2_mean_euclidean_distance >= 0 and e1_e2_mean_euclidean_distance <= 2, f'e1_e2_mean_euclidean_distance = {e1_e2_mean_euclidean_distance}'
+                # <= 2 since the maximum euclidean distance between two normalized vectors is 2
 
-            e1_e2_centroid_euclidean_distances.append(e1_e2_mean_euclidean_distance)
+                e1_e2_centroid_euclidean_distances.append(e1_e2_mean_euclidean_distance)
 
         
 
@@ -582,34 +578,36 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         - Linear seperability of encoder outputs at different layers
         '''
 
-        e1_e2_linear_seperability_accuracies = [] # tracks linear seperability accuracy of each layer in layers_to_use
+        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
 
-        for e1_pool, e2_pool in tqdm(zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states)):
+            e1_e2_linear_seperability_accuracies = [] # tracks linear seperability accuracy of each layer in layers_to_use
 
-            # generate train dataset taking first n_train elements from each pool
-            train_e1_pool = e1_pool[:n_train]
-            train_e2_pool = e2_pool[:n_train]
+            for e1_pool, e2_pool in tqdm(zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states)):
 
-            # generate test dataset taking last n_test elements from each pool
-            test_e1_pool = e1_pool[n_train:]
-            test_e2_pool = e2_pool[n_train:]
+                # generate train dataset taking first n_train elements from each pool
+                train_e1_pool = e1_pool[:n_train]
+                train_e2_pool = e2_pool[:n_train]
 
-            # Generate train dataset
-            train_e1_e2_pool = torch.cat((train_e1_pool, train_e2_pool), dim=0)
-            # generate labels
-            train_e1_e2_labels = torch.cat((torch.zeros(n_train), torch.ones(n_train))) # 0 for image, 1 for text
+                # generate test dataset taking last n_test elements from each pool
+                test_e1_pool = e1_pool[n_train:]
+                test_e2_pool = e2_pool[n_train:]
 
-            # generate test dataset
-            test_e1_e2_pool = torch.cat((test_e1_pool, test_e2_pool), dim=0)
-            # generate labels
-            test_e1_e2_labels = torch.cat((torch.zeros(n_test), torch.ones(n_test))) # 0 for image, 1 for text
+                # Generate train dataset
+                train_e1_e2_pool = torch.cat((train_e1_pool, train_e2_pool), dim=0)
+                # generate labels
+                train_e1_e2_labels = torch.cat((torch.zeros(n_train), torch.ones(n_train))) # 0 for image, 1 for text
 
-            clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
+                # generate test dataset
+                test_e1_e2_pool = torch.cat((test_e1_pool, test_e2_pool), dim=0)
+                # generate labels
+                test_e1_e2_labels = torch.cat((torch.zeros(n_test), torch.ones(n_test))) # 0 for image, 1 for text
 
-            # get accuracy on test set
-            e1_e2_linear_seperability_accuracy = clf.score(test_e1_e2_pool.cpu(), test_e1_e2_labels.cpu())
+                clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
 
-            e1_e2_linear_seperability_accuracies.append(e1_e2_linear_seperability_accuracy)
+                # get accuracy on test set
+                e1_e2_linear_seperability_accuracy = clf.score(test_e1_e2_pool.cpu(), test_e1_e2_labels.cpu())
+
+                e1_e2_linear_seperability_accuracies.append(e1_e2_linear_seperability_accuracy)
 
 
 
@@ -680,11 +678,14 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         pearson_text_intermodality_rsa = text_inter_pearson_result.statistic
         pearson_image_intermodality_rsa = image_inter_pearson_result.statistic
 
+        '''
+        RSAs for each layer hidden states
+        '''
 
-        e1_e2_inter_intra_rsas = [] # tracks RSA between inter and intra modality for each layer in layers_to_use
-
-        e1_e2_rsas = [] # tracks RSA between e1 and e2 hidden states for each layer in layers_to_use
-
+        '''
+        - Intra similarities for each layer hidden states
+        This is the only metric I can measure when encoders have different modalities
+        '''
         e1_cosine_similarities = [] # tracks cosine similarities within e1 hidden states (intra e1 cos sim) for each layer in layers_to_use
         e2_cosine_similarities = [] # tracks cosine similarities within e2 hidden states (intra e2 cos sim) for each layer in layers_to_use
 
@@ -694,35 +695,60 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
             e1_cosine_similarity_mat = e1_pool @ e1_pool.t()
             e2_cosine_similarity_mat = e2_pool @ e2_pool.t()
 
-            mean_e1_cosine_similarity = e1_cosine_similarity_mat[torch.tril(torch.ones(e1_cosine_similarity_mat.shape[0], e1_cosine_similarity_mat.shape[1]), diagonal=-1).bool()].mean()
+            mean_e1_cosine_similarity = e1_cosine_similarity_mat[torch.tril(torch.ones(e1_cosine_similarity_mat.shape[0], e1_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
 
             mean_e2_cosine_similarity = e2_cosine_similarity_mat[torch.tril(torch.ones(e2_cosine_similarity_mat.shape[0], e2_cosine_similarity_mat.shape[1]), diagonal=-1).bool()].mean()
 
             # make sure number of elements in lower triangle is correct
             assert len(mean_e1_cosine_similarity) == (e1_cosine_similarity_mat.shape[0] * (e1_cosine_similarity_mat.shape[0] - 1)) / 2
 
+            mean_e1_cosine_similarity = mean_e1_cosine_similarity.mean() # doing assertion for one only becuase I coded the rest the same way
 
             e1_cosine_similarities.append(mean_e1_cosine_similarity)
             e2_cosine_similarities.append(mean_e2_cosine_similarity)
 
         
-            e1_RSM = e1_cosine_similarity_mat[torch.tril(torch.ones(e1_cosine_similarity_mat.shape[0], e1_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
 
-            e2_RSM = e2_cosine_similarity_mat[torch.tril(torch.ones(e2_cosine_similarity_mat.shape[0], e2_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
 
-            e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
 
-            e1_e2_RSM = e1_e2_cosine_similarities[torch.tril(torch.ones(e1_e2_cosine_similarities.shape[0], e1_e2_cosine_similarities.shape[1]), diagonal=-1).bool()]
 
-            # get RSA between e1 and e2 hidden states
-            e1_e2_rsa = stats.spearmanr(e1_RSM.cpu(), e2_RSM.cpu()).correlation
-            e1_inter_rsa = stats.spearmanr(e1_RSM.cpu(), e1_e2_RSM.cpu()).correlation
-            e2_inter_rsa = stats.spearmanr(e2_RSM.cpu(), e1_e2_RSM.cpu()).correlation
+        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
 
-            mean_inter_intra_rsa = (e1_inter_rsa + e2_inter_rsa) / 2
 
-            e1_e2_rsas.append(e1_e2_rsa)
-            e1_e2_inter_intra_rsas.append(mean_inter_intra_rsa)
+            e1_e2_inter_intra_rsas = [] # tracks RSA between inter and intra modality for each layer in layers_to_use
+
+            e1_e2_rsas = [] # tracks RSA between e1 and e2 hidden states for each layer in layers_to_use
+
+            
+
+            for e1_pool, e2_pool in zip(encoder1_pooled_hidden_states, encoder2_pooled_hidden_states):
+
+                # get RSMs
+                e1_cosine_similarity_mat = e1_pool @ e1_pool.t()
+                e2_cosine_similarity_mat = e2_pool @ e2_pool.t()
+
+
+            
+                e1_RSM = e1_cosine_similarity_mat[torch.tril(torch.ones(e1_cosine_similarity_mat.shape[0], e1_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
+
+                e2_RSM = e2_cosine_similarity_mat[torch.tril(torch.ones(e2_cosine_similarity_mat.shape[0], e2_cosine_similarity_mat.shape[1]), diagonal=-1).bool()]
+
+                e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
+
+                e1_e2_RSM = e1_e2_cosine_similarities[torch.tril(torch.ones(e1_e2_cosine_similarities.shape[0], e1_e2_cosine_similarities.shape[1]), diagonal=-1).bool()]
+
+                # print('e1 rsm ', e1_RSM.cpu())
+                # print('e2 rsm ', e2_RSM.cpu())
+
+                # get RSA between e1 and e2 hidden states
+                e1_e2_rsa = stats.spearmanr(e1_RSM.cpu(), e2_RSM.cpu()).correlation
+                e1_inter_rsa = stats.spearmanr(e1_RSM.cpu(), e1_e2_RSM.cpu()).correlation
+                e2_inter_rsa = stats.spearmanr(e2_RSM.cpu(), e1_e2_RSM.cpu()).correlation
+
+                mean_inter_intra_rsa = (e1_inter_rsa + e2_inter_rsa) / 2
+
+                e1_e2_rsas.append(e1_e2_rsa)
+                e1_e2_inter_intra_rsas.append(mean_inter_intra_rsa)
 
             
 
@@ -802,6 +828,10 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
         average_intra_modality_cosine_sim = (mean_text_text_cosine_similarity.item() + mean_image_image_cosine_similarity.item()) / 2
 
+        mods_same = training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']
+
+
+
         if wandb is not None:
             wandb.log(
                 data={
@@ -819,13 +849,14 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                     'centroid_cosine_similarity': centroid_cosine_similarity.item(),
                     'centroid_euclidean_distance': centroid_euclidean_distance.item(),
                     # logging hidden state metrics
-                    'e1_e2_mean_cosine_similarities': e1_e2_mean_cosine_similarities,
-                    'mean_e1_e2_centroid_euclidean_distances': e1_e2_centroid_euclidean_distances,
-                    'e1_e2_linear_seperability_accuracies': e1_e2_linear_seperability_accuracies,
-                    'e1_e2_rsas': e1_e2_rsas,
-                    'e1_e2_inter_intra_rsas': e1_e2_inter_intra_rsas,
+                    'e1_e2_mean_cosine_similarities': e1_e2_mean_cosine_similarities if mods_same else None,
+                    'mean_e1_e2_centroid_euclidean_distances': e1_e2_centroid_euclidean_distances if mods_same else None,
+                    'e1_e2_linear_seperability_accuracies': e1_e2_linear_seperability_accuracies if mods_same else None,
+                    'e1_e2_rsas': e1_e2_rsas if mods_same else None,
+                    'e1_e2_inter_intra_rsas': e1_e2_inter_intra_rsas if mods_same else None,
                     'e1_cosine_similarities': e1_cosine_similarities,
                     'e2_cosine_similarities': e2_cosine_similarities,
+                    # back to other stuff
                     'non_similar_mean_cosine_similarity': non_similar_mean_cosine_similarity.item(),
                     'mean_text_text_cosine_similarity': mean_text_text_cosine_similarity.item(),
                     'mean_image_image_cosine_similarity': mean_image_image_cosine_similarity.item(),
@@ -853,6 +884,8 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         
         # set dataprocessor caching back to off
         dataset_processor.use_cached_tokenized_captions = False
+
+        del val_outputs, encoder1_pooled_hidden_states, encoder2_pooled_hidden_states, encoder1_pooled_hidden_states_to_save, encoder2_pooled_hidden_states_to_save
 
         # print('val done')
 

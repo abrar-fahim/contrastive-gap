@@ -15,6 +15,8 @@ class Encoder(nn.Module):
         
         super().__init__()
 
+        self.hidden_size: int
+
         assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
 
 

@@ -41,12 +41,12 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # np.random.seed(training_hyperparameters['seed'])
 
 
-        if self.same_inputs and self.encoder1_modality == 'image':
+        if not self.same_inputs and self.encoder1_modality == self.encoder2_modality == 'image':
             self.same_image_transforms = v2.Compose([
                 v2.RandomResizedCrop(size=(224, 224), antialias=True),
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
-                v2.ToDtype(torch.float32, scale=True),
+                # v2.ToDtype(torch.float32, scale=True),
             ])
 
 
@@ -114,7 +114,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
                 if self.encoder1_modality == "image":
                     # images should be augmented somehow
 
-                    outputs2 = self.same_image_transforms(imgs)
+                    outputs2 = [self.same_image_transforms(img) for img in imgs]
 
                     # ensure that outputs2 and outputs1 are same type
                     assert type(outputs2[0]) == type(outputs1[0]), f"outputs2[0] {type(outputs2[0])} and outputs1[0] {type(outputs1[0])} are not same type"

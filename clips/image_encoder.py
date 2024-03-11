@@ -23,6 +23,7 @@ class ImageEncoder(Encoder):
 
         self.preprocessor = preprocessor
         self.CLIPVisionConfig = CLIPVisionConfig
+        self.hidden_size = CLIPVisionConfig.hidden_size
 
         self.pooler_layer_norm = torch.nn.LayerNorm(CLIPVisionConfig.hidden_size, eps=CLIPVisionConfig.layer_norm_eps, elementwise_affine=False) # no trainable params
 

@@ -380,7 +380,7 @@ class HFClip(ClipParent):
         #     vision_model_output=encoder1_outputs,
         #     text_model_output=encoder2_outputs
         # )
-
+            
         outputs = HFClipOutput(
             loss=loss,
             logits_per_image = logits_per_encoder1_embeds,
@@ -389,8 +389,8 @@ class HFClip(ClipParent):
             image_embeds = normalized_encoder1_embeds,
             encoder1_hidden_states=encoder1_hidden_states,
             encoder2_hidden_states=encoder2_hidden_states,
-            encoder1_input_ids = encoder1_outputs['input_ids'],
-            encoder2_input_ids = encoder2_outputs['input_ids']
+            encoder1_input_ids = encoder1_input_ids,
+            encoder2_input_ids = encoder2_input_ids
         )
 
 

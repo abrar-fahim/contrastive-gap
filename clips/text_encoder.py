@@ -27,6 +27,7 @@ class TextEncoder(Encoder):
         
 
         self.CLIPTextConfig = CLIPTextConfig
+        self.hidden_size = CLIPTextConfig.hidden_size
 
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
@@ -58,7 +59,6 @@ class TextEncoder(Encoder):
         tokenized_captions = self.tokenize_captions(captions)
 
         outputs = self.text_model(**tokenized_captions, output_hidden_states=output_hidden_states)
-        del tokenized_captions
 
         return {
             'embeds': outputs.text_embeds,
@@ -101,7 +101,7 @@ class TextEncoder(Encoder):
             pooled_output = layer_normed_hidden_state[
                 torch.arange(layer_normed_hidden_state.shape[0], device=layer_normed_hidden_state.device),
                 # We need to get the first position of `eos_token_id` value (`pad_token_ids` might equal to `eos_token_id`)
-                (input_ids.to(dtype=torch.int, device=layer_normed_hidden_state.device) == self.eos_token_id)
+                (input_ids.to(dtype=torch.int, device=layer_normed_hidden_state.device) == self.CLIPTextConfig.eos_token_id)
                 .int()
                 .argmax(dim=-1),
             ]
