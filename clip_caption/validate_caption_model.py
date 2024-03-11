@@ -1,4 +1,5 @@
-from src.utils import do_validation, collate_fn
+from src.utils import collate_fn
+from src.validate import do_validation
 import torch
 from clips.hf_clip import HFClip
 from torch.utils.data import DataLoader, Subset

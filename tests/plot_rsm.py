@@ -18,7 +18,7 @@ from dataset_processors.mscoco_processor import MSCOCOProcessor
 
 from scipy import stats
 from matplotlib import pyplot as plt
-from src.utils import do_validation
+from src.validate import do_validation
 from tqdm import tqdm
 
 

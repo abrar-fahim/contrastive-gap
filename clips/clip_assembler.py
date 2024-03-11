@@ -94,7 +94,7 @@ class ClipAssembler():
             print()
             print("--- ENCODER 2 = TEXT --- ")
             print()
-            self.encoder2 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name='Text Encoder with GPT2 tokenizer')
+            self.encoder2 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not training_hyperparameters['train_from_scratch']), name=f"Text Encoder with {'GPT2' if training_hyperparameters['second_caption_offset'] else 'CLIP'} tokenizer")
 
         else:
             raise ValueError("Encoder 2 modality not set properly")

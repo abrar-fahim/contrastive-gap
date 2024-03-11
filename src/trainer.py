@@ -5,7 +5,8 @@ Mainly designed to abstract away grad cache mechanics from main training loop
 from grad_cache_wrapper import GradCacheWrapper
 from config import *
 import torch
-from utils import get_checkpoint_path, do_validation
+from utils import get_checkpoint_path
+from validate import do_validation
 from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
 

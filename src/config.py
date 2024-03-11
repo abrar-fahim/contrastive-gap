@@ -43,15 +43,15 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 2048,
-    'validation_batch_size': 2048,
+    'validation_dataset_size': 64, # SET
+    'validation_batch_size': 64, # SET
     'cifar_batch_size': 128,
     'use_cached_val_batch': True, # SET
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 128,
+    'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
     'save_every': 25,
@@ -59,7 +59,7 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
-    'encoder1_modality': 'text', # SET
+    'encoder1_modality': 'image', # SET
     'encoder2_modality': 'text', # SET
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True

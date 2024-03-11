@@ -12,7 +12,8 @@ from clips.hf_clip import HFClip
 import torchvision.datasets as dset
 from src.config import *
 from torch.utils.data import DataLoader, Subset
-from src.utils import collate_fn, do_validation
+from src.utils import collate_fn
+from src.validate import do_validation
 import random
 from tqdm import tqdm
 

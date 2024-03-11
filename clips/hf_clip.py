@@ -11,6 +11,42 @@ from src.config import *
 import os
 from clips.image_encoder import ImageEncoder
 from clips.text_encoder import TextEncoder
+from collections import OrderedDict
+from typing import Any, Optional, Tuple, Union
+from dataclasses import dataclass
+
+@dataclass
+class HFClipOutput(OrderedDict):
+
+    """
+    Args:
+        loss (`torch.FloatTensor` of shape `(1,)`, *optional*, returned when `return_loss` is `True`):
+            Contrastive loss for image-text similarity.
+        logits_per_image:(`torch.FloatTensor` of shape `(image_batch_size, text_batch_size)`):
+            The scaled dot product scores between `image_embeds` and `text_embeds`. This represents the image-text
+            similarity scores.
+        logits_per_text:(`torch.FloatTensor` of shape `(text_batch_size, image_batch_size)`):
+            The scaled dot product scores between `text_embeds` and `image_embeds`. This represents the text-image
+            similarity scores.
+        text_embeds(`torch.FloatTensor` of shape `(batch_size, output_dim`):
+            The text embeddings obtained by applying the projection layer to the pooled output of [`CLIPTextModel`].
+        image_embeds(`torch.FloatTensor` of shape `(batch_size, output_dim`):
+            The image embeddings obtained by applying the projection layer to the pooled output of [`CLIPVisionModel`].
+        text_model_output(`BaseModelOutputWithPooling`):
+            The output of the [`CLIPTextModel`].
+        vision_model_output(`BaseModelOutputWithPooling`):
+            The output of the [`CLIPVisionModel`].
+    """
+
+
+    loss: Optional[torch.FloatTensor] = None
+    logits_per_image: torch.FloatTensor = None
+    logits_per_text: torch.FloatTensor = None
+    text_embeds: torch.FloatTensor = None
+    image_embeds: torch.FloatTensor = None
+    encoder1_hidden_states: Tuple[torch.FloatTensor] = None
+    encoder2_hidden_states: Tuple[torch.FloatTensor] = None
+
 
 
  
@@ -29,7 +65,6 @@ class HFClip(ClipParent):
 
         self.encoder1_modality = training_hyperparameters['encoder1_modality']
         self.encoder2_modality = training_hyperparameters['encoder2_modality']
-        self.image_only = training_hyperparameters['image_only']
         self.same_inputs = training_hyperparameters['same_inputs']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
@@ -46,7 +81,7 @@ class HFClip(ClipParent):
 
         print('CLIP device ', self.device)
     
-        self.temperature = training_hyperparameters['temperature']
+        self.temperature: int = training_hyperparameters['temperature']
         self.set_temperature()
 
         '''
@@ -179,7 +214,7 @@ class HFClip(ClipParent):
 
     
 
-    def forward(self, encoder1_inputs, encoder2_inputs, output_loss=True, return_all=False, output_intra_modality_loss=False):
+    def forward(self, encoder1_inputs, encoder2_inputs, output_loss=True, return_all=False, output_intra_modality_loss=False, output_hidden_states=False):
         '''
         outputs = CLIPOutput(
             loss=loss,
@@ -190,18 +225,34 @@ class HFClip(ClipParent):
         )
         '''
 
-        encoder1_outputs = self.encoder1(encoder1_inputs)
+        encoder1_outputs = self.encoder1(encoder1_inputs, output_hidden_states)
+
+        encoder1_hidden_states  = encoder1_outputs['hidden_states']
+        encoder1_outputs = encoder1_outputs['embeds']
+
+        assert encoder1_outputs.shape[1] == 512, 'encoder1 output shape is not 512'
+
+        
 
 
         if self.one_encoder:
-            encoder2_outputs = self.encoder1(encoder2_inputs)
+            encoder2_outputs = self.encoder1(encoder2_inputs, output_hidden_states)
         else:
-            encoder2_outputs = self.encoder2(encoder2_inputs)
+            encoder2_outputs = self.encoder2(encoder2_inputs, output_hidden_states)
+
+        encoder2_hidden_states  = encoder2_outputs['hidden_states']
+        encoder2_outputs = encoder2_outputs['embeds']
+
+        assert encoder2_outputs.shape[1] == 512, 'encoder2 output shape is not 512'
 
         # normalize features
         normalized_encoder1_embeds = encoder1_outputs / encoder1_outputs.norm(p=2, dim=-1, keepdim=True)
         normalized_encoder2_embeds = encoder2_outputs / encoder2_outputs.norm(p=2, dim=-1, keepdim=True)
 
+        # check if embeds are normalized as expected
+        assert torch.allclose(normalized_encoder1_embeds.norm(p=2, dim=-1), torch.tensor(1.0).to(self.device)), 'encoder1 embeds are not normalized'
+        assert torch.allclose(normalized_encoder2_embeds.norm(p=2, dim=-1), torch.tensor(1.0).to(self.device)), 'encoder2 embeds are not normalized'
+        
         if self.same_inputs:
               assert (encoder1_inputs == encoder2_inputs), 'captions are not same'
 
@@ -300,12 +351,24 @@ class HFClip(ClipParent):
 
 
 
-        outputs = CLIPOutput(
+        # outputs = CLIPOutput(
+        #     loss=loss,
+        #     logits_per_image = logits_per_encoder1_embeds,
+        #     logits_per_text = logits_per_encoder2_embeds,
+        #     image_embeds = normalized_encoder1_embeds,
+        #     text_embeds = normalized_encoder2_embeds,
+        #     vision_model_output=encoder1_outputs,
+        #     text_model_output=encoder2_outputs
+        # )
+
+        outputs = HFClipOutput(
             loss=loss,
             logits_per_image = logits_per_encoder1_embeds,
             logits_per_text = logits_per_encoder2_embeds,
-            image_embeds = normalized_encoder1_embeds,
             text_embeds = normalized_encoder2_embeds,
+            image_embeds = normalized_encoder1_embeds,
+            encoder1_hidden_states=encoder1_hidden_states,
+            encoder2_hidden_states=encoder2_hidden_states
         )
 
 

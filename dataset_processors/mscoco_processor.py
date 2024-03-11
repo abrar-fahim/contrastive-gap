@@ -87,9 +87,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if self.encoder2_modality == 'text':
             if self.same_inputs:
-                captions2 = [caption[0] for caption in og_captions]
+                outputs2 = [caption[0] for caption in og_captions]
             else:
-                captions2 = [caption[1] for caption in og_captions]
+                outputs2 = [caption[1] for caption in og_captions]
 
         elif self.encoder2_modality == 'image':
             if self.same_inputs:
@@ -171,7 +171,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         '''
         comparing with training hyperparameters and not self.show_real_images_captions, because:
         - training hyperparameters stays constant throghout
-        - self.show_real_images_captions is set to True in the middle of do_validation in utils
+        - self.show_real_images_captions is set to True in the middle of do_validation in validate.py
         '''
 
         if training_hyperparameters['show_incorrect_images'] or self.return_org_imgs_collate_fn: 

@@ -42,16 +42,23 @@ class ImageEncoder(Encoder):
             param.requires_grad = True
 
 
-    def forward(self, images):
+    def forward(self, images, output_hidden_states=False):
 
         preprocessed_images = self.preprocess_images(images)
 
-        image_features = self.image_model(pixel_values=preprocessed_images)
+        image_features = self.image_model(pixel_values=preprocessed_images, output_hidden_states=output_hidden_states)
         del preprocessed_images
 
-        return image_features
+        return {
+            'embeds': image_features.image_embeds,
+            'hidden_states': image_features.hidden_states if output_hidden_states else None
+        }
     
 
 
     def preprocess_images(self, images):
-        return self.preprocessor(images).to(self.device)
+
+        preprocessed_images = tuple(self.preprocessor(img) for img in images)
+
+        preprocessed_images = torch.stack(preprocessed_images).to(self.device)
+        return preprocessed_images

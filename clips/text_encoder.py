@@ -45,14 +45,19 @@ class TextEncoder(Encoder):
             param.requires_grad = True
 
 
-    def forward(self, captions):
+    def forward(self, captions, output_hidden_states=False):
 
         tokenized_captions = self.tokenize_captions(captions)
 
-        text_features = self.text_model(**tokenized_captions).text_embeds
+        outputs = self.text_model(**tokenized_captions, output_hidden_states=output_hidden_states)
         del tokenized_captions
 
-        return text_features
+        return {
+            'embeds': outputs.text_embeds,
+            'hidden_states': outputs.hidden_states if output_hidden_states else None
+        }
+
+
 
     def tokenize_captions(self, captions):
         return self.tokenizer(captions, padding=True, truncation=True, return_tensors="pt").to(self.device)

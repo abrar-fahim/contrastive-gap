@@ -28,7 +28,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from clips.hf_clip import HFClip
 import torch.optim as optim
 import torch
-from src.utils import do_validation, get_checkpoint_path, init_stats_csv_file, generate_csv_file_name
+from src.utils import get_checkpoint_path, init_stats_csv_file, generate_csv_file_name
+
+from src.validate import do_validation
 import os
 import random
 import wandb
