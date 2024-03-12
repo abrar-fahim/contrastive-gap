@@ -29,11 +29,15 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.use_cached_tokenized_captions = False
 
+        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+
         self.encoder1_modality = training_hyperparameters['encoder1_modality']
         self.encoder2_modality = training_hyperparameters['encoder2_modality']
         self.same_inputs = training_hyperparameters['same_inputs']
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
+
+        _, self.image_preprocessor = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
 
         # set seed
         assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
@@ -97,7 +101,19 @@ class MSCOCOProcessor(DatasetProcessorParent):
             outputs1 = captions
 
         elif self.encoder1_modality == 'image':
-            outputs1 = imgs
+
+
+
+            # outputs1 = imgs
+
+            preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
+
+            preprocessed_images = torch.stack(preprocessed_images)
+
+            outputs1 = preprocessed_images
+
+
+
 
 
         if self.encoder2_modality == 'text':
@@ -109,21 +125,35 @@ class MSCOCOProcessor(DatasetProcessorParent):
         elif self.encoder2_modality == 'image':
             if self.same_inputs:
                 
-                outputs2 = imgs
+                outputs2 = outputs1
             else:
                 if self.encoder1_modality == "image":
                     # images should be augmented somehow
 
-                    outputs2 = [self.same_image_transforms(img) for img in imgs]
+                    imgs2 = [self.same_image_transforms(img) for img in imgs]
 
                     # ensure that outputs2 and outputs1 are same type
-                    assert type(outputs2[0]) == type(outputs1[0]), f"outputs2[0] {type(outputs2[0])} and outputs1[0] {type(outputs1[0])} are not same type"
+                    assert type(imgs2[0]) == type(outputs1[0]), f"outputs2[0] {type(imgs2[0])} and outputs1[0] {type(outputs1[0])} are not same type"
 
-                    assert len(outputs2) == len(outputs1), f"outputs2 {len(outputs2)} and outputs1 {len(outputs2)} are not same length"
+                    assert len(imgs2) == len(outputs1), f"outputs2 {len(imgs2)} and outputs1 {len(imgs2)} are not same length"
+
+                    preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs2)
+
+                    preprocessed_images = torch.stack(preprocessed_images)
+
+                    outputs2 = preprocessed_images
+
+
 
 
                 else:
-                    outputs2 = imgs
+                    # outputs2 = imgs
+
+                    preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
+
+                    preprocessed_images = torch.stack(preprocessed_images)
+
+                    outputs2 = preprocessed_images
 
 
 

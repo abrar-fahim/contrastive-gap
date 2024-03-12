@@ -43,15 +43,15 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 512, # SET
-    'validation_batch_size': 512, # SET
+    'validation_dataset_size': 2048, # SET
+    'validation_batch_size': 2048, # SET
     'cifar_batch_size': 128,
     'use_cached_val_batch': True, # SET
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 64,
+    'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
     'save_every': 25,
@@ -60,12 +60,12 @@ training_hyperparameters = {
         'text_to_image_weight': 0.5,
     },
     # these are set by wandb sweep
-    'encoder1_modality': 'image', # SET
-    'encoder2_modality': 'image', # SET
+    'encoder1_modality': 'image', # SET # can be 'image' or 'text'
+    'encoder2_modality': 'text', # SET
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
-    'one_encoder': True, # SET # modality depends on text_only or image_only
+    'one_encoder': False, # SET # modality depends on text_only or image_only
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,

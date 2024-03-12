@@ -48,10 +48,11 @@ class ImageEncoder(Encoder):
 
     def forward(self, images, output_hidden_states=False):
 
-        preprocessed_images = self.preprocess_images(images)
+        # preprocessed_images = self.preprocess_images(images)
+        images = images.to(self.device)
 
-        image_features = self.image_model(pixel_values=preprocessed_images, output_hidden_states=output_hidden_states)
-        del preprocessed_images
+        image_features = self.image_model(pixel_values=images, output_hidden_states=output_hidden_states)
+        # del preprocessed_images
 
         return {
             'embeds': image_features.image_embeds,
@@ -63,9 +64,13 @@ class ImageEncoder(Encoder):
 
     def preprocess_images(self, images):
 
+        print('preprocessing images')
+
         preprocessed_images = tuple(self.preprocessor(img) for img in images)
 
         preprocessed_images = torch.stack(preprocessed_images).to(self.device)
+
+        print('preprocessing done')
         return preprocessed_images
     
     def pool_hidden_state(self, hidden_state: torch.FloatTensor, input_ids: torch.Tensor):

@@ -13,6 +13,8 @@ import src.config as config
 
 import wandb
 
+from src.utils import generate_csv_file_name
+
 
 
 def set_hypers():
@@ -28,6 +30,8 @@ def set_hypers():
     config.training_hyperparameters['second_caption_offset'] = wandb.config.second_caption_offset
     config.training_hyperparameters['same_encoder'] = wandb.config.same_encoder
     config.training_hyperparameters['same_inputs'] = wandb.config.same_inputs
+    config.training_hyperparameters['one_encoder'] = wandb.config.one_encoder
+    
 
     # reload config
     # importlib.reload(config)
@@ -50,7 +54,7 @@ sweep_configuration = {
         "rsa_loss": {"values": [False]},
         "pearson_loss": {"values": [False]},
         "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-        "encoder1_modality": {"values": ["text", "image"]},
+        "encoder1_modality": {"values": ["image", "text"]},
         "encoder2_modality": {"values": ["text", "image"]},
         "same_encoder": {"values": [True, False]},
         "same_inputs": {"values": [False, True]},
@@ -67,15 +71,117 @@ sweep_configuration = {
 
 sweep_id = wandb.sweep(sweep=sweep_configuration, project="clipverse")
 
+default_configs = [
+    {
+        # Default
+        'encoder1_modality': 'image',
+        'encoder2_modality': 'text',
+        'same_encoder': False,
+        'same_inputs': False,
+        'second_caption_offset': False,
+        'one_encoder': False,
+    },
 
+]
+
+
+# 5 configs for image only
+image_configs = [
+    
+    # image only
+    {
+        'encoder1_modality': 'image',
+        'encoder2_modality': 'image',
+        'same_encoder': False,
+        'same_inputs': False,
+        'second_caption_offset': False,
+        'one_encoder': False,
+    },
+    # image only, same encoder
+    {
+        'encoder1_modality': 'image',
+        'encoder2_modality': 'image',
+        'same_encoder': True,
+        'same_inputs': False,
+        'second_caption_offset': False,
+        'one_encoder': False,
+    },
+    # image only, same inputs
+    {
+        'encoder1_modality': 'image',
+        'encoder2_modality': 'image',
+        'same_encoder': False,
+        'same_inputs': True,
+        'second_caption_offset': False,
+        'one_encoder': False,
+    },
+    # image only, same inputs, same encoder
+    {
+        'encoder1_modality': 'image',
+        'encoder2_modality': 'image',
+        'same_encoder': True,
+        'same_inputs': True,
+        'second_caption_offset': False,
+        'one_encoder': False,
+    },
+    # image only, one encoder
+    {
+        'encoder1_modality': 'image',
+        'encoder2_modality': 'image',
+        'same_encoder': False,
+        'same_inputs': False,
+        'second_caption_offset': False,
+        'one_encoder': True,
+    },
+
+]
+
+# 6 configs for text only
+text_configs = []
+
+for cfg in image_configs:
+    cfg['encoder1_modality'] = 'text'
+    cfg['encoder2_modality'] = 'text'
+    text_configs.append(cfg)
+
+text_configs.append({
+    'encoder1_modality': 'text',
+    'encoder2_modality': 'text',
+    'same_encoder': True,
+    'same_inputs': True,
+    'second_caption_offset': True, # use GPT2 tokenizer for second caption
+    'one_encoder': False,
+
+})
+
+
+
+# so total 12 configs?
+
+def wandb_config_valid(config):
+
+    all_configs = default_configs + image_configs + text_configs
+
+    # compare keys in config with keys in sweep_configuration
+    for sweep_config in all_configs:
+        if all(sweep_config[key] == config[key] for key in sweep_config):
+            return True
+        
+    return False
+                
+        
+        
+            
 
 def main():
-    wandb.init()
+    wandb.init(name=generate_csv_file_name())
 
-    if wandb.config.encoder1_modality != wandb.config.encoder2_modality:
-        if wandb.config.same_encoder or wandb.config.same_inputs or wandb.config.second_caption_offset:
-            print("Can't set same_encoder, same_inputs, second_caption_offset to True when modalites are different")
-            return
+    print('wandb config ', wandb.config)
+
+    if not wandb_config_valid(wandb.config):
+        print('wandb config not valid')
+        return
+
         
     
 
@@ -91,3 +197,4 @@ def main():
 # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
 wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
  
+

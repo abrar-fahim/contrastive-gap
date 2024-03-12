@@ -655,7 +655,7 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
 
 
-def generate_csv_file_name(clip_model):
+def generate_csv_file_name(clip_model=None):
     # create csv file name
     name_template = training_hyperparameters['loss_file_name_template']
 

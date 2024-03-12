@@ -167,9 +167,9 @@ class HFClip(ClipParent):
         else:
             raise ValueError('No image encoder found')
 
-        preprocessed_images = image_encoder.preprocess_images(images)
+        # preprocessed_images = image_encoder.preprocess_images(images)
 
-        image_features = image_encoder(preprocessed_images)
+        image_features = image_encoder(images)
 
         # return pooled_output AFTER projection
         return image_features

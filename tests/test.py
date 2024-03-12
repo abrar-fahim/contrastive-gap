@@ -1,5 +1,8 @@
-def a():
-    pass
+a = {
+    'name': 'test',
+    'age': 20,
+    'occupation': 'student'
+}
 
-with a():
-    print('as')
+for key in a:
+ print(a[key])

@@ -75,9 +75,10 @@ class ClipAssembler():
 
         if training_hyperparameters['one_encoder']:
             print()
-            print("---  ENCODER 2 =  None. ONE ENCODER ONLY --- ")
+            print("---  ENCODER 2 =  ENCODER 1. ONE ENCODER ONLY --- ")
             print()
-            self.encoder2 = None
+            # self.encoder2 = None
+            self.encoder2 = self.encoder1
 
         elif training_hyperparameters['same_encoder']:
             print()

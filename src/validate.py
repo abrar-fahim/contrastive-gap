@@ -65,7 +65,7 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
     if not (os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
         collate_fn = dataset_processor.collate_fn
         train_dataset = dataset_processor.train_dataset
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+        train_dataloader = torch.utils.data.DataLoader(train_dataset[:training_hyperparameters['validation_batch_size']], batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
     
         
@@ -106,8 +106,10 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
         else:
             for batch in mscoco_val_dataloader:
+                print('loading val batch')
                 # (val_imgs, val_captions) = next(iter(val_dataloader))
                 (mscoco_val_imgs, mscoco_val_captions) = batch
+                print('val batch loading done')
 
             if training_hyperparameters['use_cached_val_batch']:
                 print('saving batch to cache')
@@ -256,6 +258,8 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                 print('saving train batch to cache')
                 # save batch to cache
                 torch.save((train_imgs, train_captions), mscoco_train_dataset_batch_file_path)
+
+                print('saving done')
 
                 del train_dataloader
             
