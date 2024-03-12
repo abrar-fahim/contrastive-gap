@@ -890,8 +890,8 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                     'image_text_intercept': image_text_intercept,
                     
                 },
-                step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
-                # step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
+                # step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
+                step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
                 
 
             )

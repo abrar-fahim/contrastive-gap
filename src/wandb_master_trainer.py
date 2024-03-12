@@ -13,7 +13,7 @@ import src.config as config
 
 import wandb
 
-from src.utils import generate_csv_file_name
+from src.utils import generate_csv_file_name, cleanup_after_training
 
 
 
@@ -31,7 +31,7 @@ def set_hypers():
     config.training_hyperparameters['same_encoder'] = wandb.config.same_encoder
     config.training_hyperparameters['same_inputs'] = wandb.config.same_inputs
     config.training_hyperparameters['one_encoder'] = wandb.config.one_encoder
-    
+
 
     # reload config
     # importlib.reload(config)
@@ -174,12 +174,13 @@ def wandb_config_valid(config):
             
 
 def main():
-    wandb.init(name=generate_csv_file_name())
+    wandb.init()
 
     print('wandb config ', wandb.config)
 
     if not wandb_config_valid(wandb.config):
         print('wandb config not valid')
+        wandb.finish()
         return
 
         
@@ -189,9 +190,23 @@ def main():
 
     set_hypers()
 
+    # in case train_clip.py throws error, we can still finish the run
+    try:
+        # do training
+        train_clip.main()
+        wandb.finish() 
+    except Exception as e:
+        print('Exception in training ', e)
+        cleanup_after_training()
+        wandb.finish()
+        # delete cache batches
+        return 
+
+
+
     # do training
-    train_clip.main()
-    wandb.finish() 
+    # train_clip.main()
+    # wandb.finish() 
 
 
 # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
