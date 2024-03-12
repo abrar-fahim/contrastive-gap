@@ -131,7 +131,8 @@ text_configs.append({
 
 def wandb_config_valid(config):
 
-    all_configs = image_configs
+    # all_configs = image_configs
+    all_configs = default_configs + image_configs + text_configs
 
     # compare keys in config with keys in sweep_configuration
     for sweep_config in all_configs:
