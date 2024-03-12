@@ -12,6 +12,7 @@ import train_clip
 import src.config as config
 
 import wandb
+import copy
 
 from src.utils import generate_csv_file_name, cleanup_after_training
 
@@ -109,7 +110,7 @@ image_configs = [
 # 6 configs for text only
 text_configs = []
 
-for cfg in image_configs.copy():
+for cfg in copy.deepcopy(image_configs):
     cfg['encoder1_modality'] = 'text'
     cfg['encoder2_modality'] = 'text'
     text_configs.append(cfg)
@@ -130,7 +131,7 @@ text_configs.append({
 
 def wandb_config_valid(config):
 
-    all_configs = default_configs + image_configs + text_configs
+    all_configs = image_configs
 
     # compare keys in config with keys in sweep_configuration
     for sweep_config in all_configs:
@@ -197,7 +198,7 @@ if __name__ == "__main__":
             "pearson_loss": {"values": [False]},
             "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
             "encoder1_modality": {"values": ["image", "text"]},
-            "encoder2_modality": {"values": ["text", "image"]},
+            "encoder2_modality": {"values": ["image", "text"]},
             "same_encoder": {"values": [True, False]},
             "same_inputs": {"values": [False, True]},
             'second_caption_offset': {'values': [False, True]},

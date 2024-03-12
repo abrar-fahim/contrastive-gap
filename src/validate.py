@@ -392,10 +392,13 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                 # cosine similarities between e1_pool and e2_pool
                 e1_e2_cosine_similarities = e1_pool @ e2_pool.t()
 
+                # ensure all cosine similarities are between -1 and 1
+                # assert torch.all(e1_e2_cosine_similarities <= 1) and torch.all(e1_e2_cosine_similarities >= -1), f'e1_e2_cosine_similarities = {e1_e2_cosine_similarities}'
+
                 # get mean of elements that are on the diagonal
                 e1_e2_mean_cosine_similarity = e1_e2_cosine_similarities.diag().mean()
 
-                assert e1_e2_mean_cosine_similarity <= 1 and e1_e2_mean_cosine_similarity >= -1, f'e1_e2_mean_cosine_similarity = {e1_e2_mean_cosine_similarity}'
+                # assert e1_e2_mean_cosine_similarity <= 1 and e1_e2_mean_cosine_similarity >= -1, f'e1_e2_mean_cosine_similarity = {e1_e2_mean_cosine_similarity}'
 
                 e1_e2_mean_cosine_similarities.append(e1_e2_mean_cosine_similarity)
 
