@@ -269,6 +269,9 @@ class HFClip(ClipParent):
         normalized_encoder1_embeds = encoder1_outputs / encoder1_outputs.norm(p=2, dim=-1, keepdim=True)
         normalized_encoder2_embeds = encoder2_outputs / encoder2_outputs.norm(p=2, dim=-1, keepdim=True)
 
+
+        # print('asserting')
+
         # check if embeds are normalized as expected
         assert torch.allclose(normalized_encoder1_embeds.norm(p=2, dim=-1), torch.tensor(1.0).to(self.device)), 'encoder1 embeds are not normalized'
         assert torch.allclose(normalized_encoder2_embeds.norm(p=2, dim=-1), torch.tensor(1.0).to(self.device)), 'encoder2 embeds are not normalized'
@@ -285,6 +288,8 @@ class HFClip(ClipParent):
         if self.same_encoder and self.same_inputs and not self.second_caption_offset:
 
             assert torch.eq(normalized_encoder1_embeds, normalized_encoder2_embeds).all(), 'embeddings are not same'
+
+        # print('asserting done')
 
 
 

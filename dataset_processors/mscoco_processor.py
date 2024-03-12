@@ -102,18 +102,13 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         elif self.encoder1_modality == 'image':
 
-
-
             # outputs1 = imgs
 
-            preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
+            # preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
 
-            preprocessed_images = torch.stack(preprocessed_images)
+            preprocessed_images = torch.stack(imgs)
 
             outputs1 = preprocessed_images
-
-
-
 
 
         if self.encoder2_modality == 'text':
@@ -136,9 +131,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
                     assert len(imgs2) == len(outputs1), f"outputs2 {len(imgs2)} and outputs1 {len(imgs2)} are not same length"
 
-                    preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs2)
+                    # preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs2)
 
-                    preprocessed_images = torch.stack(preprocessed_images)
+                    preprocessed_images = torch.stack(imgs)
 
                     outputs2 = preprocessed_images
 
@@ -151,9 +146,11 @@ class MSCOCOProcessor(DatasetProcessorParent):
                 else:
                     # outputs2 = imgs
 
-                    preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
+                    # preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
 
-                    preprocessed_images = torch.stack(preprocessed_images)
+
+
+                    preprocessed_images = torch.stack(imgs)
 
                     outputs2 = preprocessed_images
 
@@ -248,7 +245,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
             train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
             # transform=[transforms.PILToTensor()])
-            # transform=self.preprocess,
+            transform=self.image_preprocessor,
             )
 
 
