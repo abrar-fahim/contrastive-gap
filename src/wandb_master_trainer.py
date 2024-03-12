@@ -208,14 +208,16 @@ def main():
     # train_clip.main()
     # wandb.finish() 
 
+# if main
+if __name__ == "__main__":
 
-print()
-print('--- SWEEP ID ---')
-print(sweep_id)
-print()
+    print()
+    print('--- SWEEP ID ---')
+    print(sweep_id)
+    print()
 
 
-# wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
-wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
+    # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
+    wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
  
 
