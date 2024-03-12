@@ -168,7 +168,7 @@ def main():
         train_clip.main()
         wandb.finish() 
     except Exception as e:
-        print('Exception in training ', e)
+        print('Exception in training ', e.with_traceback())
         cleanup_after_training()
         wandb.finish()
         # delete cache batches

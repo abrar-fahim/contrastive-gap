@@ -340,7 +340,10 @@ def remove_repeats_from_val_batch(val_batch):
 def cleanup_after_training():
     # delete validation batch cache
     mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
-    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{generate_csv_file_name}.pt"
+    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{generate_csv_file_name()}.pt"
+
+
+    embeddings_path = get_embeddings_path()
 
     if os.path.exists(mscoco_batch_file_path):
         os.remove(mscoco_batch_file_path)
@@ -353,6 +356,10 @@ def cleanup_after_training():
         print(f'removed {mscoco_train_dataset_batch_file_path}')
     else:
         print(f'{mscoco_train_dataset_batch_file_path} does not exist')
+
+    if os.path.exists(embeddings_path):
+        os.remove(embeddings_path)
+        print(f'removed {embeddings_path}')
 
 
 
