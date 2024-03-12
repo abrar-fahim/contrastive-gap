@@ -339,8 +339,8 @@ def remove_repeats_from_val_batch(val_batch):
 
 def cleanup_after_training():
     # delete validation batch cache
-    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
-    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
+    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
+    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{generate_csv_file_name}.pt"
 
     if os.path.exists(mscoco_batch_file_path):
         os.remove(mscoco_batch_file_path)

@@ -15,7 +15,7 @@ from sklearn.linear_model import LogisticRegression
 from typing import Any, Optional, Tuple, Union
 import pickle
 
-from src.utils import get_embeddings_path
+from src.utils import get_embeddings_path, generate_csv_file_name
 
 import sys
 import os
@@ -50,7 +50,7 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
     # create seperate dataloaders for val and train dataset, seperate from the ones used in training, so that I get same train and val batch each time this runs
 
     
-    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
+    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
     # mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
     mscoco_train_dataset_batch_file_path = mscoco_batch_file_path # for now, use val batch as train batch
     

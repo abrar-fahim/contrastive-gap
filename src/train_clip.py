@@ -28,7 +28,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from clips.hf_clip import HFClip
 import torch.optim as optim
 import torch
-from src.utils import get_checkpoint_path, init_stats_csv_file, generate_csv_file_name
+from src.utils import get_checkpoint_path, init_stats_csv_file, generate_csv_file_name, cleanup_after_training
 
 from src.validate import do_validation
 import os
@@ -230,20 +230,7 @@ def main():
 
 
     # delete validation batch cache
-    mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
-    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
-
-    if os.path.exists(mscoco_batch_file_path):
-        os.remove(mscoco_batch_file_path)
-        print(f'removed {mscoco_batch_file_path}')
-    else:
-        print(f'{mscoco_batch_file_path} does not exist')
-    
-    if os.path.exists(mscoco_train_dataset_batch_file_path):
-        os.remove(mscoco_train_dataset_batch_file_path)
-        print(f'removed {mscoco_train_dataset_batch_file_path}')
-    else:
-        print(f'{mscoco_train_dataset_batch_file_path} does not exist')
+    cleanup_after_training()
 
     
     
