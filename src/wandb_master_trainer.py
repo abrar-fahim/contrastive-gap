@@ -41,36 +41,6 @@ def set_hypers():
 
 
 
-
-sweep_configuration = {
-    "method": "grid",
-    # "method": "random",
-    "name": "Text only configs AFTER CODE CLEAN UP, 1024 batch size",
-    "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
-    "parameters": {
-        "temperature": {"values": [0.01]},
-        # "intra_modality_loss": {"values": [True, False]},
-        "intra_modality_loss": {"values": [False]},
-        "rsa_loss": {"values": [False]},
-        "pearson_loss": {"values": [False]},
-        "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-        "encoder1_modality": {"values": ["image", "text"]},
-        "encoder2_modality": {"values": ["text", "image"]},
-        "same_encoder": {"values": [True, False]},
-        "same_inputs": {"values": [False, True]},
-        'second_caption_offset': {'values': [False, True]},
-        'one_encoder': {'values': [True, False]},
-
-        # "lr": {"max": 7e-5, "min": 1e-6},
-        "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-        # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
-        # 'seed': {'values': [42, 10, 100]},
-        'seed': {'values': [2]},
-    },
-}
-
-sweep_id = wandb.sweep(sweep=sweep_configuration, project="clipverse")
-
 default_configs = [
     {
         # Default
@@ -210,6 +180,38 @@ def main():
 
 # if main
 if __name__ == "__main__":
+
+
+
+
+    sweep_configuration = {
+        "method": "grid",
+        # "method": "random",
+        "name": "Text only configs AFTER CODE CLEAN UP, 1024 batch size",
+        "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
+        "parameters": {
+            "temperature": {"values": [0.01]},
+            # "intra_modality_loss": {"values": [True, False]},
+            "intra_modality_loss": {"values": [False]},
+            "rsa_loss": {"values": [False]},
+            "pearson_loss": {"values": [False]},
+            "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
+            "encoder1_modality": {"values": ["image", "text"]},
+            "encoder2_modality": {"values": ["text", "image"]},
+            "same_encoder": {"values": [True, False]},
+            "same_inputs": {"values": [False, True]},
+            'second_caption_offset': {'values': [False, True]},
+            'one_encoder': {'values': [True, False]},
+
+            # "lr": {"max": 7e-5, "min": 1e-6},
+            "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+            # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
+            # 'seed': {'values': [42, 10, 100]},
+            'seed': {'values': [2]},
+        },
+    }
+
+    sweep_id = wandb.sweep(sweep=sweep_configuration, project="clipverse")
 
     print()
     print('--- SWEEP ID ---')
