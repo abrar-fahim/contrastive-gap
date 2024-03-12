@@ -51,7 +51,11 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
 
     
     mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{training_hyperparameters['seed']}.pt"
-    mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
+    # mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
+    mscoco_train_dataset_batch_file_path = mscoco_batch_file_path # for now, use val batch as train batch
+    
+
+
 
     if not (os.path.exists(mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
         # only create dataloaders if batch is not cached
@@ -60,12 +64,18 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         collate_fn = dataset_processor.collate_fn
         mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
+
+
+        # for now, using val dataset as train dataset.
+        train_dataloader = mscoco_val_dataloader
+
+    
        
 
-    if not (os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
-        collate_fn = dataset_processor.collate_fn
-        train_dataset = dataset_processor.train_dataset
-        train_dataloader = torch.utils.data.DataLoader(train_dataset[:training_hyperparameters['validation_batch_size']], batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    # if not (os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
+    #     collate_fn = dataset_processor.collate_fn
+    #     train_dataset = dataset_processor.train_dataset
+    #     train_dataloader = torch.utils.data.DataLoader(train_dataset[:training_hyperparameters['validation_batch_size']], batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
 
     
         
