@@ -132,8 +132,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
                     imgs2 = [self.same_image_transforms(img) for img in imgs]
 
-                    # ensure that outputs2 and outputs1 are same type
-                    assert type(imgs2[0]) == type(outputs1[0]), f"outputs2[0] {type(imgs2[0])} and outputs1[0] {type(outputs1[0])} are not same type"
+                    
 
                     assert len(imgs2) == len(outputs1), f"outputs2 {len(imgs2)} and outputs1 {len(imgs2)} are not same length"
 
@@ -142,6 +141,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
                     preprocessed_images = torch.stack(preprocessed_images)
 
                     outputs2 = preprocessed_images
+
+                    # ensure that outputs2 and outputs1 are same type
+                    assert type(outputs2[0]) == type(outputs1[0]), f"outputs2[0] {type(imgs2[0])} and outputs1[0] {type(outputs1[0])} are not same type"
 
 
 

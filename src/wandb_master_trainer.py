@@ -109,7 +109,7 @@ image_configs = [
 # 6 configs for text only
 text_configs = []
 
-for cfg in image_configs:
+for cfg in image_configs.copy():
     cfg['encoder1_modality'] = 'text'
     cfg['encoder2_modality'] = 'text'
     text_configs.append(cfg)
