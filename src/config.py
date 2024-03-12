@@ -54,7 +54,7 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 256,
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
-    'save_every': 25,
+    'save_every': 1000,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
