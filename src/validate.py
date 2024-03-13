@@ -547,7 +547,7 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         indices = torch.randperm(len(image_embeds))
 
         train_indices = indices[:n_train]
-
+ 
         test_indices = indices[n_train:]
 
         train_image_embeds = normalized_image_embeds[train_indices]

@@ -59,24 +59,24 @@ default_configs = [
 # 5 configs for image only
 image_configs = [
     
-    # image only
-    {
-        'encoder1_modality': 'image',
-        'encoder2_modality': 'image',
-        'same_encoder': False,
-        'same_inputs': False,
-        'second_caption_offset': False,
-        'one_encoder': False,
-    },
-    # image only, same encoder
-    {
-        'encoder1_modality': 'image',
-        'encoder2_modality': 'image',
-        'same_encoder': True,
-        'same_inputs': False,
-        'second_caption_offset': False,
-        'one_encoder': False,
-    },
+    # # image only
+    # {
+    #     'encoder1_modality': 'image',
+    #     'encoder2_modality': 'image',
+    #     'same_encoder': False,
+    #     'same_inputs': False,
+    #     'second_caption_offset': False,
+    #     'one_encoder': False,
+    # },
+    # # image only, same encoder
+    # {
+    #     'encoder1_modality': 'image',
+    #     'encoder2_modality': 'image',
+    #     'same_encoder': True,
+    #     'same_inputs': False,
+    #     'second_caption_offset': False,
+    #     'one_encoder': False,
+    # },
     # image only, same inputs
     {
         'encoder1_modality': 'image',
@@ -86,24 +86,24 @@ image_configs = [
         'second_caption_offset': False,
         'one_encoder': False,
     },
-    # image only, same inputs, same encoder
-    {
-        'encoder1_modality': 'image',
-        'encoder2_modality': 'image',
-        'same_encoder': True,
-        'same_inputs': True,
-        'second_caption_offset': False,
-        'one_encoder': False,
-    },
-    # image only, one encoder
-    {
-        'encoder1_modality': 'image',
-        'encoder2_modality': 'image',
-        'same_encoder': False,
-        'same_inputs': False,
-        'second_caption_offset': False,
-        'one_encoder': True,
-    },
+    # # image only, same inputs, same encoder
+    # {
+    #     'encoder1_modality': 'image',
+    #     'encoder2_modality': 'image',
+    #     'same_encoder': True,
+    #     'same_inputs': True,
+    #     'second_caption_offset': False,
+    #     'one_encoder': False,
+    # },
+    # # image only, one encoder
+    # {
+    #     'encoder1_modality': 'image',
+    #     'encoder2_modality': 'image',
+    #     'same_encoder': False,
+    #     'same_inputs': False,
+    #     'second_caption_offset': False,
+    #     'one_encoder': True,
+    # },
 
 ]
 
@@ -123,6 +123,25 @@ text_configs.append({
     'second_caption_offset': True, # use GPT2 tokenizer for second caption
     'one_encoder': False,
 
+})
+
+text_configs.append({
+    'encoder1_modality': 'text',
+    'encoder2_modality': 'text',
+    'same_encoder': False,
+    'same_inputs': False,
+    'second_caption_offset': False, 
+    'one_encoder': False,
+
+})
+
+text_configs.append({
+    'encoder1_modality': 'text',
+    'encoder2_modality': 'text',
+    'same_encoder': True,
+    'same_inputs': False,
+    'second_caption_offset': False, 
+    'one_encoder': False,
 })
 
 

@@ -37,7 +37,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 30, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,

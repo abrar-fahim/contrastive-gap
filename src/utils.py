@@ -357,9 +357,9 @@ def cleanup_after_training():
     else:
         print(f'{mscoco_train_dataset_batch_file_path} does not exist')
 
-    if os.path.exists(embeddings_path):
-        os.remove(embeddings_path)
-        print(f'removed {embeddings_path}')
+    # if os.path.exists(embeddings_path):
+    #     os.remove(embeddings_path)
+    #     print(f'removed {embeddings_path}')
 
 
 
