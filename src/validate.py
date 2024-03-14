@@ -902,7 +902,7 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
         # set dataprocessor caching back to off
         dataset_processor.use_cached_tokenized_captions = False
 
-        del val_outputs, encoder1_pooled_hidden_states, encoder2_pooled_hidden_states, encoder1_pooled_hidden_states_to_save, encoder2_pooled_hidden_states_to_save
+        del val_outputs, encoder1_pooled_hidden_states, encoder2_pooled_hidden_states
 
         # print('val done')
 

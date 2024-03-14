@@ -187,7 +187,7 @@ def main():
         train_clip.main()
         wandb.finish() 
     except Exception as e:
-        print('Exception in training ', e.with_traceback())
+        print('Exception in training ', e)
         cleanup_after_training()
         wandb.finish()
         # delete cache batches
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     sweep_configuration = {
         "method": "grid",
         # "method": "random",
-        "name": "Text only configs AFTER CODE CLEAN UP, 1024 batch size",
+        "name": "Default CLIP with Common projection layer 2 layers, no RELU at end",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -217,12 +217,13 @@ if __name__ == "__main__":
             "rsa_loss": {"values": [False]},
             "pearson_loss": {"values": [False]},
             "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-            "encoder1_modality": {"values": ["image", "text"]},
-            "encoder2_modality": {"values": ["image", "text"]},
-            "same_encoder": {"values": [True, False]},
-            "same_inputs": {"values": [False, True]},
-            'second_caption_offset': {'values': [False, True]},
-            'one_encoder': {'values': [True, False]},
+            "encoder1_modality": {"values": ["image"]},
+            "encoder2_modality": {"values": ["text"]},
+            "same_encoder": {"values": [False]},
+            "same_inputs": {"values": [False]},
+            'second_caption_offset': {'values': [False]},
+            'one_encoder': {'values': [False]},
+            'common_projection_layer': {'values': [True]},
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

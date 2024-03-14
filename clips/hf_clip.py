@@ -7,11 +7,14 @@ from torch.functional import F
 
 from transformers.models.clip.modeling_clip import CLIPOutput
 
+
+
 from src.config import *
 import os
 from clips.image_encoder import ImageEncoder
 from clips.text_encoder import TextEncoder
 from clips.encoder import Encoder
+from clips.projection_layer import ProjectionLayer
 from collections import OrderedDict
 from typing import Any, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -57,7 +60,7 @@ class HFClipOutput(OrderedDict):
 class HFClip(ClipParent):
 
 
-    def __init__(self, encoder1: Encoder, encoder2: Encoder):
+    def __init__(self, encoder1: Encoder, encoder2: Encoder, common_projection_layer: ProjectionLayer = None):
         super().__init__()
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
@@ -72,6 +75,8 @@ class HFClip(ClipParent):
         self.same_encoder = training_hyperparameters['same_encoder']
         self.second_caption_offset = training_hyperparameters['second_caption_offset']
         self.one_encoder = training_hyperparameters['one_encoder']
+
+        self.common_projection_layer = common_projection_layer
 
         '''
         Set encoders
@@ -249,6 +254,10 @@ class HFClip(ClipParent):
         encoder1_input_ids = encoder1_outputs['input_ids']
         encoder1_outputs = encoder1_outputs['embeds']
 
+
+        if self.common_projection_layer:
+            encoder1_outputs = self.common_projection_layer(encoder1_outputs)
+
         assert encoder1_outputs.shape[1] == 512, 'encoder1 output shape is not 512'
 
         
@@ -262,6 +271,9 @@ class HFClip(ClipParent):
         encoder2_hidden_states  = encoder2_outputs['hidden_states']
         encoder2_input_ids = encoder2_outputs['input_ids']
         encoder2_outputs = encoder2_outputs['embeds']
+
+        if self.common_projection_layer:
+            encoder2_outputs = self.common_projection_layer(encoder2_outputs)
 
         assert encoder2_outputs.shape[1] == 512, 'encoder2 output shape is not 512'
 

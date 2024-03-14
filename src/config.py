@@ -37,7 +37,7 @@ training_hyperparameters = {
     'batch_size': 256,
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 30, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -59,18 +59,30 @@ training_hyperparameters = {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
     },
+
+
     # these are set by wandb sweep
+
+    # encoder modalities
     'encoder1_modality': 'image', # SET # can be 'image' or 'text'
-    'encoder2_modality': 'image', # SET
+    'encoder2_modality': 'text', # SET
+
+    # encoder configs
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
     'one_encoder': False, # SET # modality depends on text_only or image_only
+    'common_projection_layer': True, # SET
+
+
+    # loss factors
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,
+
+
     # Saving embeds and encoder hidden states
-    'save_encoder_hidden_states': True, # SET
+    'save_encoder_hidden_states': False, # SET
     'n_embeds_to_save': 256, # SET
     # which clip model
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,

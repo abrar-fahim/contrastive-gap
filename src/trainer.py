@@ -213,7 +213,7 @@ class Trainer(TrainerParent):
             if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
 
 
-                self.save_checkpoint_and_validate(clip_model, epoch, i, val_dataset_processor=val_dataset_processor)
+                self.save_checkpoint_and_validate(clip_model, epoch, i+1, val_dataset_processor=val_dataset_processor)
                 pass
             
             i += 1

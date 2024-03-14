@@ -7,6 +7,8 @@ from clips.image_encoder import ImageEncoder
 import copy
 from clips.hf_clip import HFClip
 
+from clips.projection_layer import ProjectionLayer
+
 
 
 
@@ -29,6 +31,7 @@ class ClipAssembler():
             self.gpt_tokenizer = GPT2Tokenizer.from_pretrained("openai-community/gpt2")
             self.gpt_tokenizer.pad_token = self.clip_tokenizer.pad_token
             self.gpt_tokenizer.eos_token = self.clip_tokenizer.eos_token
+
 
         '''
         Setting image preprocessors
@@ -116,13 +119,22 @@ class ClipAssembler():
             print("--- Setting Second Text Encoder to have GPT tokenizer --- ")
             self.encoder2.tokenizer = self.gpt_tokenizer
 
+        if training_hyperparameters['common_projection_layer']:
+            print()
+            print("--- Setting common projection layer --- ")
+            self.projection_layer = ProjectionLayer()
+        else:
+            self.projection_layer = None
+
+
+
 
 
         '''
         Setting CLIP model
         '''
 
-        self.clip_model = HFClip(self.encoder1, self.encoder2)
+        self.clip_model = HFClip(self.encoder1, self.encoder2, self.projection_layer)
 
 
     def validate_config(self):

@@ -9,6 +9,8 @@ from clips.encoder import Encoder
 
 
 
+
+
 class ImageEncoder(Encoder):
 
 
