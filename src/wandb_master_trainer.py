@@ -208,10 +208,10 @@ if __name__ == "__main__":
     sweep_configuration = {
         "method": "grid",
         # "method": "random",
-        "name": "Default CLIP with Common projection layer 2 layers, no RELU at end",
+        "name": "Default CLIP, CIFAR 10, testing diff temps with linear acc.",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
-            "temperature": {"values": [0.01]},
+            "temperature": {"values": [0.01, 0.1, 0.5, 1]},
             # "intra_modality_loss": {"values": [True, False]},
             "intra_modality_loss": {"values": [False]},
             "rsa_loss": {"values": [False]},
@@ -223,7 +223,7 @@ if __name__ == "__main__":
             "same_inputs": {"values": [False]},
             'second_caption_offset': {'values': [False]},
             'one_encoder': {'values': [False]},
-            'common_projection_layer': {'values': [True]},
+            'common_projection_layer': {'values': [False]},
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

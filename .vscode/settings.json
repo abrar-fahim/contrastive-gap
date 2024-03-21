@@ -9,7 +9,7 @@
                 "new-session",
                 "-A",
                 "-s",
-                "vscode${workspaceFolder}"
+                "vscode${workspaceFolder}_${file}"
             ],
         }
     }

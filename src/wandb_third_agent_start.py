@@ -14,7 +14,7 @@ from src.wandb_master_trainer import main
 import wandb
 
 
-config.training_hyperparameters['cuda_device'] = 'cuda:1' # SET the cuda device to be used in host4
+config.training_hyperparameters['cuda_device'] = 'cuda:2' # SET the cuda device to be used in host4
             
 sweep_id = '6kdc770i'
 

@@ -198,7 +198,9 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
             cifar_classes = val_dataset_processor.classes
 
             # tokenize captions
-            cifar_tokenized_classes = clip_model.tokenize_captions(cifar_classes)
+            # cifar_tokenized_classes = clip_model.tokenize_captions(cifar_classes)
+
+
 
             cifar10_val_image_classification_accuracy_runsum = 0
             for batch in tqdm(cifar_val_dataloader):
@@ -206,7 +208,8 @@ def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=
                 
                 
                 # get logits per image
-                cifar_val_outputs = clip_model(cifar_val_imgs, cifar_tokenized_classes, output_loss=False, return_all=True)
+                # cifar_val_outputs = clip_model(cifar_val_imgs, cifar_tokenized_classes, output_loss=False, return_all=True)
+                cifar_val_outputs = clip_model(cifar_val_imgs, cifar_classes, output_loss=False, return_all=True)
 
                 cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
 

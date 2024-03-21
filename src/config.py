@@ -72,7 +72,7 @@ training_hyperparameters = {
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
     'one_encoder': False, # SET # modality depends on text_only or image_only
-    'common_projection_layer': True, # SET
+    'common_projection_layer': False, # SET
 
 
     # loss factors

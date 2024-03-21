@@ -166,8 +166,7 @@ def main():
 
     dataset_processor.print_dataset_stats()
     cifar_dataset_processor.print_dataset_stats()
-
-    cifar_dataset_processor = None
+    # cifar_dataset_processor = None
 
     '''
     create csv file
@@ -204,8 +203,8 @@ def main():
 
     clip_model.eval()
 
-    # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
-    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
+    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
+    # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()
 
