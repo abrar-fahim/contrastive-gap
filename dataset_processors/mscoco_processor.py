@@ -42,7 +42,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # set seed
         assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
         # random.seed(training_hyperparameters['seed'])
-        # np.random.seed(training_hyperparameters['seed'])
+    # np.random.seed(training_hyperparameters['seed'])
 
 
         if not self.same_inputs and self.encoder1_modality == self.encoder2_modality == 'image':
