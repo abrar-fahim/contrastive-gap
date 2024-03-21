@@ -30,7 +30,7 @@ import torch.optim as optim
 import torch
 from src.utils import get_checkpoint_path, init_stats_csv_file, generate_csv_file_name, cleanup_after_training
 
-from src.validate import do_validation
+# from src.validate import do_validation
 from src.evaluator import Evaluator
 import os
 import random

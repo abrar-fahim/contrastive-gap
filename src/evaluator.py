@@ -106,78 +106,80 @@ class Evaluator():
 
     def evaluate_model(self, clip_model: HFClip, epoch: int, index: int):
 
-        self.set_val_outputs(clip_model)
-        self.set_pooled_hidden_states(clip_model)
+        with torch.no_grad():
 
-        # save pooled hidden states to file
-        if training_hyperparameters['save_encoder_hidden_states']:
+            self.set_val_outputs(clip_model)
+            self.set_pooled_hidden_states(clip_model)
 
-            save_path = get_embeddings_path()
-            self.save_pooled_hidden_states_to_file(save_path, epoch, index)
+            # save pooled hidden states to file
+            if training_hyperparameters['save_encoder_hidden_states']:
 
-        '''
-        log to wandb
-        '''
+                save_path = get_embeddings_path()
+                self.save_pooled_hidden_states_to_file(save_path, epoch, index)
 
-        average_intra_modality_cosine_sim = self.get_text_text_similarity() + self.get_image_image_similarity()  / 2
+            '''
+            log to wandb
+            '''
 
-        mods_same = training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']
+            average_intra_modality_cosine_sim = self.get_text_text_similarity() + self.get_image_image_similarity()  / 2
 
-        val_loss = self.get_val_loss()
+            mods_same = training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']
 
-        rsa_correlations = self.get_rsa_correlations()
-        rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
-        intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
+            val_loss = self.get_val_loss()
 
-        if wandb is not None:
-            wandb.log(
-                data={
-                    'val_image_classification_accuracy': self.get_val_image_classification_acc(),
-                    'val_image_retrieval_accuracy': self.get_val_image_retrieval_acc(),
-                    'train_intramodality_loss': val_loss['intra_modality'],
-                    'train_intermodality_loss': val_loss['inter_modality'],
-                    'train_rsa_loss': val_loss['rsa'],
-                    'train_pearson_loss': val_loss['pearson_rsa'],
-                    'train_total_loss':val_loss['total'],
-                    'mean_pairwise_euclidean_distance':  self.get_mean_pairwise_euclidean_distance(),
-                    'mean_cosine_similarity': self.get_mean_cosine_similarity(clip_model.temperature),
-                    'linear_seperability_accuracy': self.get_linear_seperability(),
-                    'centroid_cosine_similarity': self.get_centroid_cosine_similarity(),
-                    'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
+            rsa_correlations = self.get_rsa_correlations(clip_model.temperature)
+            rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
+            intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
 
-                    # logging hidden state metrics
-                    'e1_e2_mean_cosine_similarities': self.get_mean_cosine_similarity_between_diff_layers() if mods_same else None,
-                    'mean_e1_e2_centroid_euclidean_distances': self.get_mean_pairwise_euclidean_distance_between_diff_layers() if mods_same else None,
-                    'e1_e2_linear_seperability_accuracies': self.get_linear_seperability_between_diff_layers() if mods_same else None,
-                    'e1_e2_rsas': rsa_correlations_between_diff_layers['e1_e2_rsas'] if mods_same else None,
-                    'e1_e2_inter_intra_rsas': rsa_correlations_between_diff_layers['e1_e2_inter_intra_rsas'] if mods_same else None,
-                    'e1_cosine_similarities': intra_modality_similarities_within_diff_layers['e1_cosine_similarities'],
-                    'e2_cosine_similarities': intra_modality_similarities_within_diff_layers['e2_cosine_similarities'],
+            if wandb is not None:
+                wandb.log(
+                    data={
+                        'val_image_classification_accuracy': self.get_val_image_classification_acc(),
+                        'val_image_retrieval_accuracy': self.get_val_image_retrieval_acc(),
+                        'train_intramodality_loss': val_loss['intra_modality'],
+                        'train_intermodality_loss': val_loss['inter_modality'],
+                        'train_rsa_loss': val_loss['rsa'],
+                        'train_pearson_loss': val_loss['pearson_rsa'],
+                        'train_total_loss':val_loss['total'],
+                        'mean_pairwise_euclidean_distance':  self.get_mean_pairwise_euclidean_distance(),
+                        'mean_cosine_similarity': self.get_mean_cosine_similarity(clip_model.temperature),
+                        'linear_seperability_accuracy': self.get_linear_seperability(),
+                        'centroid_cosine_similarity': self.get_centroid_cosine_similarity(),
+                        'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
 
-                    # back to other stuff
-                    'non_similar_mean_cosine_similarity': self.non_similar_mean_cosine_similarity(clip_model.temperature),
-                    'mean_text_text_cosine_similarity': self.get_text_text_similarity(),
-                    'mean_image_image_cosine_similarity': self.get_image_image_similarity(),
-                    'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
+                        # logging hidden state metrics
+                        'e1_e2_mean_cosine_similarities': self.get_mean_cosine_similarity_between_diff_layers() if mods_same else None,
+                        'mean_e1_e2_centroid_euclidean_distances': self.get_mean_pairwise_euclidean_distance_between_diff_layers() if mods_same else None,
+                        'e1_e2_linear_seperability_accuracies': self.get_linear_seperability_between_diff_layers() if mods_same else None,
+                        'e1_e2_rsas': rsa_correlations_between_diff_layers['e1_e2_rsas'] if mods_same else None,
+                        'e1_e2_inter_intra_rsas': rsa_correlations_between_diff_layers['e1_e2_inter_intra_rsas'] if mods_same else None,
+                        'e1_cosine_similarities': intra_modality_similarities_within_diff_layers['e1_cosine_similarities'],
+                        'e2_cosine_similarities': intra_modality_similarities_within_diff_layers['e2_cosine_similarities'],
 
-                    # RSA STUFF
+                        # back to other stuff
+                        'non_similar_mean_cosine_similarity': self.non_similar_mean_cosine_similarity(clip_model.temperature),
+                        'mean_text_text_cosine_similarity': self.get_text_text_similarity(),
+                        'mean_image_image_cosine_similarity': self.get_image_image_similarity(),
+                        'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,
 
-                    'rsa_before_interchanging':  rsa_correlations['rsa_before_interchanging'],
-                    'text_intermodality_rsa': rsa_correlations['text_intermodality_rsa'],
-                    'image_intermodality_rsa': rsa_correlations['image_intermodality_rsa'],
-                    'pearson_rsa_before_interchanging':rsa_correlations['pearson_rsa_before_interchanging'],
-                    'pearson_text_intermodality_rsa': rsa_correlations['pearson_text_intermodality_rsa'],
-                    'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
+                        # RSA STUFF
+
+                        'rsa_before_interchanging':  rsa_correlations['rsa_before_interchanging'],
+                        'text_intermodality_rsa': rsa_correlations['text_intermodality_rsa'],
+                        'image_intermodality_rsa': rsa_correlations['image_intermodality_rsa'],
+                        'pearson_rsa_before_interchanging':rsa_correlations['pearson_rsa_before_interchanging'],
+                        'pearson_text_intermodality_rsa': rsa_correlations['pearson_text_intermodality_rsa'],
+                        'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                    'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
+                        'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
+                        
+                    },
+                    # step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
+                    step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
                     
-                },
-                # step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
-                step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
-                
 
-            )
+                )
 
 
 
@@ -387,7 +389,7 @@ class Evaluator():
 
     def get_mean_cosine_similarity(self, temperature: int):
 
-        cosine_similarities = self.val_outputs.val_logits_per_image.diag() # shape: [64]
+        cosine_similarities = self.val_outputs.logits_per_image.diag() # shape: [64]
         # get mean cosine similarity
         mean_cosine_similarity = torch.mean(cosine_similarities)
 
@@ -403,7 +405,7 @@ class Evaluator():
     def non_similar_mean_cosine_similarity(self, temperature: int):
 
         # get mean of elements that are not on the diagonal
-        non_similar_mean_cosine_similarity = self.val_outputs.val_logits_per_image[~torch.eye(self.val_outputs.val_logits_per_image.shape[0], dtype=bool)].mean()
+        non_similar_mean_cosine_similarity = self.val_outputs.logits_per_image[~torch.eye(self.val_outputs.logits_per_image.shape[0], dtype=bool)].mean()
 
         # scale with temperature
 
@@ -749,6 +751,8 @@ class Evaluator():
         text_encoder_outputs = text_embeds # shape: ([batch_size, 512])
         image_encoder_outputs = image_embeds
 
+        val_logits_per_image = self.val_outputs.logits_per_image
+
         # normalize features
         text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
         image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
@@ -781,7 +785,6 @@ class Evaluator():
         # scale with temp
         image_text_cosine_similarities = val_logits_per_image * temperature
 
-        del val_logits_per_image
 
         image_text_RSM = image_text_cosine_similarities[torch.tril(torch.ones(image_text_cosine_similarities.shape[0], image_text_cosine_similarities.shape[1]), diagonal=-1).bool()]
 

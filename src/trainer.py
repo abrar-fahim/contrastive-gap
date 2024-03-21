@@ -6,7 +6,7 @@ from grad_cache_wrapper import GradCacheWrapper
 from config import *
 import torch
 from utils import get_checkpoint_path
-from validate import do_validation
+# from validate import do_validation
 from evaluator import Evaluator
 from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
