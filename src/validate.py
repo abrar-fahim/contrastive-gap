@@ -9,10 +9,6 @@ import wandb
 import os
 from tqdm import tqdm
 from scipy import stats
-
-from torchvision.datasets import CIFAR10
-from sklearn.linear_model import LogisticRegression
-from typing import Any, Optional, Tuple, Union
 import pickle
 
 from src.utils import get_embeddings_path, generate_csv_file_name
@@ -33,7 +29,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# de
 
 
 
-def do_validation(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=0, epoch=0, captioning_model=False, wandb=wandb, val_dataset_processor = None):
+def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=0, epoch=0, captioning_model=False, wandb=wandb, val_dataset_processor = None):
 
     
 

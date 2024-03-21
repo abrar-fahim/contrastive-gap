@@ -31,6 +31,7 @@ import torch
 from src.utils import get_checkpoint_path, init_stats_csv_file, generate_csv_file_name, cleanup_after_training
 
 from src.validate import do_validation
+from src.evaluator import Evaluator
 import os
 import random
 import wandb
@@ -177,7 +178,13 @@ def main():
         init_stats_csv_file(clip_model)
 
 
+
+
+
     # setup trainer
+        
+
+
         
 
     
@@ -191,19 +198,32 @@ def main():
         name=generate_csv_file_name(clip_model)
     )
 
+    '''
+    Setup evaluator
+    '''
+
+    evaluator = Evaluator(dataset_processor, cifar_dataset_processor, wandb)
+
     if training_hyperparameters['grad_cache']:
-        trainer = GradCacheTrainer(dataset_processor, wandb)
+        trainer = GradCacheTrainer(dataset_processor, evaluator, wandb)
     else:
-        trainer = Trainer(dataset_processor, wandb)
+        trainer = Trainer(dataset_processor, evaluator, wandb)
+
+
+
 
 
     print()
     print(f'--- VALIDATING BEFORE TRAINING BEGINS ---')
     print()
 
+    
+
     clip_model.eval()
 
-    do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
+    evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
+
+    # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
     clip_model.train()

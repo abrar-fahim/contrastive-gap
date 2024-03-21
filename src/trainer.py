@@ -7,6 +7,7 @@ from config import *
 import torch
 from utils import get_checkpoint_path
 from validate import do_validation
+from evaluator import Evaluator
 from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
 
@@ -33,13 +34,14 @@ class TrainerParent(ABC):
         self.val_processes = []
         pass
 
-    def __init__(self, dataset_processor, wandb) -> None:
+    def __init__(self, dataset_processor, evaluator: Evaluator, wandb) -> None:
         '''
         dataset_processor needed to do validation
         '''
         self.dataset_processor = dataset_processor
         self.wandb = wandb
         self.val_processes = []
+        self.evaluator = evaluator
         # mp.set_start_method('forkserver')
         pass
 
@@ -54,7 +56,9 @@ class TrainerParent(ABC):
         print('--- VALIDATING ---')
         print()
 
-        do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False, wandb=self.wandb, val_dataset_processor=val_dataset_processor)
+        self.evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
+
+        # do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False, wandb=self.wandb, val_dataset_processor=val_dataset_processor)
 
         clip_model.train()
 
@@ -80,8 +84,8 @@ class GradCacheTrainer(TrainerParent):
     def __init__(self, train_dataset, val_dataset, wandb) -> None:
         super().__init__(train_dataset, val_dataset, wandb)
 
-    def __init__(self, dataset_processor, wandb) -> None:
-        super().__init__(dataset_processor, wandb)
+    def __init__(self, dataset_processor, evaluator:Evaluator, wandb) -> None:
+        super().__init__(dataset_processor, evaluator, wandb)
     
 
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
@@ -171,8 +175,8 @@ class Trainer(TrainerParent):
     def __init__(self, train_dataset, val_dataset, wandb) -> None:
         super().__init__(train_dataset, val_dataset, wandb)
 
-    def __init__(self, dataset_processor, wandb) -> None:
-        super().__init__(dataset_processor, wandb)
+    def __init__(self, dataset_processor, evaluator: Evaluator, wandb) -> None:
+        super().__init__(dataset_processor, evaluator, wandb)
 
     def train_one_epoch(self, clip_model, optimizer, i=0, epoch=0, save_every=10, val_dataset_processor=None):
         '''
