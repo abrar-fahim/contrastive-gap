@@ -11,6 +11,21 @@ from evaluator import Evaluator
 from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
 
+
+from tqdm import tqdm
+
+import sys
+import os
+
+from dataset_processors.mscoco_processor import MSCOCOProcessor
+
+# add parent directory to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# add sibling directory to path 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # def 
+
+from clips.hf_clip import HFClipOutput, HFClip
+
 # import torch.multiprocessing as mp
 # import pathos.multiprocessing as mp
 
@@ -34,11 +49,11 @@ class TrainerParent(ABC):
         self.val_processes = []
         pass
 
-    def __init__(self, dataset_processor, evaluator: Evaluator, wandb) -> None:
+    def __init__(self, dataset_processor: MSCOCOProcessor, evaluator: Evaluator, wandb) -> None:
         '''
         dataset_processor needed to do validation
         '''
-        self.dataset_processor = dataset_processor
+        self.dataset_processor: MSCOCOProcessor = dataset_processor
         self.wandb = wandb
         self.val_processes = []
         self.evaluator = evaluator
@@ -178,6 +193,76 @@ class Trainer(TrainerParent):
     def __init__(self, dataset_processor, evaluator: Evaluator, wandb) -> None:
         super().__init__(dataset_processor, evaluator, wandb)
 
+
+    def calculateW(self, clip_model: HFClip):
+        '''
+        Calculate W matrix that aligns two modalities at init
+        will align ENCODER2 modalities to encoder1 modalities
+        Iterates through train_dataset
+        '''
+        
+
+        n = 1024
+
+        e1_embeds = torch.empty(0, 512) # hardcoding this for now FIX LATER MAYBE
+        e2_embeds = torch.empty(0, 512)
+
+        with torch.no_grad():
+            clip_model.eval()
+
+            for (e1_inputs, e2_inputs) in tqdm(self.dataset_processor.train_dataloader):
+                outputs = clip_model(e1_inputs, e2_inputs, output_hidden_states=False, output_loss=False, return_all=True)
+
+                e1_embeds = torch.cat((e1_embeds, outputs['image_embeds']), dim=0) # normalized 
+                e2_embeds = torch.cat((e2_embeds, outputs['text_embeds']), dim=0) # normalized
+
+                del outputs
+
+                if e1_embeds.shape[0] >= n:
+                    break
+
+            '''
+            translate e1 embeds depending on gap required at init
+            '''
+
+            e1_to_e2_vector = e2_embeds.mean(dim=0) - e1_embeds.mean(dim=0)
+
+            # gap_direction = gap_direction / gap_direction.norm()
+
+            e1_embeds_phantom = e1_embeds + e1_to_e2_vector * training_hyperparameters['W_layer_gap'] # translating e1 to be CLOSER TO E2
+            # so that, when I map e2 to phantom e1, W maps e2 to be FURTHER AWAY from original e1, so modality gap is higher
+
+            e1_embeds_phantom = e1_embeds_phantom / e1_embeds_phantom.norm(dim=-1, keepdim=True)
+
+
+
+            # calculate W
+            '''
+            def findW(x, y):
+                yx = y.T @ x
+
+                u, s, v = torch.svd(yx)
+
+                w = u @ v.T
+
+                return w
+
+            ...
+            x' = x @ W.T
+            '''
+            e2e1 = torch.matmul(e1_embeds_phantom.T, e2_embeds) # Here, e2 is x, e1 is y
+
+            u, s, v = torch.svd(e2e1)
+
+            W = torch.matmul(u, v.T)
+
+            # I'll be aligning e2 
+
+            return W
+
+
+
+    
     def train_one_epoch(self, clip_model, optimizer, i=0, epoch=0, save_every=10, val_dataset_processor=None):
         '''
         i is parameter because we might be starting in the middle of an epoch from a checkpoint

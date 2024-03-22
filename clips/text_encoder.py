@@ -29,6 +29,13 @@ class TextEncoder(Encoder):
         self.CLIPTextConfig = CLIPTextConfig
         self.hidden_size = CLIPTextConfig.hidden_size
 
+        self.W = None
+
+        if training_hyperparameters['W_layer_gap'] >= 0:
+            self.W: torch.FloatTensor = torch.empty(512, 512)
+
+            self.W_set = False
+
         self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         if from_pretrained:
@@ -53,12 +60,49 @@ class TextEncoder(Encoder):
             param.requires_grad = True
 
 
+    def setW(self, W: torch.FloatTensor):
+        '''
+        Set W for alignment
+        '''
+
+        assert training_hyperparameters['W_layer_gap'] >= 0, "W_layer_gap must be >= 0"
+        
+
+        assert W.shape == (512, 512), f"self.W.shape = {self.W.shape}"
+
+        self.W = W.to(self.device)
+
+        self.W_set = True
+
+
+
+
+    def align_embeddings(self, embeds: torch.FloatTensor):
+        '''
+        Aligns embeddings to the first encoder's embeddings
+        '''
+
+        assert self.W_set, "W not set"
+
+        # normalize embeds 
+        embeds = embeds / embeds.norm(dim=-1, keepdim=True)
+
+        if self.W is None:
+            return embeds
+
+        return embeds @ self.W.T
+
+
 
     def forward(self, captions, output_hidden_states=False):
 
         tokenized_captions = self.tokenize_captions(captions)
 
         outputs = self.text_model(**tokenized_captions, output_hidden_states=output_hidden_states)
+
+        if self.W is not None and self.W_set:
+            outputs.text_embeds = self.align_embeddings(outputs.text_embeds)
+            
 
         return {
             'embeds': outputs.text_embeds,

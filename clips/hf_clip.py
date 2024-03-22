@@ -136,6 +136,8 @@ class HFClip(ClipParent):
         # no need to load state dict for default, since it's the same as the pretrained model
 
 
+
+
     def set_temperature(self):
         
 
@@ -153,6 +155,15 @@ class HFClip(ClipParent):
         
         self.to(self.device)
 
+    def setW(self, W: torch.FloatTensor):
+
+        assert isinstance(self.encoder2, TextEncoder), 'Encoder 2 is not text encoder'
+
+        self.encoder2.setW(W)
+
+
+
+
 
     def get_image_encoder(self):
         if isinstance(self.encoder1, ImageEncoder):
@@ -161,6 +172,14 @@ class HFClip(ClipParent):
             return self.encoder2
         else:
             raise ValueError('No image encoder found')
+        
+    def get_text_encoder(self):
+        if isinstance(self.encoder1, TextEncoder):
+            return self.encoder1
+        elif isinstance(self.encoder2, TextEncoder):
+            return self.encoder2
+        else:
+            raise ValueError('No text encoder found')
         
 
     def encode_image(self, images):
@@ -248,12 +267,16 @@ class HFClip(ClipParent):
 
     def forward(self, encoder1_inputs, encoder2_inputs, output_loss=True, return_all=False, output_intra_modality_loss=False, output_hidden_states=False):
         '''
-        outputs = CLIPOutput(
+        outputs = HFClipOutput(
             loss=loss,
-            logits_per_image= logits_per_image,
-            logits_per_text= logits_per_text,
-            text_embeds= text_embeds,
-            image_embeds= image_embeds,
+            logits_per_image = logits_per_encoder1_embeds,
+            logits_per_text = logits_per_encoder2_embeds,
+            text_embeds = normalized_encoder2_embeds,
+            image_embeds = normalized_encoder1_embeds,
+            encoder1_hidden_states=encoder1_hidden_states,
+            encoder2_hidden_states=encoder2_hidden_states,
+            encoder1_input_ids = encoder1_input_ids,
+            encoder2_input_ids = encoder2_input_ids
         )
         '''
 

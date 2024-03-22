@@ -74,6 +74,8 @@ training_hyperparameters = {
     'one_encoder': False, # SET # modality depends on text_only or image_only
     'common_projection_layer': False, # SET
 
+    'W_layer_gap': 0, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+
 
     # loss factors
     'intra_modality_loss': False, 

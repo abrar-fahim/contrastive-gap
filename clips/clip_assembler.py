@@ -128,6 +128,8 @@ class ClipAssembler():
 
 
 
+        # if training_hyperparameters['W_layer_gap'] >= 0:
+        #     self.W: torch.FloatTensor = None
 
 
         '''

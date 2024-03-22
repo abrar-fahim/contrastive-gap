@@ -338,14 +338,6 @@ class Evaluator():
 
 
 
-
-
-
-        
-
-
-
-
     def get_val_image_classification_acc(self):
 
         val_logits_per_image = self.val_outputs.logits_per_image # shape of both: ([64, 64])
