@@ -45,6 +45,7 @@ class TrainerParent(ABC):
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.wandb = wandb
+        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
 
         self.val_processes = []
         pass
@@ -57,6 +58,8 @@ class TrainerParent(ABC):
         self.wandb = wandb
         self.val_processes = []
         self.evaluator = evaluator
+
+        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
         # mp.set_start_method('forkserver')
         pass
 
@@ -204,17 +207,17 @@ class Trainer(TrainerParent):
 
         n = 1024
 
-        e1_embeds = torch.empty(0, 512) # hardcoding this for now FIX LATER MAYBE
-        e2_embeds = torch.empty(0, 512)
+        e1_embeds = torch.empty((0, 512), device=self.device) # hardcoding this for now FIX LATER MAYBE
+        e2_embeds = torch.empty((0, 512), device=self.device)
 
         with torch.no_grad():
             clip_model.eval()
 
             for (e1_inputs, e2_inputs) in tqdm(self.dataset_processor.train_dataloader):
-                outputs = clip_model(e1_inputs, e2_inputs, output_hidden_states=False, output_loss=False, return_all=True)
+                outputs: HFClipOutput = clip_model(e1_inputs, e2_inputs, output_hidden_states=False, output_loss=False, return_all=True)
 
-                e1_embeds = torch.cat((e1_embeds, outputs['image_embeds']), dim=0) # normalized 
-                e2_embeds = torch.cat((e2_embeds, outputs['text_embeds']), dim=0) # normalized
+                e1_embeds = torch.cat((e1_embeds, outputs.image_embeds), dim=0) # normalized 
+                e2_embeds = torch.cat((e2_embeds, outputs.text_embeds), dim=0) # normalized
 
                 del outputs
 
