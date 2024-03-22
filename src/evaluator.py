@@ -147,6 +147,9 @@ class Evaluator():
                         'centroid_cosine_similarity': self.get_centroid_cosine_similarity(),
                         'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
 
+                        # linear probe acc
+                        'cifar10_linear_probe_accuracy': self.linear_probe_cifar10(clip_model) if self.val_dataset_processor != None else None,
+
                         # logging hidden state metrics
                         'e1_e2_mean_cosine_similarities': self.get_mean_cosine_similarity_between_diff_layers() if mods_same else None,
                         'mean_e1_e2_centroid_euclidean_distances': self.get_mean_pairwise_euclidean_distance_between_diff_layers() if mods_same else None,
@@ -281,6 +284,60 @@ class Evaluator():
             with open(save_path, 'wb') as f:
                 pickle.dump([step_data], f)
 
+
+    def linear_probe_cifar10(self, clip_model:HFClip):
+        '''
+        train a linear classifier on the image embeddings to predict the class labels
+        input features are from just before the projection head
+        '''
+
+        vision_model = clip_model.get_image_encoder().image_model.vision_model
+        # need this vision model to get embeddings BEFORE projection head
+
+        # setup linear classifier
+        linear_classifier = LogisticRegression(max_iter=1000)
+
+        cifar10_image_features = torch.empty(0, vision_model.embed_dim) # shape: ([n, 768])
+        image_labels = []
+
+
+
+        for batch in tqdm(self.cifar_val_dataloader):
+            (cifar_val_imgs, cifar_val_indices) = batch
+
+            vision_model_outputs = vision_model(pixel_values=cifar_val_imgs)
+
+            image_features = vision_model_outputs[1] # pooled_output, since vision model outputs is a sequence. This is from https://github.dev/huggingface/transformers/blob/v4.39.0/src/transformers/models/clip/modeling_clip.py
+
+            cifar10_image_features = torch.cat((cifar10_image_features, image_features), dim=0)
+
+            # append image labels
+            image_labels.extend(cifar_val_indices.tolist())
+
+
+        n_train = int(0.8 * len(cifar10_image_features))
+        train_features = cifar10_image_features[:n_train]
+        train_labels = image_labels[:n_train]
+
+        test_features = cifar10_image_features[n_train:]
+        test_labels = image_labels[n_train:]
+
+        # train linear classifier
+        linear_classifier.fit(train_features, train_labels)
+
+        # get accuracy
+        accuracy = linear_classifier.score(test_features, test_labels)
+
+        del cifar10_image_features, image_labels, linear_classifier
+
+        return accuracy
+
+
+
+
+
+
+        
 
 
 

@@ -152,6 +152,15 @@ class HFClip(ClipParent):
       
         
         self.to(self.device)
+
+
+    def get_image_encoder(self):
+        if isinstance(self.encoder1, ImageEncoder):
+            return self.encoder1
+        elif isinstance(self.encoder2, ImageEncoder):
+            return self.encoder2
+        else:
+            raise ValueError('No image encoder found')
         
 
     def encode_image(self, images):
