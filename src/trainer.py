@@ -3,13 +3,15 @@ Class to wrap one training step
 Mainly designed to abstract away grad cache mechanics from main training loop
 '''
 from grad_cache_wrapper import GradCacheWrapper
-from config import *
+
+import config as config
 import torch
 from utils import get_checkpoint_path
 # from validate import do_validation
 from evaluator import Evaluator
 from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
+import importlib
 
 
 from tqdm import tqdm
@@ -39,13 +41,14 @@ from clips.hf_clip import HFClipOutput, HFClip
 
 class TrainerParent(ABC):
     def __init__(self, train_dataset, val_dataset, wandb) -> None:
+
         '''
         train_dataset and val_dataset needed to do validation
         '''
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
         self.wandb = wandb
-        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config.training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
 
         self.val_processes = []
         pass
@@ -54,12 +57,13 @@ class TrainerParent(ABC):
         '''
         dataset_processor needed to do validation
         '''
+
         self.dataset_processor: MSCOCOProcessor = dataset_processor
         self.wandb = wandb
         self.val_processes = []
         self.evaluator = evaluator
 
-        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config.training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
         # mp.set_start_method('forkserver')
         pass
 
@@ -112,7 +116,7 @@ class GradCacheTrainer(TrainerParent):
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
         '''
 
-        if training_hyperparameters['train_only_one_batch']:
+        if config.training_hyperparameters['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
         clip_model.train()
@@ -144,7 +148,7 @@ class GradCacheTrainer(TrainerParent):
                 closures_x.append(c_imgs)
                 closures_y.append(c_txts)
 
-                if (substep + 1) % training_hyperparameters['grad_cache_multiplier'] == 0:
+                if (substep + 1) % config.training_hyperparameters['grad_cache_multiplier'] == 0:
 
 
                     loss = clip_model_grad_cache.contrastive_loss(cache_x, cache_y)
@@ -168,7 +172,7 @@ class GradCacheTrainer(TrainerParent):
 
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, loss.item()))
 
-                    if step % save_every == 0 and training_hyperparameters['do_checkpointing']: 
+                    if step % save_every == 0 and config.training_hyperparameters['do_checkpointing']: 
 
                         # for old_p in self.val_processes:
                         #     old_p.join()
@@ -179,10 +183,10 @@ class GradCacheTrainer(TrainerParent):
                         # self.val_processes.append(p)
 
 
-                    if training_hyperparameters['train_only_one_batch']:
+                    if config.training_hyperparameters['train_only_one_batch']:
                         break
 
-                    if training_hyperparameters['max_steps'] is not None and step >= training_hyperparameters['max_steps']:
+                    if config.training_hyperparameters['max_steps'] is not None and step >= config.training_hyperparameters['max_steps']:
                         break
 
                     step += 1
@@ -230,9 +234,13 @@ class Trainer(TrainerParent):
 
             e1_to_e2_vector = e2_embeds.mean(dim=0) - e1_embeds.mean(dim=0)
 
+            # print('e1 to e2 vector ', e1_to_e2_vector)
+
             # gap_direction = gap_direction / gap_direction.norm()
 
-            e1_embeds_phantom = e1_embeds + e1_to_e2_vector * training_hyperparameters['W_layer_gap'] # translating e1 to be CLOSER TO E2
+            print('W gap in trainer ', config.training_hyperparameters['W_layer_gap'])
+
+            e1_embeds_phantom = e1_embeds + e1_to_e2_vector * config.training_hyperparameters['W_layer_gap'] # translating e1 to be CLOSER TO E2
             # so that, when I map e2 to phantom e1, W maps e2 to be FURTHER AWAY from original e1, so modality gap is higher
 
             e1_embeds_phantom = e1_embeds_phantom / e1_embeds_phantom.norm(dim=-1, keepdim=True)
@@ -261,6 +269,8 @@ class Trainer(TrainerParent):
 
             # I'll be aligning e2 
 
+            del e1_embeds, e2_embeds, e1_embeds_phantom
+
             return W
 
 
@@ -276,7 +286,7 @@ class Trainer(TrainerParent):
         
         
 
-        if training_hyperparameters['train_only_one_batch']:
+        if config.training_hyperparameters['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
         clip_model.train()
@@ -302,7 +312,7 @@ class Trainer(TrainerParent):
 
             del imgs, captions
 
-            if i % save_every == 0 and training_hyperparameters['do_checkpointing']:
+            if i % save_every == 0 and config.training_hyperparameters['do_checkpointing']:
 
 
                 self.save_checkpoint_and_validate(clip_model, epoch, i+1, val_dataset_processor=val_dataset_processor)
@@ -310,10 +320,10 @@ class Trainer(TrainerParent):
             
             i += 1
 
-            # if training_hyperparameters['train_only_one_batch']:
+            # if config.training_hyperparameters['train_only_one_batch']:
             #     break
 
-            if training_hyperparameters['max_steps'] is not None and i >= training_hyperparameters['max_steps']:
+            if config.training_hyperparameters['max_steps'] is not None and i >= config.training_hyperparameters['max_steps']:
                 break
 
             torch.cuda.empty_cache()

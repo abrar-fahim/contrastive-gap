@@ -1,8 +1,8 @@
 import torch
 
-from src.config import *
+from src.config import training_hyperparameters
 from torch import nn
-
+import importlib
 
  
 class Encoder(nn.Module):

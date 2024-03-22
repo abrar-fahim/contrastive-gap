@@ -1,4 +1,5 @@
 from enum import Enum
+import wandb
 class ClipModels(Enum):
     DEFAULT = "clip_default"
     FINETUNED = 'clip_finetuned'
@@ -34,27 +35,27 @@ training_hyperparameters = {
     'cuda_device': 'cuda:0', # SET index of GPU
     'seed': 2,
     'dataset': ClipDatasets.MSCOCO,
-    'batch_size': 256,
+    'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 1, # SET 12 for scratch, (6 for finetune?)
-    'max_steps': 50, # SET or None, in which case each epoch goes through all the data
+    'n_epochs': 2, # SET 12 for scratch, (6 for finetune?)
+    'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 2048, # SET
-    'validation_batch_size': 2048, # SET
+    'validation_dataset_size': 256, # SET
+    'validation_batch_size': 256, # SET
     'cifar_batch_size': 128,
     'use_cached_val_batch': True, # SET
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256,
+    'small_train_loader_batch_size': 64, # SET
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
-    'save_every': 25,
+    'save_every': 100,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -95,6 +96,17 @@ training_hyperparameters = {
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
     }
+
+
+# set correct key values from wandb
+
+if wandb.run != None:
+    for key in wandb.config.keys():
+        if key in training_hyperparameters:
+            training_hyperparameters[key] = wandb.config[key]
+        else:
+            raise ValueError(f"Key {key} not found in training_hyperparameters")
+
 
 
 '''

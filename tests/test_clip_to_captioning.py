@@ -42,7 +42,6 @@ validate_caption_model.main()
 
 # config.selected_clip_model = config.ClipModels.DEFAULT
 
-# importlib.reload(clip_caption_train)
 
 
 # print()

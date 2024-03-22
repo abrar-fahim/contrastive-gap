@@ -225,12 +225,17 @@ def main():
         print()
         print(f'--- SETTING W ---')
         print()
+
+        print('W gap ', training_hyperparameters['W_layer_gap'])
         # set W
         W = trainer.calculateW(clip_model)
         clip_model.setW(W)
 
 
     evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
+
+
+    return
 
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)

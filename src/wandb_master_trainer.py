@@ -7,18 +7,20 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # add sibling directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import train_clip
 
-import src.config as config
+
+
 
 import wandb
 import copy
 
-from src.utils import generate_csv_file_name, cleanup_after_training
+
 
 
 
 def set_hypers():
+
+    import src.config as config 
     config.training_hyperparameters['seed'] = wandb.config.seed
     config.training_hyperparameters['temperature'] = wandb.config.temperature
     config.training_hyperparameters['intra_modality_temperature'] = wandb.config.temperature
@@ -32,11 +34,13 @@ def set_hypers():
     config.training_hyperparameters['same_encoder'] = wandb.config.same_encoder
     config.training_hyperparameters['same_inputs'] = wandb.config.same_inputs
     config.training_hyperparameters['one_encoder'] = wandb.config.one_encoder
+    config.training_hyperparameters['common_projection_layer'] = wandb.config.common_projection_layer
+    config.training_hyperparameters['W_layer_gap'] = wandb.config.W_layer_gap
+
+    print('training hypers ', config.training_hyperparameters)
 
 
-    # reload config
-    # importlib.reload(config)
-    # importlib.reload(train_clip)
+
 
 
 
@@ -169,19 +173,26 @@ def main():
 
     print('wandb config ', wandb.config)
 
-    if not wandb_config_valid(wandb.config):
-        print('wandb config not valid')
-        wandb.finish()
-        return
+    
+
+    # if not wandb_config_valid(wandb.config):
+    #     print('wandb config not valid')
+    #     wandb.finish()
+    #     return
 
         
     
 
+    
 
+    # set_hypers()
 
-    set_hypers()
+    import train_clip
+    from src.utils import generate_csv_file_name, cleanup_after_training
 
     # in case train_clip.py throws error, we can still finish the run
+
+    
     try:
         # do training
         train_clip.main()
@@ -208,15 +219,15 @@ if __name__ == "__main__":
     sweep_configuration = {
         "method": "grid",
         # "method": "random",
-        "name": "Default CLIP, CIFAR 10, testing diff temps with linear acc.",
+        "name": "Default CLIP, changing gap at init with W ",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
-            "temperature": {"values": [0.01, 0.1, 0.5, 1]},
+            "temperature": {"values": [0.01]},
             # "intra_modality_loss": {"values": [True, False]},
             "intra_modality_loss": {"values": [False]},
             "rsa_loss": {"values": [False]},
             "pearson_loss": {"values": [False]},
-            "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
+            # "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
             "same_encoder": {"values": [False]},
@@ -224,6 +235,7 @@ if __name__ == "__main__":
             'second_caption_offset': {'values': [False]},
             'one_encoder': {'values': [False]},
             'common_projection_layer': {'values': [False]},
+            'W_layer_gap': {'values': [1, 0.25, 0.5, 1, 2]},
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

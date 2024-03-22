@@ -109,7 +109,7 @@ class Evaluator():
         with torch.no_grad():
 
             self.set_val_outputs(clip_model)
-            self.set_pooled_hidden_states(clip_model)
+            # self.set_pooled_hidden_states(clip_model)
 
             # save pooled hidden states to file
             if training_hyperparameters['save_encoder_hidden_states']:
@@ -128,8 +128,8 @@ class Evaluator():
             val_loss = self.get_val_loss()
 
             rsa_correlations = self.get_rsa_correlations(clip_model.temperature)
-            rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
-            intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
+            # rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
+            # intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
 
             if wandb is not None:
                 wandb.log(
@@ -151,13 +151,13 @@ class Evaluator():
                         'cifar10_linear_probe_accuracy': self.linear_probe_cifar10(clip_model) if self.val_dataset_processor != None else None,
 
                         # logging hidden state metrics
-                        'e1_e2_mean_cosine_similarities': self.get_mean_cosine_similarity_between_diff_layers() if mods_same else None,
-                        'mean_e1_e2_centroid_euclidean_distances': self.get_mean_pairwise_euclidean_distance_between_diff_layers() if mods_same else None,
-                        'e1_e2_linear_seperability_accuracies': self.get_linear_seperability_between_diff_layers() if mods_same else None,
-                        'e1_e2_rsas': rsa_correlations_between_diff_layers['e1_e2_rsas'] if mods_same else None,
-                        'e1_e2_inter_intra_rsas': rsa_correlations_between_diff_layers['e1_e2_inter_intra_rsas'] if mods_same else None,
-                        'e1_cosine_similarities': intra_modality_similarities_within_diff_layers['e1_cosine_similarities'],
-                        'e2_cosine_similarities': intra_modality_similarities_within_diff_layers['e2_cosine_similarities'],
+                        # 'e1_e2_mean_cosine_similarities': self.get_mean_cosine_similarity_between_diff_layers() if mods_same else None,
+                        # 'mean_e1_e2_centroid_euclidean_distances': self.get_mean_pairwise_euclidean_distance_between_diff_layers() if mods_same else None,
+                        # 'e1_e2_linear_seperability_accuracies': self.get_linear_seperability_between_diff_layers() if mods_same else None,
+                        # 'e1_e2_rsas': rsa_correlations_between_diff_layers['e1_e2_rsas'] if mods_same else None,
+                        # 'e1_e2_inter_intra_rsas': rsa_correlations_between_diff_layers['e1_e2_inter_intra_rsas'] if mods_same else None,
+                        # 'e1_cosine_similarities': intra_modality_similarities_within_diff_layers['e1_cosine_similarities'],
+                        # 'e2_cosine_similarities': intra_modality_similarities_within_diff_layers['e2_cosine_similarities'],
 
                         # back to other stuff
                         'non_similar_mean_cosine_similarity': self.non_similar_mean_cosine_similarity(clip_model.temperature),
@@ -179,7 +179,7 @@ class Evaluator():
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
-                    step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
+                    step= int(epoch * 470 + index), # by 100 to maintain fair comparison with existing runs data
                     
 
                 )
@@ -197,7 +197,6 @@ class Evaluator():
             val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=True, output_intra_modality_loss=True) # outputting everything all at once and storing them
             self.val_outputs = val_outputs
 
-            del self.mscoco_val_imgs, self.mscoco_val_captions
 
     def set_pooled_hidden_states(self, clip_model: HFClip):
         # both image and text encoders have 13 outputs in the hidden_states list
