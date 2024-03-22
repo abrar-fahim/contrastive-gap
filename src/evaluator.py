@@ -297,7 +297,7 @@ class Evaluator():
         # setup linear classifier
         linear_classifier = LogisticRegression(max_iter=1000)
 
-        cifar10_image_features = torch.empty(0, vision_model.embed_dim) # shape: ([n, 768])
+        cifar10_image_features = torch.empty(0, vision_model.config.hidden_size) # shape: ([n, 768])
         image_labels = []
 
 
@@ -305,11 +305,13 @@ class Evaluator():
         for batch in tqdm(self.cifar_val_dataloader):
             (cifar_val_imgs, cifar_val_indices) = batch
 
+            cifar_val_imgs = cifar_val_imgs.to(clip_model.device)
+
             vision_model_outputs = vision_model(pixel_values=cifar_val_imgs)
 
             image_features = vision_model_outputs[1] # pooled_output, since vision model outputs is a sequence. This is from https://github.dev/huggingface/transformers/blob/v4.39.0/src/transformers/models/clip/modeling_clip.py
 
-            cifar10_image_features = torch.cat((cifar10_image_features, image_features), dim=0)
+            cifar10_image_features = torch.cat((cifar10_image_features, image_features.to(cifar10_image_features.device)), dim=0)
 
             # append image labels
             image_labels.extend(cifar_val_indices.tolist())
@@ -327,6 +329,8 @@ class Evaluator():
 
         # get accuracy
         accuracy = linear_classifier.score(test_features, test_labels)
+
+        print('cifar10_linear_probe_accuracy ', accuracy)
 
         del cifar10_image_features, image_labels, linear_classifier
 
