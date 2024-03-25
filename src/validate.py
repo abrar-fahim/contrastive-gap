@@ -10,6 +10,7 @@ import os
 from tqdm import tqdm
 from scipy import stats
 import pickle
+import wandb
 
 from src.utils import get_embeddings_path, generate_csv_file_name
 
@@ -29,7 +30,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# de
 
 
 
-def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=0, epoch=0, captioning_model=False, wandb=wandb, val_dataset_processor = None):
+def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, index=0, epoch=0, captioning_model=False, val_dataset_processor = None):
 
     
 
@@ -47,18 +48,18 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
 
     
     mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
-    # mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{training_hyperparameters['seed']}.pt"
+    # mscoco_train_dataset_batch_file_path = f"datasets/mscoco/train_batch_cache_{wandb.config['seed']}.pt"
     mscoco_train_dataset_batch_file_path = mscoco_batch_file_path # for now, use val batch as train batch
     
 
 
 
-    if not (os.path.exists(mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
+    if not (os.path.exists(mscoco_batch_file_path) and wandb.config['use_cached_val_batch']):
         # only create dataloaders if batch is not cached
 
         mscoco_val_dataset = dataset_processor.val_dataset
         collate_fn = dataset_processor.collate_fn
-        mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+        mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
 
 
@@ -68,10 +69,10 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
     
        
 
-    # if not (os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
+    # if not (os.path.exists(mscoco_train_dataset_batch_file_path) and wandb.config['use_cached_val_batch']):
     #     collate_fn = dataset_processor.collate_fn
     #     train_dataset = dataset_processor.train_dataset
-    #     train_dataloader = torch.utils.data.DataLoader(train_dataset[:training_hyperparameters['validation_batch_size']], batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    #     train_dataloader = torch.utils.data.DataLoader(train_dataset[:wandb.config['validation_batch_size']], batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
     
         
@@ -80,9 +81,9 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
         # for CIFAR10 and other zero shot datasets
         cifar_val_dataset = val_dataset_processor.val_dataset
         collate_fn = None
-        # cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{training_hyperparameters['seed']}.pt"
+        # cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{wandb.config['seed']}.pt"
         # batch contains (images, index of target class)
-        cifar_val_dataloader = torch.utils.data.DataLoader(cifar_val_dataset, batch_size=training_hyperparameters['cifar_batch_size'], num_workers=training_hyperparameters['num_workers'])
+        cifar_val_dataloader = torch.utils.data.DataLoader(cifar_val_dataset, batch_size=wandb.config['cifar_batch_size'], num_workers=wandb.config['num_workers'])
 
     
 
@@ -97,14 +98,14 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
     # print('defining dataloaders done')
 
     # create dataloader for train set
-    # train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    # train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
 
 
     with torch.no_grad():
         # get batch from validation set
 
-        if os.path.exists(mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']:
+        if os.path.exists(mscoco_batch_file_path) and wandb.config['use_cached_val_batch']:
             print('loading batch from cache')
 
             (mscoco_val_imgs, mscoco_val_captions) = torch.load(mscoco_batch_file_path)
@@ -117,7 +118,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
                 (mscoco_val_imgs, mscoco_val_captions) = batch
                 print('val batch loading done')
 
-            if training_hyperparameters['use_cached_val_batch']:
+            if wandb.config['use_cached_val_batch']:
                 print('saving batch to cache')
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), mscoco_batch_file_path)
@@ -253,7 +254,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
         3. Training image classification accuracy
         '''
 
-        if os.path.exists(mscoco_train_dataset_batch_file_path) and training_hyperparameters['use_cached_val_batch']:
+        if os.path.exists(mscoco_train_dataset_batch_file_path) and wandb.config['use_cached_val_batch']:
             print('loading train batch from cache')
             (train_imgs, train_captions) = torch.load(mscoco_train_dataset_batch_file_path)
             print('loading cache done')
@@ -263,7 +264,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
                 (train_imgs, train_captions) = batch
                 break # loading a single train batch for now
 
-            if training_hyperparameters['use_cached_val_batch']:
+            if wandb.config['use_cached_val_batch']:
                 print('saving train batch to cache')
                 # save batch to cache
                 torch.save((train_imgs, train_captions), mscoco_train_dataset_batch_file_path)
@@ -380,7 +381,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
 
         
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
             # can only measure modality gap if the two modalities are same
 
 
@@ -465,7 +466,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
         - Euclidean distance between centroids of hidden_states from each layer
         '''
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
 
             e1_e2_centroid_euclidean_distances = [] # tracks mean euclidean distance between centroids of each layer in layers_to_use
 
@@ -582,7 +583,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
         
         print('fitting linear classifier')
         # fit linear classifier on train set to predict text embeddings from image embeddings
-        clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_image_text_embeds.cpu(), train_labels.cpu())
+        clf = LogisticRegression(random_state=wandb.config['seed']).fit(train_image_text_embeds.cpu(), train_labels.cpu())
 
         # get accuracy on test set
         linear_seperability_accuracy = clf.score(test_image_text_embeds.cpu(), test_labels.cpu())
@@ -594,7 +595,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
         - Linear seperability of encoder outputs at different layers
         '''
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
 
             e1_e2_linear_seperability_accuracies = [] # tracks linear seperability accuracy of each layer in layers_to_use
 
@@ -618,7 +619,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
                 # generate labels
                 test_e1_e2_labels = torch.cat((torch.zeros(n_test), torch.ones(n_test))) # 0 for image, 1 for text
 
-                clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
+                clf = LogisticRegression(random_state=wandb.config['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
 
                 # get accuracy on test set
                 e1_e2_linear_seperability_accuracy = clf.score(test_e1_e2_pool.cpu(), test_e1_e2_labels.cpu())
@@ -728,7 +729,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
 
 
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
 
 
             e1_e2_inter_intra_rsas = [] # tracks RSA between inter and intra modality for each layer in layers_to_use
@@ -796,13 +797,13 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
 
         
 
-        if training_hyperparameters['save_encoder_hidden_states']:
+        if wandb.config['save_encoder_hidden_states']:
 
             save_path = get_embeddings_path()
 
             print('saving encoder hidden states to ', save_path)
 
-            n_to_save = training_hyperparameters['n_embeds_to_save']
+            n_to_save = wandb.config['n_embeds_to_save']
 
             # take first n_to_save embeds from each layer
             encoder1_pooled_hidden_states_to_save = [e1_pool[:n_to_save] for e1_pool in encoder1_pooled_hidden_states]
@@ -813,7 +814,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
 
 
             step_data = {
-                    'step': int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index),
+                    'step': int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index),
                     'epoch': epoch,
                     'index': index,
                     'encoder1_pooled_hidden_states': encoder1_pooled_hidden_states_to_save, # normalized. 
@@ -844,7 +845,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
 
         average_intra_modality_cosine_sim = (mean_text_text_cosine_similarity.item() + mean_image_image_cosine_similarity.item()) / 2
 
-        mods_same = training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']
+        mods_same = wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']
 
 
 
@@ -892,7 +893,7 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
                     'image_text_intercept': image_text_intercept,
                     
                 },
-                # step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
+                # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
                 step= int(epoch * 100 + index), # by 100 to maintain fair comparison with existing runs data
                 
 
@@ -909,14 +910,14 @@ def do_validation_old(dataset_processor: MSCOCOProcessor, clip_model: HFClip, in
         Show real images and captions for the incorrect predictions
         '''
 
-        if training_hyperparameters['show_incorrect_images']:
+        if wandb.config['show_incorrect_images']:
             # get real images and captions
 
             dataset_processor.show_real_images_captions = True
             collate_fn = dataset_processor.collate_fn
 
             # create dataloader for validation set
-            real_images_captions_val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+            real_images_captions_val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
 
             (images, true_captions) = next(iter(real_images_captions_val_dataloader))

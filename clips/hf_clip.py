@@ -7,8 +7,6 @@ from torch.functional import F
 
 from transformers.models.clip.modeling_clip import CLIPOutput
 
-
-
 from src.config import *
 import os
 from clips.image_encoder import ImageEncoder
@@ -62,19 +60,19 @@ class HFClip(ClipParent):
 
     def __init__(self, encoder1: Encoder, encoder2: Encoder, common_projection_layer: ProjectionLayer = None):
         super().__init__()
-        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
 
 
         '''
         Set config variables to self
         '''
 
-        self.encoder1_modality = training_hyperparameters['encoder1_modality']
-        self.encoder2_modality = training_hyperparameters['encoder2_modality']
-        self.same_inputs = training_hyperparameters['same_inputs']
-        self.same_encoder = training_hyperparameters['same_encoder']
-        self.second_caption_offset = training_hyperparameters['second_caption_offset']
-        self.one_encoder = training_hyperparameters['one_encoder']
+        self.encoder1_modality = wandb.config['encoder1_modality']
+        self.encoder2_modality = wandb.config
+        self.same_inputs = wandb.config['same_inputs']
+        self.same_encoder = wandb.config['same_encoder']
+        self.second_caption_offset = wandb.config['second_caption_offset']
+        self.one_encoder = wandb.config['one_encoder']
 
         self.common_projection_layer = common_projection_layer
 
@@ -89,7 +87,7 @@ class HFClip(ClipParent):
 
         print('CLIP device ', self.device)
     
-        self.temperature: int = training_hyperparameters['temperature']
+        self.temperature: int = wandb.config['temperature']
         self.set_temperature()
 
         '''
@@ -107,7 +105,7 @@ class HFClip(ClipParent):
 
         
             # this only makes sense if we're loading from a checkpoint
-            if not selected_clip_model == ClipModels.DEFAULT:
+            if not selected_clip_model == ClipModels.DEFAULT.value:
                 self.load_state_dict(loaded_checkpoint['model_state_dict'])
                 print('loaded clip model from checkpoint ', checkpoint_path)
 
@@ -141,8 +139,8 @@ class HFClip(ClipParent):
     def set_temperature(self):
         
 
-        self.temperature = training_hyperparameters['temperature']
-        self.intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
+        self.temperature = wandb.config['temperature']
+        self.intra_modality_temperature = wandb.config['intra_modality_temperature']
 
         self.intra_modality_logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.intra_modality_temperature), requires_grad=False, device=self.device)) # not self.model since clip_model doesn't have intra_modality_logit_scale
 
@@ -342,14 +340,14 @@ class HFClip(ClipParent):
 
         labels = torch.arange(normalized_encoder1_embeds.shape[0]).to(self.device)
 
-        encoder1_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
-        encoder2_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
+        encoder1_weight = wandb.config['loss_weights']['image_to_text_weight']
+        encoder2_weight = wandb.config['loss_weights']['text_to_image_weight']
 
         loss = 0
 
         if output_loss == True:
 
-            if training_hyperparameters['intra_modality_loss']:
+            if wandb.config['intra_modality_loss']:
                 # find cosine similarities between image embeddings themselves
                 scaled_image_image_similarity = normalized_encoder1_embeds @ normalized_encoder1_embeds.t() * self.intra_modality_logit_scale.exp()
 
@@ -359,7 +357,7 @@ class HFClip(ClipParent):
                 intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * encoder1_weight + self.loss(scaled_text_text_similarity, labels) * encoder2_weight
 
                 # print('intra loss: ,', intra_modality_loss)
-            if training_hyperparameters['rsa_loss']:
+            if wandb.config['rsa_loss']:
                 
                 text_text_cosine_similarities = normalized_encoder2_embeds @ normalized_encoder2_embeds.t()
                 image_image_cosine_similarities = normalized_encoder1_embeds @ normalized_encoder1_embeds.t()
@@ -371,7 +369,7 @@ class HFClip(ClipParent):
 
                 rsa_loss = -(inter_image_rsa + inter_text_rsa) / 2
 
-            if training_hyperparameters['pearson_loss']:
+            if wandb.config['pearson_loss']:
 
                 logits_per_image = logits_per_encoder1_embeds
                 logits_per_text = logits_per_encoder2_embeds
@@ -405,11 +403,11 @@ class HFClip(ClipParent):
 
             del labels
 
-            if training_hyperparameters['intra_modality_loss']:
+            if wandb.config['intra_modality_loss']:
                 loss = (intra_modality_loss + inter_modality_loss) / 2
-            elif training_hyperparameters['rsa_loss']:
+            elif wandb.config['rsa_loss']:
                 loss = inter_modality_loss + rsa_loss
-            elif training_hyperparameters['pearson_loss']:
+            elif wandb.config['pearson_loss']:
                 loss = inter_modality_loss + pearson_rsa_loss
                 
             else:
@@ -418,9 +416,9 @@ class HFClip(ClipParent):
             if output_intra_modality_loss:
                 loss = {
                     'inter_modality': inter_modality_loss.item(),
-                    'rsa': rsa_loss.item() if training_hyperparameters['rsa_loss'] else -100,
-                    'intra_modality': intra_modality_loss.item() if training_hyperparameters['intra_modality_loss'] else -100,
-                    'pearson_rsa': pearson_rsa_loss.item() if training_hyperparameters['pearson_loss'] else -100,
+                    'rsa': rsa_loss.item() if wandb.config['rsa_loss'] else -100,
+                    'intra_modality': intra_modality_loss.item() if wandb.config['intra_modality_loss'] else -100,
+                    'pearson_rsa': pearson_rsa_loss.item() if wandb.config['pearson_loss'] else -100,
                     'total': loss.item(),
                 }
 
@@ -528,14 +526,14 @@ class HFClip(ClipParent):
 
         labels = torch.arange(logits_per_image.shape[0]).to(self.device)
 
-        image_weight = training_hyperparameters['loss_weights']['image_to_text_weight']
-        text_weight = training_hyperparameters['loss_weights']['text_to_image_weight']
+        image_weight = wandb.config['loss_weights']['image_to_text_weight']
+        text_weight = wandb.config['loss_weights']['text_to_image_weight']
 
         loss = 0
 
         if output_loss == True:
 
-            if training_hyperparameters['intra_modality_loss']:
+            if wandb.config['intra_modality_loss']:
                 # find cosine similarities between image embeddings themselves
                 scaled_image_image_similarity = image_embeds @ image_embeds.t() * self.intra_modality_logit_scale.exp()
 
@@ -545,7 +543,7 @@ class HFClip(ClipParent):
                 intra_modality_loss = self.loss(scaled_image_image_similarity, labels) * image_weight + self.loss(scaled_text_text_similarity, labels) * text_weight
 
                 # print('intra loss: ,', intra_modality_loss)
-            if training_hyperparameters['rsa_loss']:
+            if wandb.config['rsa_loss']:
                 
                 text_text_cosine_similarities = text_embeds @ text_embeds.t()
                 image_image_cosine_similarities = image_embeds @ image_embeds.t()
@@ -557,7 +555,7 @@ class HFClip(ClipParent):
 
                 rsa_loss = -(inter_image_rsa + inter_text_rsa) / 2
 
-            if training_hyperparameters['pearson_loss']:
+            if wandb.config['pearson_loss']:
 
                 '''
                 ACTUAL PEARSON CORRELATION IN RSA LOSS
@@ -586,11 +584,11 @@ class HFClip(ClipParent):
 
             inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
 
-            if training_hyperparameters['intra_modality_loss']:
+            if wandb.config['intra_modality_loss']:
                 loss = (intra_modality_loss + inter_modality_loss) / 2
-            elif training_hyperparameters['rsa_loss']:
+            elif wandb.config['rsa_loss']:
                 loss = inter_modality_loss + rsa_loss
-            elif training_hyperparameters['pearson_loss']:
+            elif wandb.config['pearson_loss']:
                 loss = inter_modality_loss + pearson_rsa_loss
                 
             else:
@@ -599,9 +597,9 @@ class HFClip(ClipParent):
             if output_intra_modality_loss:
                 loss = {
                     'inter_modality': inter_modality_loss.item(),
-                    'rsa': rsa_loss.item() if training_hyperparameters['rsa_loss'] else -100,
-                    'intra_modality': intra_modality_loss.item() if training_hyperparameters['intra_modality_loss'] else -100,
-                    'pearson_rsa': pearson_rsa_loss.item() if training_hyperparameters['pearson_loss'] else -100,
+                    'rsa': rsa_loss.item() if wandb.config['rsa_loss'] else -100,
+                    'intra_modality': intra_modality_loss.item() if wandb.config['intra_modality_loss'] else -100,
+                    'pearson_rsa': pearson_rsa_loss.item() if wandb.config['pearson_loss'] else -100,
                     'total': loss.item(),
                 }
 

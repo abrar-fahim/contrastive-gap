@@ -34,7 +34,8 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
 training_hyperparameters = {
     'cuda_device': 'cuda:0', # SET index of GPU
     'seed': 2,
-    'dataset': ClipDatasets.MSCOCO,
+    'selected_clip_model': selected_clip_model.value,
+    'dataset': ClipDatasets.MSCOCO.value,
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
@@ -75,7 +76,7 @@ training_hyperparameters = {
     'one_encoder': False, # SET # modality depends on text_only or image_only
     'common_projection_layer': False, # SET
 
-    'W_layer_gap': 0, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+    'W_layer_gap': 1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
 
 
     # loss factors
@@ -96,16 +97,6 @@ training_hyperparameters = {
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
     }
-
-
-# set correct key values from wandb
-
-if wandb.run != None:
-    for key in wandb.config.keys():
-        if key in training_hyperparameters:
-            training_hyperparameters[key] = wandb.config[key]
-        else:
-            raise ValueError(f"Key {key} not found in training_hyperparameters")
 
 
 

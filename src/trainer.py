@@ -13,6 +13,8 @@ from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
 import importlib
 
+import wandb
+
 
 from tqdm import tqdm
 
@@ -40,30 +42,28 @@ from clips.hf_clip import HFClipOutput, HFClip
 
 
 class TrainerParent(ABC):
-    def __init__(self, train_dataset, val_dataset, wandb) -> None:
+    def __init__(self, train_dataset, val_dataset) -> None:
 
         '''
         train_dataset and val_dataset needed to do validation
         '''
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
-        self.wandb = wandb
-        self.device = config.training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
 
         self.val_processes = []
         pass
 
-    def __init__(self, dataset_processor: MSCOCOProcessor, evaluator: Evaluator, wandb) -> None:
+    def __init__(self, dataset_processor: MSCOCOProcessor, evaluator: Evaluator) -> None:
         '''
         dataset_processor needed to do validation
         '''
 
         self.dataset_processor: MSCOCOProcessor = dataset_processor
-        self.wandb = wandb
         self.val_processes = []
         self.evaluator = evaluator
 
-        self.device = config.training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
         # mp.set_start_method('forkserver')
         pass
 
@@ -103,11 +103,11 @@ class GradCacheTrainer(TrainerParent):
     This handles operations of one epoch
     This class does NOT care about maintaining states of dataloders, optimizers, schedulers, etc.
     '''
-    def __init__(self, train_dataset, val_dataset, wandb) -> None:
-        super().__init__(train_dataset, val_dataset, wandb)
+    def __init__(self, train_dataset, val_dataset) -> None:
+        super().__init__(train_dataset, val_dataset)
 
-    def __init__(self, dataset_processor, evaluator:Evaluator, wandb) -> None:
-        super().__init__(dataset_processor, evaluator, wandb)
+    def __init__(self, dataset_processor, evaluator:Evaluator) -> None:
+        super().__init__(dataset_processor, evaluator)
     
 
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
@@ -116,7 +116,7 @@ class GradCacheTrainer(TrainerParent):
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
         '''
 
-        if config.training_hyperparameters['train_only_one_batch']:
+        if wandb.config['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
         clip_model.train()
@@ -148,7 +148,7 @@ class GradCacheTrainer(TrainerParent):
                 closures_x.append(c_imgs)
                 closures_y.append(c_txts)
 
-                if (substep + 1) % config.training_hyperparameters['grad_cache_multiplier'] == 0:
+                if (substep + 1) % wandb.config['grad_cache_multiplier'] == 0:
 
 
                     loss = clip_model_grad_cache.contrastive_loss(cache_x, cache_y)
@@ -172,7 +172,7 @@ class GradCacheTrainer(TrainerParent):
 
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, loss.item()))
 
-                    if step % save_every == 0 and config.training_hyperparameters['do_checkpointing']: 
+                    if step % save_every == 0 and wandb.config['do_checkpointing']: 
 
                         # for old_p in self.val_processes:
                         #     old_p.join()
@@ -183,10 +183,10 @@ class GradCacheTrainer(TrainerParent):
                         # self.val_processes.append(p)
 
 
-                    if config.training_hyperparameters['train_only_one_batch']:
+                    if wandb.config['train_only_one_batch']:
                         break
 
-                    if config.training_hyperparameters['max_steps'] is not None and step >= config.training_hyperparameters['max_steps']:
+                    if wandb.config['max_steps'] is not None and step >= wandb.config['max_steps']:
                         break
 
                     step += 1
@@ -194,11 +194,11 @@ class GradCacheTrainer(TrainerParent):
 
 class Trainer(TrainerParent):
 
-    def __init__(self, train_dataset, val_dataset, wandb) -> None:
-        super().__init__(train_dataset, val_dataset, wandb)
+    def __init__(self, train_dataset, val_dataset) -> None:
+        super().__init__(train_dataset, val_dataset)
 
-    def __init__(self, dataset_processor, evaluator: Evaluator, wandb) -> None:
-        super().__init__(dataset_processor, evaluator, wandb)
+    def __init__(self, dataset_processor, evaluator: Evaluator) -> None:
+        super().__init__(dataset_processor, evaluator)
 
 
     def calculateW(self, clip_model: HFClip):
@@ -238,9 +238,9 @@ class Trainer(TrainerParent):
 
             # gap_direction = gap_direction / gap_direction.norm()
 
-            print('W gap in trainer ', config.training_hyperparameters['W_layer_gap'])
+            print('W gap in trainer ', wandb.config['W_layer_gap'])
 
-            e1_embeds_phantom = e1_embeds + e1_to_e2_vector * config.training_hyperparameters['W_layer_gap'] # translating e1 to be CLOSER TO E2
+            e1_embeds_phantom = e1_embeds + e1_to_e2_vector * wandb.config['W_layer_gap'] # translating e1 to be CLOSER TO E2
             # so that, when I map e2 to phantom e1, W maps e2 to be FURTHER AWAY from original e1, so modality gap is higher
 
             e1_embeds_phantom = e1_embeds_phantom / e1_embeds_phantom.norm(dim=-1, keepdim=True)
@@ -286,7 +286,7 @@ class Trainer(TrainerParent):
         
         
 
-        if config.training_hyperparameters['train_only_one_batch']:
+        if wandb.config['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
         clip_model.train()
@@ -312,7 +312,7 @@ class Trainer(TrainerParent):
 
             del imgs, captions
 
-            if i % save_every == 0 and config.training_hyperparameters['do_checkpointing']:
+            if i % save_every == 0 and wandb.config['do_checkpointing']:
 
 
                 self.save_checkpoint_and_validate(clip_model, epoch, i+1, val_dataset_processor=val_dataset_processor)
@@ -320,10 +320,10 @@ class Trainer(TrainerParent):
             
             i += 1
 
-            # if config.training_hyperparameters['train_only_one_batch']:
+            # if wandb.config['train_only_one_batch']:
             #     break
 
-            if config.training_hyperparameters['max_steps'] is not None and i >= config.training_hyperparameters['max_steps']:
+            if wandb.config['max_steps'] is not None and i >= wandb.config['max_steps']:
                 break
 
             torch.cuda.empty_cache()

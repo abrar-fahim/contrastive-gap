@@ -1,8 +1,10 @@
 import torch
 
-from src.config import training_hyperparameters
+
 from torch import nn
 import importlib
+
+import wandb
 
  
 class Encoder(nn.Module):
@@ -17,7 +19,7 @@ class Encoder(nn.Module):
 
         self.hidden_size: int
 
-        assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
+        assert torch.initial_seed() == wandb.config['seed'], "Seed not set properly"
 
 
         

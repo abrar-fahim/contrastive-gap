@@ -16,6 +16,7 @@ from tqdm import tqdm
 from scipy import stats
 
 from torchvision.datasets import CIFAR10
+import wandb
 
 
 
@@ -80,7 +81,7 @@ def evaluate_consistency(norm_image_embeddings, norm_caption_embeddings):
 
 
 
-def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects, wandb=wandb):
+def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects):
     '''
     - "Pizza on a table" (img) + []"Dog" (txt) - "Pizza" (txt)] = "Dog on a table" (img)
     - Measuring how similar distance and direction between "Pizza on..." (img) and "Dog on..." (img) is compared to that between "Pizza" (txt) and "Dog" (txt)
@@ -91,7 +92,7 @@ def old_evaluate_concept_arrangement(dataset_processor, clip_model, all_subjects
     collate_fn = dataset_processor.collate_fn
 
     # create dataloader for validation set
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
     n_subjects_to_try = 5
     pos_to_get = ['NN', 'NNP']
@@ -682,16 +683,16 @@ def evaluate_linearity(clip_model, evaluate_just_text=False, wandb=wandb, plot=F
 
 def generate_csv_file_name(clip_model=None):
     # create csv file name
-    name_template = training_hyperparameters['loss_file_name_template']
+    name_template = wandb.config['loss_file_name_template']
 
     name_parts = name_template.split('_')
 
     csv_name = ''
 
-    temperature = training_hyperparameters['temperature']
-    intra_modality_temperature = training_hyperparameters['intra_modality_temperature']
+    temperature = wandb.config['temperature']
+    intra_modality_temperature = wandb.config['intra_modality_temperature']
 
-    seed = training_hyperparameters['seed']
+    seed = wandb.config['seed']
 
     for i, part in enumerate(name_parts):
         # replace temp with temperature
@@ -699,7 +700,7 @@ def generate_csv_file_name(clip_model=None):
 
             new_part = part.replace('temp', str(temperature))
 
-            if training_hyperparameters['intra_modality_loss']:
+            if wandb.config['intra_modality_loss']:
                 new_part += '_' + str(intra_modality_temperature)
 
 
@@ -707,19 +708,19 @@ def generate_csv_file_name(clip_model=None):
         elif 'name' in part:
             new_part = part.replace('name', str(selected_clip_model.value))
         elif 'iweight' in part:
-            new_part = part.replace('iweight', str(training_hyperparameters['loss_weights']['image_to_text_weight']))
+            new_part = part.replace('iweight', str(wandb.config['loss_weights']['image_to_text_weight']))
         elif 'tweight' in part:
-            new_part = part.replace('tweight', str(training_hyperparameters['loss_weights']['text_to_image_weight']))
+            new_part = part.replace('tweight', str(wandb.config['loss_weights']['text_to_image_weight']))
         elif 'loss' in part:
 
-            if training_hyperparameters['intra_modality_loss']:
+            if wandb.config['intra_modality_loss']:
                 new_part = part.replace('loss', 'Lit_ii_tt')
             else:
                 new_part = part.replace('loss', 'Lit')
         elif 'seed' in part:
             new_part = part.replace('seed', str(seed))
         elif 'trainmode' in part:
-            if training_hyperparameters['train_from_scratch']:
+            if wandb.config['train_from_scratch']:
                 trainmode = 'scratch'
             else:
                 trainmode = 'finetune'
@@ -733,10 +734,10 @@ def generate_csv_file_name(clip_model=None):
             'I1I2E1' # Different images, one encoder
             'C1C2E1E1' # different captions, same encoder
 
-            input1 = 'I1' if training_hyperparameters['encoder1_modality'] == 'image' else 'C1'
-            input2 = 'I' if training_hyperparameters['encoder2_modality'] == 'image' else 'C'
+            input1 = 'I1' if wandb.config['encoder1_modality'] == 'image' else 'C1'
+            input2 = 'I' if wandb.config['encoder2_modality'] == 'image' else 'C'
 
-            if training_hyperparameters['same_inputs']:
+            if wandb.config['same_inputs']:
                 input2 = input1
 
             else:
@@ -744,10 +745,10 @@ def generate_csv_file_name(clip_model=None):
 
             encoder1 = 'E1'
 
-            if training_hyperparameters['same_encoder']:
+            if wandb.config['same_encoder']:
                 encoder2 = encoder1
 
-            elif training_hyperparameters['one_encoder']:
+            elif wandb.config['one_encoder']:
                 encoder2 = ''
 
             else:
@@ -755,13 +756,13 @@ def generate_csv_file_name(clip_model=None):
 
 
 
-            # if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality'] == 'text':
-            #     if training_hyperparameters['same_inputs']:
+            # if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality'] == 'text':
+            #     if wandb.config['same_inputs']:
             #         acronym = 'SC'
             #     else:
             #         acronym = 'DC'
 
-            #     if training_hyperparameters['same_encoder']:
+            #     if wandb.config['same_encoder']:
             #         acronym += 'SE'
             #     else:
             #         acronym += 'DE'
@@ -791,12 +792,12 @@ def init_stats_csv_file(clip_model):
     '''
 
     csv_name = generate_csv_file_name(clip_model)
-    if training_hyperparameters['save_losses']:
+    if wandb.config['save_losses']:
         # save to csv file
-        with open(training_hyperparameters['csv_path'] + f'{csv_name}.csv', 'w') as f:
+        with open(wandb.config['csv_path'] + f'{csv_name}.csv', 'w') as f:
             # write the training hyperparameters 
-            f.write('training_hyperparameters\n')
-            for key, value in training_hyperparameters.items():
+            f.write('wandb.config\n')
+            for key, value in wandb.config.items():
                 f.write(f'{key}: {value}\n')
             f.write('\n')
             f.write('epoch,index,val_image_accuracy,train_image_accuracy, cosine_similarity_metric, train_loss, mean_cosine_similarity,non_similar_mean_cosine_similarity,mean_text_text_cosine_similarity,mean_image_image_cosine_similarity\n')
@@ -820,7 +821,7 @@ def get_checkpoint_path():
     elif selected_clip_model == ClipModels.WARM:
         return 'checkpoints/my_clip_checkpoint_warm.pt'
     
-    # training_hyperparameters['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
+    # wandb.config['model_path'] = 'checkpoints/my_clip_checkpoint_' + "_".join(selected_clip_model.value.split("_")[1:]) + '.pt'
 
 
 def write_pca_plots_to_file(image_projections, text_projections, index, output_dir):

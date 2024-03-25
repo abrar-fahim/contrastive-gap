@@ -30,10 +30,9 @@ from clips.hf_clip import HFClipOutput, HFClip
 from dataset_processors.mscoco_processor import MSCOCOProcessor # change this to dataset_processor_parent later, after you write the abstract functions there.
 
 class Evaluator():
-    def __init__(self, dataset_processor: MSCOCOProcessor, val_dataset_processor, wandb):
+    def __init__(self, dataset_processor: MSCOCOProcessor, val_dataset_processor):
         self.dataset_processor = dataset_processor
         self.val_dataset_processor = val_dataset_processor
-        self.wandb = wandb
 
         self.mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
 
@@ -53,13 +52,13 @@ class Evaluator():
         '''
         setting dataloaders
         '''
-        if not (os.path.exists(self.mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']):
+        if not (os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']):
             # only create dataloaders if batch is not cached
 
             collate_fn = self.dataset_processor.collate_fn
             mscoco_val_dataset =  self.dataset_processor.val_dataset
             collate_fn =  self.dataset_processor.collate_fn
-            mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+            mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
 
 
@@ -70,9 +69,9 @@ class Evaluator():
             # for CIFAR10 and other zero shot datasets
             self.cifar_val_dataset = val_dataset_processor.val_dataset
             collate_fn = None
-            # cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{training_hyperparameters['seed']}.pt"
+            # cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{wandb.config['seed']}.pt"
             # batch contains (images, index of target class)
-            self.cifar_val_dataloader = torch.utils.data.DataLoader(self.cifar_val_dataset, batch_size=training_hyperparameters['cifar_batch_size'], num_workers=training_hyperparameters['num_workers'])
+            self.cifar_val_dataloader = torch.utils.data.DataLoader(self.cifar_val_dataset, batch_size=wandb.config['cifar_batch_size'], num_workers=wandb.config['num_workers'])
 
 
         
@@ -80,7 +79,7 @@ class Evaluator():
         Loading cached batch from file
         '''
 
-        if os.path.exists(self.mscoco_batch_file_path) and training_hyperparameters['use_cached_val_batch']:
+        if os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']:
             print('loading batch from cache')
 
             (mscoco_val_imgs, mscoco_val_captions) = torch.load(self.mscoco_batch_file_path)
@@ -93,7 +92,7 @@ class Evaluator():
                 (mscoco_val_imgs, mscoco_val_captions) = batch
                 print('val batch loading done')
 
-            if training_hyperparameters['use_cached_val_batch']:
+            if wandb.config['use_cached_val_batch']:
                 print('saving batch to cache')
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), self.mscoco_batch_file_path)
@@ -112,7 +111,7 @@ class Evaluator():
             # self.set_pooled_hidden_states(clip_model)
 
             # save pooled hidden states to file
-            if training_hyperparameters['save_encoder_hidden_states']:
+            if wandb.config['save_encoder_hidden_states']:
 
                 save_path = get_embeddings_path()
                 self.save_pooled_hidden_states_to_file(save_path, epoch, index)
@@ -123,7 +122,7 @@ class Evaluator():
 
             average_intra_modality_cosine_sim = self.get_text_text_similarity() + self.get_image_image_similarity()  / 2
 
-            mods_same = training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']
+            mods_same = wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']
 
             val_loss = self.get_val_loss()
 
@@ -178,7 +177,7 @@ class Evaluator():
                         'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
                         
                     },
-                    # step = int(epoch * (len(dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index) # this may not work with WIT dataset, check later
+                    # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
                     step= int(epoch * 470 + index), # by 100 to maintain fair comparison with existing runs data
                     
 
@@ -240,7 +239,7 @@ class Evaluator():
 
         print('saving encoder hidden states to ', save_path)
 
-        n_to_save = training_hyperparameters['n_embeds_to_save']
+        n_to_save = wandb.config['n_embeds_to_save']
 
         # take first n_to_save embeds from each layer
         encoder1_pooled_hidden_states_to_save = [e1_pool[:n_to_save] for e1_pool in self.encoder1_pooled_hidden_states]
@@ -258,7 +257,7 @@ class Evaluator():
 
 
         step_data = {
-                'step': int(epoch * (len(self.dataset_processor.train_dataloader) // training_hyperparameters['batch_size']) + index),
+                'step': int(epoch * (len(self.dataset_processor.train_dataloader) // wandb.config['batch_size']) + index),
                 'epoch': epoch,
                 'index': index,
                 'encoder1_pooled_hidden_states': encoder1_pooled_hidden_states_to_save, # normalized. 
@@ -471,7 +470,7 @@ class Evaluator():
 
     def get_mean_cosine_similarity_between_diff_layers(self):
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
             # can only measure modality gap if the two modalities are same
 
 
@@ -584,7 +583,7 @@ class Evaluator():
         - Euclidean distance between centroids of hidden_states from each layer
         '''
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
 
             e1_e2_centroid_euclidean_distances = [] # tracks mean euclidean distance between centroids of each layer in layers_to_use
 
@@ -735,7 +734,7 @@ class Evaluator():
         
         print('fitting linear classifier')
         # fit linear classifier on train set to predict text embeddings from image embeddings
-        clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_image_text_embeds.cpu(), train_labels.cpu())
+        clf = LogisticRegression(random_state=wandb.config['seed']).fit(train_image_text_embeds.cpu(), train_labels.cpu())
 
         # get accuracy on test set
         linear_seperability_accuracy = clf.score(test_image_text_embeds.cpu(), test_labels.cpu())
@@ -753,7 +752,7 @@ class Evaluator():
         n_train = int(0.2 * len(image_embeds))
         n_test = len(image_embeds) - n_train
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
 
             e1_e2_linear_seperability_accuracies = [] # tracks linear seperability accuracy of each layer in layers_to_use
 
@@ -777,7 +776,7 @@ class Evaluator():
                 # generate labels
                 test_e1_e2_labels = torch.cat((torch.zeros(n_test), torch.ones(n_test))) # 0 for image, 1 for text
 
-                clf = LogisticRegression(random_state=training_hyperparameters['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
+                clf = LogisticRegression(random_state=wandb.config['seed']).fit(train_e1_e2_pool.cpu(), train_e1_e2_labels.cpu())
 
                 # get accuracy on test set
                 e1_e2_linear_seperability_accuracy = clf.score(test_e1_e2_pool.cpu(), test_e1_e2_labels.cpu())
@@ -881,7 +880,7 @@ class Evaluator():
 
     def get_rsa_correlations_between_diff_layers(self):
 
-        if training_hyperparameters['encoder1_modality'] == training_hyperparameters['encoder2_modality']:
+        if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']:
 
 
             e1_e2_inter_intra_rsas = [] # tracks RSA between inter and intra modality for each layer in layers_to_use

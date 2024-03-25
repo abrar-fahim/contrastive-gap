@@ -29,20 +29,20 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.use_cached_tokenized_captions = False
 
-        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
 
-        self.encoder1_modality = training_hyperparameters['encoder1_modality']
-        self.encoder2_modality = training_hyperparameters['encoder2_modality']
-        self.same_inputs = training_hyperparameters['same_inputs']
-        self.same_encoder = training_hyperparameters['same_encoder']
-        self.second_caption_offset = training_hyperparameters['second_caption_offset']
+        self.encoder1_modality = wandb.config['encoder1_modality']
+        self.encoder2_modality = wandb.config['encoder2_modality']
+        self.same_inputs = wandb.config['same_inputs']
+        self.same_encoder = wandb.config['same_encoder']
+        self.second_caption_offset = wandb.config['second_caption_offset']
 
-        _, self.image_preprocessor = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
+        _, self.image_preprocessor = clip.load(wandb.config['openai_clip_model'], device=self.device)
 
         # set seed
-        assert torch.initial_seed() == training_hyperparameters['seed'], "Seed not set properly"
-        # random.seed(training_hyperparameters['seed'])
-    # np.random.seed(training_hyperparameters['seed'])
+        assert torch.initial_seed() == wandb.config['seed'], "Seed not set properly"
+        # random.seed(wandb.config['seed'])
+    # np.random.seed(wandb.config['seed'])
 
 
         if not self.same_inputs and self.encoder1_modality == self.encoder2_modality == 'image':
@@ -234,7 +234,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         - self.show_real_images_captions is set to True in the middle of do_validation in validate.py
         '''
 
-        if training_hyperparameters['show_incorrect_images'] or self.return_org_imgs_collate_fn: 
+        if wandb.config['show_incorrect_images'] or self.return_org_imgs_collate_fn: 
             # no preprocess here, instead have it in collate fn
             train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
@@ -250,7 +250,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
 
-        subset_indices = torch.randint(0, len(train_dataset) , (training_hyperparameters['small_train_loader_dataset_size'],)) 
+        subset_indices = torch.randint(0, len(train_dataset) , (wandb.config['small_train_loader_dataset_size'],)) 
 
         # no problems upto here
 
@@ -265,7 +265,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # NOT SAVING DATALOADER IN CHECKPOINT, so load dataloader normally
 
-        # if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
+        # if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint'] and wandb.config['do_checkpointing']:
 
         #     '''
         #     Load from checkpoint``
@@ -281,32 +281,32 @@ class MSCOCOProcessor(DatasetProcessorParent):
         '''
         Not loading from checkpoint, so prepare new dataloader
         '''
-        if training_hyperparameters['use_small_trainloader']:
+        if wandb.config['use_small_trainloader']:
 
             '''
             Prepare subset of training dataset
             '''
             train_data_subset = Subset(train_dataset, subset_indices)
             dataset_to_use = train_data_subset
-            batch_size = training_hyperparameters['small_train_loader_batch_size']
+            batch_size = wandb.config['small_train_loader_batch_size']
 
         else:
 
             dataset_to_use = train_dataset
-            batch_size = training_hyperparameters['batch_size']
+            batch_size = wandb.config['batch_size']
         
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(training_hyperparameters['seed']))
+        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
         self.train_subset_indices = subset_indices
 
     def load_val_dataset(self):
 
-        val_indices = torch.randint(0, len(self.train_dataset) , (training_hyperparameters['validation_dataset_size'],))
+        val_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['validation_dataset_size'],))
 
         # make sure that the validation indices are not in the training indices
         j = 0
-        while j < training_hyperparameters['validation_dataset_size']:
+        while j < wandb.config['validation_dataset_size']:
             while val_indices[j] in self.train_subset_indices:
                 val_indices[j] = torch.randint(0, len(self.train_dataset) , (1,))
             j += 1
@@ -318,7 +318,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # no need val dataloader as I'm creating it in do_validation in utils
 
-        # val_dataloader = DataLoader(val_data_subset, batch_size=training_hyperparameters['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+        # val_dataloader = DataLoader(val_data_subset, batch_size=wandb.config['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker)
 
 
         # set class variables

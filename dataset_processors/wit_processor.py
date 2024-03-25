@@ -1,6 +1,5 @@
 import clip
 import torch
-from src.config import *
 import random
 from torch.utils.data import DataLoader, Subset
 from src.utils import get_checkpoint_path
@@ -9,13 +8,14 @@ import os
 import webdataset as wds
 from clips.hf_clip import HFClip
 import numpy as np
+import wandb
 
 class WITProcessor(DatasetProcessorParent):
 
     def __init__(self) -> None:
         self.train_dataset = None
-        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
-        _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
+        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        _, self.preprocess = clip.load(wandb.config['openai_clip_model'], device=self.device)
 
         self.train_dataset = None
         self.train_dataloader = None
@@ -57,14 +57,14 @@ class WITProcessor(DatasetProcessorParent):
         self.val_tar_count = val_tar_count
 
         self.torch_generator = torch.Generator()
-        self.torch_generator.manual_seed(training_hyperparameters['seed'])
+        self.torch_generator.manual_seed(wandb.config['seed'])
 
         
 
 
         # set seed
-        torch.manual_seed(training_hyperparameters['seed'])
-        random.seed(training_hyperparameters['seed'])
+        torch.manual_seed(wandb.config['seed'])
+        random.seed(wandb.config['seed'])
 
 
         pass
@@ -105,12 +105,12 @@ class WITProcessor(DatasetProcessorParent):
 
         self.train_dataset = wds.WebDataset(self.train_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(self.preprocess, self.json_to_caption).with_length(9000 * len(self.train_paths))
 
-        if training_hyperparameters['use_small_trainloader']:
-            batch_size = training_hyperparameters['small_train_loader_batch_size']
+        if wandb.config['use_small_trainloader']:
+            batch_size = wandb.config['small_train_loader_batch_size']
         else:
-            batch_size = training_hyperparameters['batch_size']
+            batch_size = wandb.config['batch_size']
         
-        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=training_hyperparameters['num_workers'], collate_fn=self.collate_fn, worker_init_fn=self.seed_dataloader_worker)
+        self.train_dataloader = DataLoader(self.train_dataset, batch_size=batch_size, num_workers=wandb.config['num_workers'], collate_fn=self.collate_fn, worker_init_fn=self.seed_dataloader_worker)
 
 
 
@@ -118,7 +118,7 @@ class WITProcessor(DatasetProcessorParent):
         
         self.val_dataset = wds.WebDataset(self.val_paths).shuffle(1000, rng=random).decode("pill").to_tuple("jpg;png", "json").map_tuple(self.preprocess, self.json_to_caption).with_length(9000 * len(self.val_paths))
 
-        self.val_dataloader = DataLoader(self.val_dataset, batch_size=training_hyperparameters['validation_batch_size'], collate_fn=self.collate_fn, num_workers=training_hyperparameters['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+        self.val_dataloader = DataLoader(self.val_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker)
 
     def print_dataset_stats(self):
         print()

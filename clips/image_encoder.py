@@ -21,7 +21,7 @@ class ImageEncoder(Encoder):
         '''
         super().__init__()
 
-        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         self.preprocessor = preprocessor
         self.CLIPVisionConfig = CLIPVisionConfig
@@ -33,7 +33,7 @@ class ImageEncoder(Encoder):
             print()
             print(f" --- Initializing {name} from pretrained model ---")
             print()
-            self.image_model = CLIPVisionModelWithProjection.from_pretrained(training_hyperparameters['hf_clip_model']).to(self.device)
+            self.image_model = CLIPVisionModelWithProjection.from_pretrained(wandb.config['hf_clip_model']).to(self.device)
 
         else:
             print()

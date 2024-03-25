@@ -58,25 +58,36 @@ def main():
 
     
 
+    if wandb.run == None: # so that wandb doesnt reset config in case this run is part of a sweep
+        wandb.init(
+            project="clipverse", 
+            # track hyperparameters and run metadata
+            config=training_hyperparameters,
+            # name=generate_csv_file_name(clip_model)
+        )
+
+
+    
+
     # set seed
-    torch.manual_seed(training_hyperparameters['seed'])
-    random.seed(training_hyperparameters['seed'])
-    np.random.seed(training_hyperparameters['seed'])
+    torch.manual_seed(wandb.config['seed'])
+    random.seed(wandb.config['seed'])
+    np.random.seed(wandb.config['seed'])
     torch.backends.cudnn.benchmark = False
     torch.use_deterministic_algorithms(True)
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
 
 
-    device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+    device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
 
     print('device ', device)
 
     dataset_processor = None
 
-    if training_hyperparameters['dataset'] == ClipDatasets.MSCOCO:
+    if wandb.config['dataset'] == ClipDatasets.MSCOCO.value:
         dataset_processor = MSCOCOProcessor()
-    elif training_hyperparameters['dataset'] == ClipDatasets.WIT400:
+    elif wandb.config['dataset'] == ClipDatasets.WIT400.value:
         dataset_processor = WITProcessor()
 
 
@@ -87,7 +98,7 @@ def main():
 
     checkpoint_path = get_checkpoint_path()
 
-    if training_hyperparameters['train_from_scratch']:
+    if wandb.config['train_from_scratch']:
         # delete checkpoint file if it exists
         delete_checkpoint_file(checkpoint_path)
 
@@ -103,7 +114,7 @@ def main():
 
 
 
-    n_epochs = training_hyperparameters['n_epochs']
+    n_epochs = wandb.config['n_epochs']
 
     clip_model.train()
 
@@ -112,20 +123,20 @@ def main():
     checkpointing stuff
     '''
 
-    print('continuting from checkpoint ', training_hyperparameters['continue_from_checkpoint'])
+    print('continuting from checkpoint ', wandb.config['continue_from_checkpoint'])
 
-    print('training from scratch ', training_hyperparameters['train_from_scratch'])
+    print('training from scratch ', wandb.config['train_from_scratch'])
 
 
     i_loaded_from_checkpoint = False
     
     
 
-    if os.path.exists(checkpoint_path) and training_hyperparameters['continue_from_checkpoint'] and training_hyperparameters['do_checkpointing']:
+    if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint'] and wandb.config['do_checkpointing']:
 
         # setup adamW optimizer
 
-        optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
+        optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
 
         print()
         print('--- CONTINUING FROM CHECKPOINT ---')
@@ -152,7 +163,7 @@ def main():
         i = 0
 
 
-        if not training_hyperparameters['train_from_scratch']:
+        if not wandb.config['train_from_scratch']:
             # guess I can delete checkpoint file here too. 
             delete_checkpoint_file(checkpoint_path)
 
@@ -162,7 +173,7 @@ def main():
 
         # setup adamW optimizer
 
-        optimizer = optim.AdamW(clip_model.parameters(), lr=training_hyperparameters['lr'], weight_decay=training_hyperparameters['weight_decay'])
+        optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
 
 
     dataset_processor.print_dataset_stats()
@@ -173,7 +184,7 @@ def main():
     create csv file
     '''
 
-    if training_hyperparameters['save_losses'] and not training_hyperparameters['continue_from_checkpoint']:
+    if wandb.config['save_losses'] and not wandb.config['continue_from_checkpoint']:
         # only create new csv file if we're not continuing from checkpoint
         init_stats_csv_file(clip_model)
 
@@ -191,23 +202,17 @@ def main():
 
 
 
-    wandb.init(
-        project="clipverse", 
-        # track hyperparameters and run metadata
-        config=training_hyperparameters,
-        name=generate_csv_file_name(clip_model)
-    )
 
     '''
     Setup evaluator
     '''
 
-    evaluator = Evaluator(dataset_processor, cifar_dataset_processor, wandb)
+    evaluator = Evaluator(dataset_processor, cifar_dataset_processor)
 
-    if training_hyperparameters['grad_cache']:
-        trainer = GradCacheTrainer(dataset_processor, evaluator, wandb)
+    if wandb.config['grad_cache']:
+        trainer = GradCacheTrainer(dataset_processor, evaluator)
     else:
-        trainer = Trainer(dataset_processor, evaluator, wandb)
+        trainer = Trainer(dataset_processor, evaluator)
 
 
 
@@ -221,12 +226,12 @@ def main():
 
     clip_model.eval()
 
-    if training_hyperparameters['W_layer_gap'] >= 0:
+    if wandb.config['W_layer_gap'] >= 0:
         print()
         print(f'--- SETTING W ---')
         print()
 
-        print('W gap ', training_hyperparameters['W_layer_gap'])
+        print('W gap ', wandb.config['W_layer_gap'])
         # set W
         W = trainer.calculateW(clip_model)
         clip_model.setW(W)
@@ -254,7 +259,7 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=training_hyperparameters['save_every'], val_dataset_processor=cifar_dataset_processor)
+        trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=wandb.config['save_every'], val_dataset_processor=cifar_dataset_processor)
 
         
 

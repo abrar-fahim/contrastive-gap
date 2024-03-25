@@ -1,7 +1,6 @@
 import torchvision.datasets as dset
 import clip
 import torch
-from src.config import *
 import random
 from torch.utils.data import DataLoader, Subset
 from src.utils import  get_checkpoint_path
@@ -9,6 +8,7 @@ from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 import os
 from clips.hf_clip import HFClip
 import numpy as np
+import wandb
 
 from torchvision.datasets import CIFAR10
 
@@ -20,11 +20,11 @@ class CIFAR10Processor(DatasetProcessorParent):
         self.val_dataset = None
         self.classes = None
         
-        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
-        _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
+        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        _, self.preprocess = clip.load(wandb.config['openai_clip_model'], device=self.device)
         # set seed
-        torch.manual_seed(training_hyperparameters['seed'])
-        random.seed(training_hyperparameters['seed'])
+        torch.manual_seed(wandb.config['seed'])
+        random.seed(wandb.config['seed'])
         self.load_val_dataset()
 
 

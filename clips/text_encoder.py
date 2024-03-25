@@ -31,18 +31,18 @@ class TextEncoder(Encoder):
 
         self.W = None
 
-        if training_hyperparameters['W_layer_gap'] >= 0:
+        if wandb.config['W_layer_gap'] >= 0:
             self.W: torch.FloatTensor = torch.empty(512, 512)
 
             self.W_set = False
 
-        self.device = torch.device(training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
 
         if from_pretrained:
             print()
             print(f" --- Initializing {name} from pretrained model ---")
             print()
-            self.text_model = CLIPTextModelWithProjection.from_pretrained(training_hyperparameters['hf_clip_model']).to(self.device)
+            self.text_model = CLIPTextModelWithProjection.from_pretrained(wandb.config['hf_clip_model']).to(self.device)
 
         else:
             print()
@@ -65,7 +65,7 @@ class TextEncoder(Encoder):
         Set W for alignment
         '''
 
-        assert training_hyperparameters['W_layer_gap'] >= 0, "W_layer_gap must be >= 0"
+        assert wandb.config['W_layer_gap'] >= 0, "W_layer_gap must be >= 0"
         
 
         assert W.shape == (512, 512), f"self.W.shape = {self.W.shape}"

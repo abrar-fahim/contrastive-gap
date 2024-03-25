@@ -1,8 +1,5 @@
-a = {
-    'a': 1,
-    'b': 2,
-    'c': 3
-}
+import wandb
 
 
-# iterate thru keys
+
+wandb.finish()
