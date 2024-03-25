@@ -16,16 +16,9 @@ from torchvision.datasets import CIFAR10
 class CIFAR10Processor(DatasetProcessorParent):
 
     def __init__(self) -> None:
+        super().__init__()
 
-        self.val_dataset = None
-        self.classes = None
-        
-        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
-        _, self.preprocess = clip.load(wandb.config['openai_clip_model'], device=self.device)
-        # set seed
-        torch.manual_seed(wandb.config['seed'])
-        random.seed(wandb.config['seed'])
-        self.load_val_dataset()
+        self.name = 'CIFAR 10'
 
 
     def load_val_dataset(self):
@@ -37,13 +30,9 @@ class CIFAR10Processor(DatasetProcessorParent):
         self.classes = ['photo of ' + class_name for class_name in self.classes]
 
     def load_train_dataset(self):
-        return
-    
-    def print_dataset_stats(self):
-        print('CIFAR10 dataset stats')
-        print('num classes ', len(self.classes))
-        print('classes ', self.classes)
-        print('num val samples ', len(self.val_dataset))
+        self.train_dataset = CIFAR10(root='./datasets/cifar10', train=True, download=True, transform=self.preprocess)
+
+
 
 
 

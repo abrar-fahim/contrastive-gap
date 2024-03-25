@@ -27,7 +27,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# de
 from src.utils import generate_csv_file_name, get_embeddings_path
 from src.config import *
 from clips.hf_clip import HFClipOutput, HFClip
-from dataset_processors.mscoco_processor import MSCOCOProcessor # change this to dataset_processor_parent later, after you write the abstract functions there.
+from dataset_processors.mscoco_processor import MSCOCOProcessor, DatasetProcessorParent # change this to dataset_processor_parent later, after you write the abstract functions there.
 
 class Evaluator():
     def __init__(self, dataset_processor: MSCOCOProcessor, val_dataset_processor):
@@ -184,7 +184,72 @@ class Evaluator():
                 )
 
 
+    def get_dataset_linear_probe_accuracy(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
+        '''
+        train a linear classifier on the image embeddings to predict the class labels
+        input features are from just before the projection head
+        '''
 
+        vision_model = clip_model.get_image_encoder().image_model.vision_model
+        # need this vision model to get embeddings BEFORE projection head
+
+        # setup linear classifier
+        linear_classifier = LogisticRegression(max_iter=1000)
+
+        all_train_features = torch.empty(0, vision_model.config.hidden_size) # shape: ([n, 768])
+        all_train_labels = []
+
+        print('fitting linear classifier on ', dataset_processor.name)
+
+        for batch in tqdm(dataset_processor.train_dataloader):
+            (train_imgs, train_indices) = batch
+
+            train_imgs = train_imgs.to(clip_model.device)
+
+            vision_model_outputs = vision_model(pixel_values=train_imgs)
+
+            image_features = vision_model_outputs[1] # pooled_output, since vision model outputs is a sequence. This is from https://github.dev/huggingface/transformers/blob/v4.39.0/src/transformers/models/clip/modeling_clip.py
+
+            all_train_features = torch.cat((all_train_features, image_features.to(all_train_features.device)), dim=0)
+
+            # append image labels
+            all_train_labels.extend(train_indices.tolist())
+
+
+        # train linear classifier
+        linear_classifier.fit(all_train_features, all_train_labels)
+
+        # get test features
+
+        all_val_features = torch.empty(0, vision_model.config.hidden_size) # shape: ([n, 768])
+        all_val_labels = []
+
+        print('evaluating linear classifier on ', dataset_processor.name)
+
+        for batch in tqdm(dataset_processor.val_dataloader):
+            (val_imgs, val_indices) = batch
+
+            val_imgs = val_imgs.to(clip_model.device)
+
+            vision_model_outputs = vision_model(pixel_values=val_imgs)
+
+            image_features = vision_model_outputs[1]
+
+            all_val_features = torch.cat((all_val_features, image_features.to(all_val_features.device)), dim=0)
+
+            # append image labels
+            all_val_labels.extend(val_indices.tolist())
+
+
+
+        # get accuracy
+        accuracy = linear_classifier.score(all_val_features, all_val_labels)
+
+        print(f'{dataset_processor.name}_linear_probe_accuracy ', accuracy)
+
+        del all_train_features, all_train_labels, all_val_features, all_val_labels, linear_classifier
+
+        return accuracy
 
 
         
