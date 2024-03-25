@@ -4,9 +4,8 @@ Abstract class for dataset processors
 from abc import ABC, abstractmethod
 import torch
 import clip
-
-from src.config import training_hyperparameters
 import random
+import wandb
 
 
 class DatasetProcessorParent(ABC):
@@ -15,11 +14,11 @@ class DatasetProcessorParent(ABC):
         self.val_dataset: torch.utils.data.Dataset = None
         self.classes: list = None
         
-        self.device = training_hyperparameters['cuda_device'] if torch.cuda.is_available() else "cpu"
-        _, self.preprocess = clip.load(training_hyperparameters['openai_clip_model'], device=self.device)
+        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        _, self.preprocess = clip.load(wandb.config['openai_clip_model'], device=self.device)
         # set seed
-        torch.manual_seed(training_hyperparameters['seed'])
-        random.seed(training_hyperparameters['seed'])
+        torch.manual_seed(wandb.config['seed'])
+        random.seed(wandb.config['seed'])
         self.load_train_dataloader()
         self.load_val_dataloader()
         pass
@@ -34,13 +33,13 @@ class DatasetProcessorParent(ABC):
 
     def load_val_dataloader(self) -> None:
         self.load_val_dataset()
-        self.val_dataloader = torch.utils.data.DataLoader(self.val_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, num_workers=training_hyperparameters['num_workers'])
+        self.val_dataloader = torch.utils.data.DataLoader(self.val_dataset, batch_size=wandb.config['batch_size'], shuffle=True, num_workers=wandb.config['num_workers'])
 
         pass
 
     def load_train_dataloader(self) -> None:
         self.load_train_dataset()
-        self.train_dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=training_hyperparameters['batch_size'], shuffle=True, num_workers=training_hyperparameters['num_workers'])
+        self.train_dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=wandb.config['batch_size'], shuffle=True, num_workers=wandb.config['num_workers'])
         pass
 
     def print_dataset_stats(self):
