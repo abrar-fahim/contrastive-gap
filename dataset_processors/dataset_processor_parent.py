@@ -6,6 +6,7 @@ import torch
 import clip
 import random
 import wandb
+from sklearn.linear_model import LogisticRegression
 
 
 class DatasetProcessorParent(ABC):
@@ -19,8 +20,11 @@ class DatasetProcessorParent(ABC):
         # set seed
         torch.manual_seed(wandb.config['seed'])
         random.seed(wandb.config['seed'])
-        self.load_train_dataloader()
+        # self.load_train_dataloader() # SKIPPING this for now to speed up validation
         self.load_val_dataloader()
+
+        self.name: str = None
+        self.keyname: str = None
         pass
 
     @abstractmethod
@@ -48,6 +52,17 @@ class DatasetProcessorParent(ABC):
         print('num classes ', len(self.classes))
         print('classes ', self.classes)
         print('num val samples ', len(self.val_dataset))
-        print('num train samples ', len(self.train_dataset))
+        # print('num train samples ', len(self.train_dataset)) # SKIPPING this for now to speed up validation
+
+    def get_accuracy(self, linear_classifier: LogisticRegression, all_val_features: torch.FloatTensor, all_val_labels: list) -> float: 
+        '''
+        Default Accuracy metric is top 1, so its implemented in dataset parent
+        '''
+
+        accuracy = linear_classifier.score(all_val_features, all_val_labels)
+
+        return accuracy
+        
+        
 
 

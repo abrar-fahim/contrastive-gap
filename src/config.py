@@ -36,6 +36,83 @@ training_hyperparameters = {
     'seed': 2,
     'selected_clip_model': selected_clip_model.value,
     'dataset': ClipDatasets.MSCOCO.value,
+    'batch_size': 256, 
+    'grad_cache': False,
+    'grad_cache_multiplier': 16,
+    'n_epochs': 30, # SET 12 for scratch, (6 for finetune?)
+    'max_steps': None, # SET or None, in which case each epoch goes through all the data
+    'lr': 1.5e-5,
+    'temperature': 0.01,
+    'intra_modality_temperature': 0.01,
+    'weight_decay': 0.2,
+    'validation_dataset_size': 2048, # SET
+    'validation_batch_size': 2048, # SET
+    'cifar_batch_size': 128,
+    'use_cached_val_batch': True, # SET
+    'do_checkpointing': True,
+    'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
+    'train_from_scratch': True, # SET: this randomly initializes weights
+    'use_small_trainloader': True, # this is ignored when using WIT400
+    'small_train_loader_batch_size': 256, # SET
+    'small_train_loader_dataset_size': 30000, # 30000
+    'num_workers': 4,
+    'save_every': 100,
+    'loss_weights': {
+        'image_to_text_weight': 0.5,
+        'text_to_image_weight': 0.5,
+    },
+
+
+    # these are set by wandb sweep
+
+    # encoder modalities
+    'encoder1_modality': 'image', # SET # can be 'image' or 'text'
+    'encoder2_modality': 'text', # SET
+
+    # encoder configs
+    'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
+    'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
+    'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
+    'one_encoder': False, # SET # modality depends on text_only or image_only
+    'common_projection_layer': False, # SET
+
+    'W_layer_gap': 1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+
+
+    # loss factors
+    'intra_modality_loss': False, 
+    'rsa_loss': False,
+    'pearson_loss': False,
+
+
+    # Saving embeds and encoder hidden states
+    'save_encoder_hidden_states': False, # SET
+    'n_embeds_to_save': 256, # SET
+    # which clip model
+    'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
+    'hf_clip_model': HFClipPretrainedModels.VIT.value,
+    'train_only_one_batch': False, # SET
+    'save_losses': False,
+    'csv_path': 'stats/',
+    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
+    'show_incorrect_images': False,
+    }
+
+
+
+
+
+'''
+
+ Training CLIP in hosts 2 or 3
+'''
+
+
+training_hyperparameters2 = {
+    'cuda_device': 'cuda:0', # SET index of GPU
+    'seed': 2,
+    'selected_clip_model': selected_clip_model.value,
+    'dataset': ClipDatasets.MSCOCO.value,
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
@@ -97,8 +174,6 @@ training_hyperparameters = {
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
     }
-
-
 
 '''
 2. Training CLIP caption model

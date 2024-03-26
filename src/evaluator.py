@@ -15,6 +15,8 @@ import pickle
 
 from scipy import stats
 from sklearn.linear_model import LogisticRegression
+from torch.utils.data import DataLoader
+
 
 import sys
 import os
@@ -27,12 +29,21 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# de
 from src.utils import generate_csv_file_name, get_embeddings_path
 from src.config import *
 from clips.hf_clip import HFClipOutput, HFClip
-from dataset_processors.mscoco_processor import MSCOCOProcessor, DatasetProcessorParent # change this to dataset_processor_parent later, after you write the abstract functions there.
+from dataset_processors.mscoco_processor import MSCOCOProcessor # change this to dataset_processor_parent later, after you write the abstract functions there.
+
+from dataset_processors.dataset_processor_parent import DatasetProcessorParent
+from dataset_processors.cifar10_processor import CIFAR10Processor
+from dataset_processors.food101_processor import Food101Processor
+from dataset_processors.cifar100_processor import CIFAR100Processor
+from dataset_processors.sun397_processor import SUN397Processor
+from dataset_processors.dtd_processor import DTDProcessor
+from dataset_processors.caltech101_processor import Caltech101Processor
+from dataset_processors.fgvc_aircraft_processor import FGVCAircraftProcessor
+from dataset_processors.stanford_cars_processor import StanfordCarsProcessor
 
 class Evaluator():
-    def __init__(self, dataset_processor: MSCOCOProcessor, val_dataset_processor):
+    def __init__(self, dataset_processor: MSCOCOProcessor):
         self.dataset_processor = dataset_processor
-        self.val_dataset_processor = val_dataset_processor
 
         self.mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
 
@@ -42,7 +53,15 @@ class Evaluator():
         self.mscoco_train_dataloader: torch.utils.data.DataLoader = None
 
         self.val_outputs: HFClipOutput = None
-        self.cifar_val_dataloader: torch.utils.data.DataLoader = None
+
+
+        '''
+        Setup linear probe datasets
+        '''
+        print()
+        print('setting up linear probe datasets')
+        # self.linear_probe_datasets: list[DatasetProcessorParent] = [CIFAR10Processor(), Food101Processor()]
+        self.linear_probe_datasets: list[DatasetProcessorParent] = [ Caltech101Processor(), CIFAR10Processor(), CIFAR100Processor(), DTDProcessor()]
 
         self.encoder1_pooled_hidden_states = []
         self.encoder2_pooled_hidden_states = []
@@ -64,14 +83,6 @@ class Evaluator():
 
             # for now, using val dataset as train dataset.
             self.train_dataloader = mscoco_val_dataloader
-
-        if val_dataset_processor != None:
-            # for CIFAR10 and other zero shot datasets
-            self.cifar_val_dataset = val_dataset_processor.val_dataset
-            collate_fn = None
-            # cifar_batch_file_path = f"datasets/cifar10/val_batch_cache_{wandb.config['seed']}.pt"
-            # batch contains (images, index of target class)
-            self.cifar_val_dataloader = torch.utils.data.DataLoader(self.cifar_val_dataset, batch_size=wandb.config['cifar_batch_size'], num_workers=wandb.config['num_workers'])
 
 
         
@@ -127,8 +138,17 @@ class Evaluator():
             val_loss = self.get_val_loss()
 
             rsa_correlations = self.get_rsa_correlations(clip_model.temperature)
+
             # rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
             # intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
+
+            linear_probe_accuracies = {}
+
+            for dataset_processor in self.linear_probe_datasets:
+                linear_probe_accuracies[dataset_processor.keyname] = self.get_dataset_linear_probe_accuracy(clip_model, dataset_processor)
+
+            average_linear_probe_accuracy = np.mean(list(linear_probe_accuracies.values()))
+            std_dev_linear_probe_accuracy = np.std(list(linear_probe_accuracies.values()))
 
             if wandb is not None:
                 wandb.log(
@@ -147,7 +167,18 @@ class Evaluator():
                         'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
 
                         # linear probe acc
-                        'cifar10_linear_probe_accuracy': self.linear_probe_cifar10(clip_model) if self.val_dataset_processor != None else None,
+                        'cifar10_linear_probe_accuracy': linear_probe_accuracies['cifar10'],
+                        # 'food101_linear_probe_accuracy': linear_probe_accuracies['Food101Processor'],
+                        'cifar100_linear_probe_accuracy': linear_probe_accuracies['cifar100'],
+                        'dtd_linear_probe_accuracy': linear_probe_accuracies['dtd'],
+                        'caltech101_linear_probe_accuracy': linear_probe_accuracies['caltech101'],
+                        # 'fgvc_aircraft_linear_probe_accuracy': linear_probe_accuracies['fgvcaircraft'],
+                        ''
+
+
+
+                        'average_linear_probe_accuracy': average_linear_probe_accuracy,
+                        'std_dev_linear_probe_accuracy': std_dev_linear_probe_accuracy,
 
                         # logging hidden state metrics
                         # 'e1_e2_mean_cosine_similarities': self.get_mean_cosine_similarity_between_diff_layers() if mods_same else None,
@@ -174,7 +205,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
+                        # 'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -184,36 +215,74 @@ class Evaluator():
                 )
 
 
+    def get_clip_features_and_labels(self, clip_model: HFClip, dataloader: DataLoader) -> dict:
+        '''
+        get image features and labels for the linear probe evaluation datasets
+        '''
+
+        vision_model = clip_model.get_image_encoder().image_model.vision_model
+        # need this vision model to get embeddings BEFORE projection head
+
+        all_image_features = torch.empty(0, vision_model.config.hidden_size)
+
+        all_labels = []
+
+        for batch in tqdm(dataloader):
+            (imgs, indices) = batch
+
+            imgs = imgs.to(clip_model.device)
+
+            vision_model_outputs = vision_model(pixel_values=imgs)
+
+            image_features = vision_model_outputs[1] # pooled_output, since vision model outputs is a sequence. This is from https://github.dev/huggingface/transformers/blob/v4.39.0/src/transformers/models/clip/modeling_clip.py
+
+            all_image_features = torch.cat((all_image_features, image_features.to(all_image_features.device)), dim=0)
+
+            # append image labels
+            all_labels.extend(indices.tolist())
+
+        print('ALL IMAGE FEATURES ', all_image_features.shape)
+
+        return {
+            'image_features': all_image_features,
+            'labels': all_labels
+        }
+
     def get_dataset_linear_probe_accuracy(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
         '''
         train a linear classifier on the image embeddings to predict the class labels
         input features are from just before the projection head
         '''
 
-        vision_model = clip_model.get_image_encoder().image_model.vision_model
-        # need this vision model to get embeddings BEFORE projection head
+
+
+        print()
+        print('getting clip features for ', dataset_processor.name)
+
+        '''
+        USING VAL AS TRAIN FOR NOW TO SPEED UP LINEAR CLASSIFIER FIT
+        '''
+        # train_clip_outputs = self.get_clip_features_and_labels(clip_model, dataset_processor.train_dataloader)
+        train_clip_outputs = self.get_clip_features_and_labels(clip_model, dataset_processor.val_dataloader)
+        all_train_features = train_clip_outputs['image_features']
+        all_train_labels = train_clip_outputs['labels']
+
+        # do train val split 
+        n_train = int(0.8 * len(all_train_features))
+        all_val_features = all_train_features[n_train:]
+        all_val_labels = all_train_labels[n_train:]
+
+        all_train_features = all_train_features[:n_train]
+        all_train_labels = all_train_labels[:n_train]
+
 
         # setup linear classifier
-        linear_classifier = LogisticRegression(max_iter=1000)
+        linear_classifier = LogisticRegression(max_iter=500, verbose=1)
+        # max iters to 500 FOR NOW TO SPEED UP VALIDATION AND TRAINING
 
-        all_train_features = torch.empty(0, vision_model.config.hidden_size) # shape: ([n, 768])
-        all_train_labels = []
+
 
         print('fitting linear classifier on ', dataset_processor.name)
-
-        for batch in tqdm(dataset_processor.train_dataloader):
-            (train_imgs, train_indices) = batch
-
-            train_imgs = train_imgs.to(clip_model.device)
-
-            vision_model_outputs = vision_model(pixel_values=train_imgs)
-
-            image_features = vision_model_outputs[1] # pooled_output, since vision model outputs is a sequence. This is from https://github.dev/huggingface/transformers/blob/v4.39.0/src/transformers/models/clip/modeling_clip.py
-
-            all_train_features = torch.cat((all_train_features, image_features.to(all_train_features.device)), dim=0)
-
-            # append image labels
-            all_train_labels.extend(train_indices.tolist())
 
 
         # train linear classifier
@@ -221,33 +290,24 @@ class Evaluator():
 
         # get test features
 
-        all_val_features = torch.empty(0, vision_model.config.hidden_size) # shape: ([n, 768])
-        all_val_labels = []
+
+        # print()
+        # print('getting val features for ', dataset_processor.name)
+        # val_clip_outputs = self.get_clip_features_and_labels(clip_model, dataset_processor.val_dataloader)
+        # all_val_features = val_clip_outputs['image_features']
+        # all_val_labels = val_clip_outputs['labels']
+
 
         print('evaluating linear classifier on ', dataset_processor.name)
 
-        for batch in tqdm(dataset_processor.val_dataloader):
-            (val_imgs, val_indices) = batch
-
-            val_imgs = val_imgs.to(clip_model.device)
-
-            vision_model_outputs = vision_model(pixel_values=val_imgs)
-
-            image_features = vision_model_outputs[1]
-
-            all_val_features = torch.cat((all_val_features, image_features.to(all_val_features.device)), dim=0)
-
-            # append image labels
-            all_val_labels.extend(val_indices.tolist())
-
-
-
         # get accuracy
-        accuracy = linear_classifier.score(all_val_features, all_val_labels)
+        # accuracy = linear_classifier.score(all_val_features, all_val_labels)
+        accuracy = dataset_processor.get_accuracy(linear_classifier, all_val_features, all_val_labels)
 
         print(f'{dataset_processor.name}_linear_probe_accuracy ', accuracy)
 
         del all_train_features, all_train_labels, all_val_features, all_val_labels, linear_classifier
+
 
         return accuracy
 

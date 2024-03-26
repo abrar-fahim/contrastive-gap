@@ -91,7 +91,7 @@ def main():
         dataset_processor = WITProcessor()
 
 
-    cifar_dataset_processor = CIFAR10Processor()
+    # cifar_dataset_processor = CIFAR10Processor()
 
     # clip_model = MyClip().to(device)
     # clip_model = OpenAIClip().to(device)
@@ -177,7 +177,6 @@ def main():
 
 
     dataset_processor.print_dataset_stats()
-    cifar_dataset_processor.print_dataset_stats()
     # cifar_dataset_processor = None
 
     '''
@@ -207,7 +206,7 @@ def main():
     Setup evaluator
     '''
 
-    evaluator = Evaluator(dataset_processor, cifar_dataset_processor)
+    evaluator = Evaluator(dataset_processor)
 
     if wandb.config['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, evaluator)
@@ -218,9 +217,9 @@ def main():
 
 
 
-    print()
-    print(f'--- VALIDATING BEFORE TRAINING BEGINS ---')
-    print()
+    # print()
+    # print(f'--- VALIDATING BEFORE TRAINING BEGINS ---')
+    # print()
 
     
 
@@ -237,7 +236,7 @@ def main():
         clip_model.setW(W)
 
 
-    evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
+    # evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
 
 
     return

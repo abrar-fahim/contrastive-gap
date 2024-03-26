@@ -293,6 +293,10 @@ class Trainer(TrainerParent):
 
         for (imgs, captions) in self.dataset_processor.train_dataloader:
 
+            if i % save_every == 0 and wandb.config['do_checkpointing']:
+                self.save_checkpoint_and_validate(clip_model, epoch, i, val_dataset_processor=val_dataset_processor)
+                pass
+
             # captions is a list of batch_size strings 
             logits_per_image, logits_per_text, loss = clip_model(imgs, captions, output_loss=True)
             del logits_per_image
@@ -311,12 +315,6 @@ class Trainer(TrainerParent):
             del loss
 
             del imgs, captions
-
-            if i % save_every == 0 and wandb.config['do_checkpointing']:
-
-
-                self.save_checkpoint_and_validate(clip_model, epoch, i+1, val_dataset_processor=val_dataset_processor)
-                pass
             
             i += 1
 

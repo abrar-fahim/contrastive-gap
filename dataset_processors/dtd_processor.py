@@ -10,23 +10,23 @@ from clips.hf_clip import HFClip
 import numpy as np
 import wandb
 
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import DTD
 
 
-class CIFAR10Processor(DatasetProcessorParent):
+class DTDProcessor(DatasetProcessorParent):
 
     def __init__(self) -> None:
-        self.root = './datasets/cifar10'
+        self.root = './datasets/dtd'
         super().__init__()
 
-        self.name = 'CIFAR 10'
-        self.keyname = self.name.replace(' ', '').lower()
+        self.name = 'Describable Textures Dataset (DTD)'
+        self.keyname = 'dtd'
         self.print_dataset_stats()
         
 
 
     def load_val_dataset(self):
-        self.val_dataset = CIFAR10(root=self.root, train=False, download=True, transform=self.preprocess)
+        self.val_dataset = DTD(root=self.root, download=True, split='test', transform=self.preprocess)
 
         self.classes = self.val_dataset.classes
 
@@ -34,7 +34,7 @@ class CIFAR10Processor(DatasetProcessorParent):
         self.classes = ['photo of ' + class_name for class_name in self.classes]
 
     def load_train_dataset(self):
-        self.train_dataset = CIFAR10(root=self.root, train=True, download=True, transform=self.preprocess)
+        self.train_dataset = DTD(root=self.root, download=True, split='train', transform=self.preprocess)
 
 
 

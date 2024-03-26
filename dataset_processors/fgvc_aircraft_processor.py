@@ -10,23 +10,23 @@ from clips.hf_clip import HFClip
 import numpy as np
 import wandb
 
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import FGVCAircraft
 
 
-class CIFAR10Processor(DatasetProcessorParent):
+class FGVCAircraftProcessor(DatasetProcessorParent):
 
     def __init__(self) -> None:
-        self.root = './datasets/cifar10'
+        self.root = './datasets/fgvc_aircraft'
         super().__init__()
 
-        self.name = 'CIFAR 10'
+        self.name = 'FGVC Aircraft'
         self.keyname = self.name.replace(' ', '').lower()
         self.print_dataset_stats()
         
 
 
     def load_val_dataset(self):
-        self.val_dataset = CIFAR10(root=self.root, train=False, download=True, transform=self.preprocess)
+        self.val_dataset = FGVCAircraft(root=self.root, download=True, split='val', transform=self.preprocess)
 
         self.classes = self.val_dataset.classes
 
@@ -34,7 +34,7 @@ class CIFAR10Processor(DatasetProcessorParent):
         self.classes = ['photo of ' + class_name for class_name in self.classes]
 
     def load_train_dataset(self):
-        self.train_dataset = CIFAR10(root=self.root, train=True, download=True, transform=self.preprocess)
+        self.train_dataset = FGVCAircraft(root=self.root, download=True, split='train', transform=self.preprocess)
 
 
 
