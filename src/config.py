@@ -36,10 +36,10 @@ training_hyperparameters = {
     'seed': 2,
     'selected_clip_model': selected_clip_model.value,
     'dataset': ClipDatasets.MSCOCO.value,
-    'batch_size': 256, 
+    'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 30, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -53,7 +53,7 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256, # SET
+    'small_train_loader_batch_size': 128, # SET
     'small_train_loader_dataset_size': 30000, # 30000
     'num_workers': 4,
     'save_every': 100,

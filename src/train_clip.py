@@ -239,8 +239,6 @@ def main():
     # evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
 
 
-    return
-
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False, val_dataset_processor=cifar_dataset_processor)
     # do_validation(dataset_processor, clip_model, index=i, epoch=epoch, captioning_model=False)
 
@@ -258,7 +256,7 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=wandb.config['save_every'], val_dataset_processor=cifar_dataset_processor)
+        trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=wandb.config['save_every'])
 
         
 

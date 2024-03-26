@@ -14,9 +14,9 @@ from src.wandb_master_trainer import main
 import wandb
 
 
-config.training_hyperparameters['cuda_device'] = 'cuda:0' # SET the cuda device to be used in host4
+config.training_hyperparameters['cuda_device'] = 'cuda:2' # SET the cuda device to be used in host4
             
-sweep_id = 'auwm61o2'
+sweep_id = 'j4l7k8fk'
 
 # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
 wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")

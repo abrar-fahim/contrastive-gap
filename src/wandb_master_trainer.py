@@ -66,7 +66,7 @@ if __name__ == "__main__":
     sweep_configuration = {
         "method": "grid",
         # "method": "random",
-        "name": "Default CLIP, changing gap at init with W ",
+        "name": "Default CLIP, changing gap at init with W, linear probing",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},

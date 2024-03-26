@@ -71,7 +71,7 @@ class TrainerParent(ABC):
     def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
         pass
 
-    def save_checkpoint_and_validate(self, clip_model, epoch, i, val_dataset_processor=None):
+    def save_checkpoint_and_validate(self, clip_model, epoch, i):
 
         clip_model.eval()
         print()
@@ -276,7 +276,7 @@ class Trainer(TrainerParent):
 
 
     
-    def train_one_epoch(self, clip_model, optimizer, i=0, epoch=0, save_every=10, val_dataset_processor=None):
+    def train_one_epoch(self, clip_model, optimizer, i=0, epoch=0, save_every=10):
         '''
         i is parameter because we might be starting in the middle of an epoch from a checkpoint
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
@@ -294,7 +294,7 @@ class Trainer(TrainerParent):
         for (imgs, captions) in self.dataset_processor.train_dataloader:
 
             if i % save_every == 0 and wandb.config['do_checkpointing']:
-                self.save_checkpoint_and_validate(clip_model, epoch, i, val_dataset_processor=val_dataset_processor)
+                self.save_checkpoint_and_validate(clip_model, epoch, i)
                 pass
 
             # captions is a list of batch_size strings 

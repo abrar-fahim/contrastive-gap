@@ -97,6 +97,7 @@ class Evaluator():
             print('loading cache done')
 
         else:
+            print('LOADING VAL BATCH')
             for batch in mscoco_val_dataloader:
                 print('loading val batch')
                 # (val_imgs, val_captions) = next(iter(val_dataloader))
@@ -268,7 +269,7 @@ class Evaluator():
         all_train_labels = train_clip_outputs['labels']
 
         # do train val split 
-        n_train = int(0.8 * len(all_train_features))
+        n_train = int(0.5 * len(all_train_features))
         all_val_features = all_train_features[n_train:]
         all_val_labels = all_train_labels[n_train:]
 
@@ -277,7 +278,7 @@ class Evaluator():
 
 
         # setup linear classifier
-        linear_classifier = LogisticRegression(max_iter=500, verbose=1)
+        linear_classifier = LogisticRegression(max_iter=50, verbose=1)
         # max iters to 500 FOR NOW TO SPEED UP VALIDATION AND TRAINING
 
 
