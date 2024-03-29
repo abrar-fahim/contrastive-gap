@@ -278,7 +278,7 @@ class Trainer(TrainerParent):
 
 
     
-    def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, i=0, epoch=0, save_every=10):
+    def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, scheduler =None, i=0, epoch=0, save_every=10):
         '''
         i is parameter because we might be starting in the middle of an epoch from a checkpoint
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
@@ -294,6 +294,12 @@ class Trainer(TrainerParent):
         clip_model.train()
 
         for (imgs, captions) in self.dataset_processor.train_dataloader:
+
+            step = self.dataset_processor.get_num_batches() * epoch + i
+
+            scheduler(step)
+
+
 
             optimizer.zero_grad()
 

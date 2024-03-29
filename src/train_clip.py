@@ -45,6 +45,8 @@ import numpy as np
 
 from torch.cuda.amp import GradScaler
 
+from src.scheduler import cosine_scheduler
+
 
 
 
@@ -139,6 +141,10 @@ def main():
     optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
 
     scaler = GradScaler()
+
+    n_steps = dataset_processor.get_num_batches() * n_epochs
+
+    scheduler = cosine_scheduler(optimizer, wandb.config['lr'], wandb.config['n_warmup_steps'], n_steps)
     
     
 
@@ -260,7 +266,7 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, optimizer, scaler=scaler, i=i, epoch=epoch, save_every=wandb.config['save_every'])
+        trainer.train_one_epoch(clip_model, optimizer, scaler=scaler,  scheduler=scheduler ,i=i, epoch=epoch, save_every=wandb.config['save_every'])
 
         
 

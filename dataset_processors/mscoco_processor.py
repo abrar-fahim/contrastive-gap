@@ -216,6 +216,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
         stacked_images = torch.stack(imgs) 
         return (stacked_images, tokenized_captions)
 
+
+    def get_num_batches(self) -> int:
+        return len(self.train_dataloader)
     
     @staticmethod
     def seed_dataloader_worker(worker_id):
