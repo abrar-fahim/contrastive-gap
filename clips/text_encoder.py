@@ -36,7 +36,7 @@ class TextEncoder(Encoder):
 
             self.W_set = False
 
-        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
         if from_pretrained:
             print()

@@ -60,7 +60,7 @@ class HFClip(ClipParent):
 
     def __init__(self, encoder1: Encoder, encoder2: Encoder, common_projection_layer: ProjectionLayer = None):
         super().__init__()
-        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
 
         '''

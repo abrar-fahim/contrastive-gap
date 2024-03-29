@@ -9,12 +9,13 @@ import webdataset as wds
 from clips.hf_clip import HFClip
 import numpy as np
 import wandb
+from src.config import config_cuda_device, clip_caption_model_train_hyperparameters
 
 class WITProcessor(DatasetProcessorParent):
 
     def __init__(self) -> None:
         self.train_dataset = None
-        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config_cuda_device if torch.cuda.is_available() else "cpu"
         _, self.preprocess = clip.load(wandb.config['openai_clip_model'], device=self.device)
 
         self.train_dataset = None

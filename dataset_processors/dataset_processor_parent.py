@@ -8,6 +8,17 @@ import random
 import wandb
 from sklearn.linear_model import LogisticRegression
 
+import sys
+import os
+
+# add parent directory to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# add sibling directory to path 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# def 
+
+
+from src.config import config_cuda_device
+
 
 class DatasetProcessorParent(ABC):
 
@@ -15,7 +26,7 @@ class DatasetProcessorParent(ABC):
         self.val_dataset: torch.utils.data.Dataset = None
         self.classes: list = None
         
-        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config_cuda_device if torch.cuda.is_available() else "cpu"
         _, self.preprocess = clip.load(wandb.config['openai_clip_model'], device=self.device)
         # set seed
         torch.manual_seed(wandb.config['seed'])

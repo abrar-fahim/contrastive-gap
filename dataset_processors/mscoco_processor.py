@@ -29,7 +29,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.use_cached_tokenized_captions = False
 
-        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
         self.encoder1_modality = wandb.config['encoder1_modality']
         self.encoder2_modality = wandb.config['encoder2_modality']

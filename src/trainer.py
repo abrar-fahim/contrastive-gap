@@ -12,6 +12,7 @@ from evaluator import Evaluator
 from abc import ABC, abstractmethod
 from torch.autograd.profiler import record_function
 import importlib
+from torch.cuda.amp import GradScaler
 
 import wandb
 
@@ -29,6 +30,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # def 
 
 from clips.hf_clip import HFClipOutput, HFClip
+from config import config_cuda_device
 
 # import torch.multiprocessing as mp
 # import pathos.multiprocessing as mp
@@ -49,7 +51,7 @@ class TrainerParent(ABC):
         '''
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
-        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config_cuda_device if torch.cuda.is_available() else "cpu"
 
         self.val_processes = []
         pass
@@ -63,7 +65,7 @@ class TrainerParent(ABC):
         self.val_processes = []
         self.evaluator = evaluator
 
-        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config_cuda_device if torch.cuda.is_available() else "cpu"
         # mp.set_start_method('forkserver')
         pass
 
@@ -276,7 +278,7 @@ class Trainer(TrainerParent):
 
 
     
-    def train_one_epoch(self, clip_model, optimizer, i=0, epoch=0, save_every=10):
+    def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, i=0, epoch=0, save_every=10):
         '''
         i is parameter because we might be starting in the middle of an epoch from a checkpoint
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
@@ -293,6 +295,8 @@ class Trainer(TrainerParent):
 
         for (imgs, captions) in self.dataset_processor.train_dataloader:
 
+            optimizer.zero_grad()
+
             if i % save_every == 0 and wandb.config['do_checkpointing']:
                 self.save_checkpoint_and_validate(clip_model, epoch, i)
                 pass
@@ -303,11 +307,13 @@ class Trainer(TrainerParent):
             del logits_per_text
 
 
-            loss.backward()
+            scaler.scale(loss).backward()
+            # loss.backward()
+            scaler.step(optimizer)
+            # optimizer.step()
+            scaler.update()
 
-            optimizer.step()
-
-            optimizer.zero_grad()
+            
 
             # print statistics
             print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))

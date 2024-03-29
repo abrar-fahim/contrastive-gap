@@ -66,7 +66,7 @@ if __name__ == "__main__":
     sweep_configuration = {
         "method": "grid",
         # "method": "random",
-        "name": "Default CLIP, changing gap at init with W, linear probing",
+        "name": "Checking AGAIN whether same inputs cause modality gap or no",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -76,9 +76,9 @@ if __name__ == "__main__":
             "pearson_loss": {"values": [False]},
             # "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
             "encoder1_modality": {"values": ["image"]},
-            "encoder2_modality": {"values": ["text"]},
+            "encoder2_modality": {"values": ["image"]},
             "same_encoder": {"values": [False]},
-            "same_inputs": {"values": [False]},
+            "same_inputs": {"values": [True]},
             'second_caption_offset': {'values': [False]},
             'one_encoder': {'values': [False]},
             'common_projection_layer': {'values': [False]},

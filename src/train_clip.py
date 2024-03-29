@@ -43,6 +43,10 @@ from trainer import Trainer, GradCacheTrainer
 from clips.clip_assembler import ClipAssembler
 import numpy as np
 
+from torch.cuda.amp import GradScaler
+
+
+
 
 
 def delete_checkpoint_file(checkpoint_path):
@@ -79,7 +83,7 @@ def main():
 
 
 
-    device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
+    device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
     print('device ', device)
 
@@ -129,14 +133,20 @@ def main():
 
 
     i_loaded_from_checkpoint = False
+
+    # setup adamW optimizer
+
+    optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
+
+    scaler = GradScaler()
     
     
 
     if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint'] and wandb.config['do_checkpointing']:
 
-        # setup adamW optimizer
+        
 
-        optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
+        
 
         print()
         print('--- CONTINUING FROM CHECKPOINT ---')
@@ -168,12 +178,6 @@ def main():
             delete_checkpoint_file(checkpoint_path)
 
             # clip_model.set_weights('default') # because CLIP loads from latest checkpoint in init for inference
-
-
-
-        # setup adamW optimizer
-
-        optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
 
 
     dataset_processor.print_dataset_stats()
@@ -256,7 +260,7 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, optimizer, i=i, epoch=epoch, save_every=wandb.config['save_every'])
+        trainer.train_one_epoch(clip_model, optimizer, scaler=scaler, i=i, epoch=epoch, save_every=wandb.config['save_every'])
 
         
 

@@ -278,7 +278,7 @@ class Evaluator():
 
 
         # setup linear classifier
-        linear_classifier = LogisticRegression(max_iter=50, verbose=1)
+        linear_classifier = LogisticRegression(max_iter=400, verbose=1)
         # max iters to 500 FOR NOW TO SPEED UP VALIDATION AND TRAINING
 
 

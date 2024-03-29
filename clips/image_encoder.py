@@ -21,7 +21,7 @@ class ImageEncoder(Encoder):
         '''
         super().__init__()
 
-        self.device = torch.device(wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu")
+        self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
         self.preprocessor = preprocessor
         self.CLIPVisionConfig = CLIPVisionConfig

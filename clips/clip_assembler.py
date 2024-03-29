@@ -23,7 +23,7 @@ class ClipAssembler():
         assert torch.initial_seed() == wandb.config['seed'], "Seed not set properly"
 
         self.validate_config()
-        self.device = wandb.config['cuda_device'] if torch.cuda.is_available() else "cpu"
+        self.device = config_cuda_device if torch.cuda.is_available() else "cpu"
 
         self.clip_tokenizer = AutoTokenizer.from_pretrained(wandb.config['hf_clip_model'])
 

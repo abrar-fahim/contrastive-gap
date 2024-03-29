@@ -31,6 +31,8 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
+config_cuda_device = 'cuda:3'
+
 training_hyperparameters = {
     'cuda_device': 'cuda:0', # SET index of GPU
     'seed': 2,
@@ -39,7 +41,7 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 40, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'temperature': 0.01,
@@ -54,7 +56,7 @@ training_hyperparameters = {
     'train_from_scratch': True, # SET: this randomly initializes weights
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 128, # SET
-    'small_train_loader_dataset_size': 30000, # 30000
+    'small_train_loader_dataset_size': 35000, # 30000
     'num_workers': 4,
     'save_every': 100,
     'loss_weights': {
@@ -67,16 +69,16 @@ training_hyperparameters = {
 
     # encoder modalities
     'encoder1_modality': 'image', # SET # can be 'image' or 'text'
-    'encoder2_modality': 'text', # SET
+    'encoder2_modality': 'image', # SET
 
     # encoder configs
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
-    'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
+    'same_inputs': True, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
     'one_encoder': False, # SET # modality depends on text_only or image_only
     'common_projection_layer': False, # SET
 
-    'W_layer_gap': 1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+    'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
 
 
     # loss factors
@@ -90,7 +92,7 @@ training_hyperparameters = {
     'n_embeds_to_save': 256, # SET
     # which clip model
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
-    'hf_clip_model': HFClipPretrainedModels.VIT.value,
+    'hf_clip_model': HFClipPretrainedModels.RN50.value,
     'train_only_one_batch': False, # SET
     'save_losses': False,
     'csv_path': 'stats/',
