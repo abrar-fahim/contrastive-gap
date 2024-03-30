@@ -61,8 +61,6 @@ def main():
 if __name__ == "__main__":
 
 
-
-
     sweep_configuration = {
         "method": "grid",
         # "method": "random",

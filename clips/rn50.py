@@ -6,6 +6,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from transformers.models.clip.modeling_clip import CLIPVisionModelOutput
+
 
 class Rn50ModelWithProjection(nn.Module):
     def __init__(self, config: dict):
@@ -67,6 +69,13 @@ class Rn50ModelWithProjection(nn.Module):
         # skipping hidden states for now
 
         image_features = self.visual(pixel_values.type(self.dtype))
+
+        return CLIPVisionModelOutput(
+            image_embeds=image_features,
+            last_hidden_state=None,
+            hidden_states=None,
+            attentions=None
+        )
 
         return image_features
 

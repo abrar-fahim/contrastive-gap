@@ -59,6 +59,7 @@ class ImageEncoder(Encoder):
 
         # preprocessed_images = self.preprocess_images(images)
 
+
         images = images.to(self.device)
 
         image_features = self.image_model(pixel_values=images, output_hidden_states=output_hidden_states)

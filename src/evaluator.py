@@ -58,10 +58,17 @@ class Evaluator():
         '''
         Setup linear probe datasets
         '''
-        print()
-        print('setting up linear probe datasets')
+        # print()
+        # print('setting up linear probe datasets')
         # self.linear_probe_datasets: list[DatasetProcessorParent] = [CIFAR10Processor(), Food101Processor()]
-        self.linear_probe_datasets: list[DatasetProcessorParent] = [ Caltech101Processor(), CIFAR10Processor(), CIFAR100Processor(), DTDProcessor()]
+        # self.linear_probe_datasets: list[DatasetProcessorParent] = [ Caltech101Processor(), CIFAR10Processor(), CIFAR100Processor(), DTDProcessor()]
+
+
+        '''
+        Setting up zero shot acc datasets
+        '''
+
+        self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]
 
         self.encoder1_pooled_hidden_states = []
         self.encoder2_pooled_hidden_states = []
@@ -212,7 +219,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
+                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -229,6 +236,7 @@ class Evaluator():
 
         vision_model = clip_model.get_image_encoder().image_model.vision_model
         # need this vision model to get embeddings BEFORE projection head
+        # FIX THIS FOR RN50 MODEL LATER
 
         all_image_features = torch.empty(0, vision_model.config.hidden_size)
 
@@ -499,6 +507,47 @@ class Evaluator():
 
         return val_image_classification_accuracy.item()
 
+    def get_dataset_zero_shot_acc(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
+
+        with torch.no_grad():
+
+            
+            cifar_classes = dataset_processor.classes
+
+            # tokenize captions
+            # cifar_tokenized_classes = clip_model.tokenize_captions(cifar_classes)
+
+
+
+            cifar10_val_image_classification_accuracy_runsum = 0
+            for batch in tqdm(dataset_processor.val_dataloader):
+                (cifar_val_imgs, cifar_val_indices) = batch
+                
+                
+                # get logits per image
+                # cifar_val_outputs = clip_model(cifar_val_imgs, cifar_tokenized_classes, output_loss=False, return_all=True)
+                cifar_val_outputs = clip_model(cifar_val_imgs, cifar_classes, output_loss=False, return_all=True)
+
+                cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
+
+                # softmax on logits_per_image
+                cifar_val_image_class_probs = F.softmax(cifar_val_logits_per_image, dim=-1) # shape: ([batch_size, 10]). 10 is num_classes in cifar10
+
+                # calculate accuracy
+                # get indices of max values
+                cifar_val_image_class_preds = cifar_val_image_class_probs.argmax(dim=-1) # shape: ([batch_size])
+
+                cifar_val_indices = cifar_val_indices.to(clip_model.device)
+
+                cifar10_val_image_classification_accuracy_runsum += (cifar_val_image_class_preds == cifar_val_indices).float().sum()
+                # print('cifar10_val_image_classification_accuracy_runsum ', cifar10_val_image_classification_accuracy_runsum)
+
+            cifar10_val_image_classification_accuracy = cifar10_val_image_classification_accuracy_runsum / len(dataset_processor.val_dataset)
+            print(f'{dataset_processor.name} zero shot accuracy ', cifar10_val_image_classification_accuracy.item())
+
+        
+            return cifar10_val_image_classification_accuracy
+
 
     def get_cifar10_zero_shot_acc(self, clip_model: HFClip):
 
@@ -540,6 +589,7 @@ class Evaluator():
 
          
                 return cifar10_val_image_classification_accuracy
+        
             
 
 
