@@ -143,10 +143,16 @@ class Evaluator():
             # rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
             # intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
 
-            linear_probe_accuracies = {}
+            linear_probe_accuracies = {
+                'cifar10': -1,
+                'cifar100': -1,
+                'dtd': -1,
+                'caltech101': -1,
 
-            for dataset_processor in self.linear_probe_datasets:
-                linear_probe_accuracies[dataset_processor.keyname] = self.get_dataset_linear_probe_accuracy(clip_model, dataset_processor)
+            }
+
+            # for dataset_processor in self.linear_probe_datasets:
+            #     linear_probe_accuracies[dataset_processor.keyname] = self.get_dataset_linear_probe_accuracy(clip_model, dataset_processor)
 
             average_linear_probe_accuracy = np.mean(list(linear_probe_accuracies.values()))
             std_dev_linear_probe_accuracy = np.std(list(linear_probe_accuracies.values()))
@@ -206,7 +212,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        # 'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
+                        'cifar10_val_image_classification_accuracy': self.get_cifar10_zero_shot_acc(clip_model) if self.val_dataset_processor != None else None,
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later

@@ -31,10 +31,10 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:3'
+config_cuda_device = 'cuda:5'
 
 training_hyperparameters = {
-    'cuda_device': 'cuda:0', # SET index of GPU
+    'cuda_device': 'cuda:5', # SET index of GPU
     'seed': 2,
     'selected_clip_model': selected_clip_model.value,
     'dataset': ClipDatasets.MSCOCO.value,
@@ -44,6 +44,11 @@ training_hyperparameters = {
     'n_epochs': 40, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
+    'n_warmup_steps': 100,
+    'vision_model': 'RN50', # or VIT
+
+
+
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
@@ -92,7 +97,7 @@ training_hyperparameters = {
     'n_embeds_to_save': 256, # SET
     # which clip model
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
-    'hf_clip_model': HFClipPretrainedModels.RN50.value,
+    'hf_clip_model': HFClipPretrainedModels.VIT.value,
     'train_only_one_batch': False, # SET
     'save_losses': False,
     'csv_path': 'stats/',

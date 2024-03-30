@@ -7,6 +7,8 @@ from src.config import *
 
 from clips.encoder import Encoder
 
+from clips.rn50 import Rn50ModelWithProjection
+
 
 
 
@@ -29,6 +31,8 @@ class ImageEncoder(Encoder):
 
         self.pooler_layer_norm = torch.nn.LayerNorm(CLIPVisionConfig.hidden_size, eps=CLIPVisionConfig.layer_norm_eps, elementwise_affine=False) # no trainable params
 
+        self.vision_model = wandb.config['vision_model']
+
         if from_pretrained:
             print()
             print(f" --- Initializing {name} from pretrained model ---")
@@ -37,10 +41,13 @@ class ImageEncoder(Encoder):
 
         else:
             print()
-            print(f" --- Initializing {name} from scratch --- ")
+            print(f" --- Initializing {name}: {self.vision_model} from scratch --- ")
             print()
 
-            self.image_model = CLIPVisionModelWithProjection(CLIPVisionConfig).to(self.device)
+            if self.vision_model == 'RN50':
+                self.image_model = Rn50ModelWithProjection(CLIPVisionConfig).to(self.device)
+            elif self.vision_model == 'VIT':
+                self.image_model = CLIPVisionModelWithProjection(CLIPVisionConfig).to(self.device)
 
             self.image_model.init_weights()
 
