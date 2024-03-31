@@ -68,7 +68,12 @@ class Evaluator():
         Setting up zero shot acc datasets
         '''
 
-        self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]
+        if wandb.config['encoder2_modality'] == 'image' or wandb.config['encoder1_modality'] == 'text':
+            # since 1 should be image and 2 should be text, this means that both modalities are same, so zero shot performance is NOT possible
+            self.zero_shot_datasets: list[DatasetProcessorParent] = [None]
+        else:
+
+            self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
 
         self.encoder1_pooled_hidden_states = []
         self.encoder2_pooled_hidden_states = []
@@ -227,7 +232,8 @@ class Evaluator():
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
-                    step= int(epoch * 470 + index), # by 100 to maintain fair comparison with existing runs data
+                    # step= int(epoch * 470 + index), # by 100 to maintain fair comparison with existing runs data
+                    step= int(epoch * self.dataset_processor.get_num_batches() + index), # by 100 to maintain fair comparison with existing runs data
                     
 
                 )
@@ -511,7 +517,11 @@ class Evaluator():
 
         return val_image_classification_accuracy.item()
 
-    def get_dataset_zero_shot_acc(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
+    def get_dataset_zero_shot_acc(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent) -> float:
+
+        if dataset_processor == None:
+            return  0
+
 
         with torch.no_grad():
 

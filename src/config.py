@@ -41,33 +41,33 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 40, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 4000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'use_scheduler': True,
     'n_warmup_steps': 100,
-    'vision_model': 'RN50', # or VIT
+    'vision_model': 'VIT', # RN50 or VIT
 
 
 
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 1024, # SET
-    'validation_batch_size': 1024, # SET
+    'validation_dataset_size': 128, # SET
+    'validation_batch_size': 128, # SET
     'cifar_batch_size': 128,
-    'use_cached_val_batch': True, # SET
+    'use_cached_val_batch': True, 
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
-    'train_from_scratch': True, # SET: this randomly initializes weights
+    'train_from_scratch': True, # this randomly initializes weights
     
     
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 128, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
     'small_train_loader_dataset_size': 128, # SO that I'm only training a single batch
-    'num_workers': 4,
-    'save_every': 100,
+    'num_workers': 0,
+    'save_every': 25,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -98,12 +98,12 @@ training_hyperparameters = {
 
     # validation batch stuff
     'train_only_one_batch': False,
-    'use_train_as_val': False, # SET
+    'use_train_as_val': True, # SET
 
 
     # Saving embeds and encoder hidden states
-    'save_encoder_hidden_states': False, # SET
-    'n_embeds_to_save': 256, # SET
+    'save_encoder_hidden_states': False, 
+    'n_embeds_to_save': 256, 
     # which clip model
     'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
     'hf_clip_model': HFClipPretrainedModels.VIT.value,
@@ -115,81 +115,6 @@ training_hyperparameters = {
     }
 
 
-
-
-
-'''
-
- Training CLIP in hosts 2 or 3
-'''
-
-
-training_hyperparameters2 = {
-    'cuda_device': 'cuda:0', # SET index of GPU
-    'seed': 2,
-    'selected_clip_model': selected_clip_model.value,
-    'dataset': ClipDatasets.MSCOCO.value,
-    'batch_size': 128, 
-    'grad_cache': False,
-    'grad_cache_multiplier': 16,
-    'n_epochs': 2, # SET 12 for scratch, (6 for finetune?)
-    'max_steps': None, # SET or None, in which case each epoch goes through all the data
-    'lr': 1.5e-5,
-    'temperature': 0.01,
-    'intra_modality_temperature': 0.01,
-    'weight_decay': 0.2,
-    'validation_dataset_size': 256, # SET
-    'validation_batch_size': 256, # SET
-    'cifar_batch_size': 128,
-    'use_cached_val_batch': True, # SET
-    'do_checkpointing': True,
-    'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
-    'train_from_scratch': True, # SET: this randomly initializes weights
-    'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 64, # SET
-    'small_train_loader_dataset_size': 30000, # 30000
-    'num_workers': 4,
-    'save_every': 100,
-    'loss_weights': {
-        'image_to_text_weight': 0.5,
-        'text_to_image_weight': 0.5,
-    },
-
-
-    # these are set by wandb sweep
-
-    # encoder modalities
-    'encoder1_modality': 'image', # SET # can be 'image' or 'text'
-    'encoder2_modality': 'text', # SET
-
-    # encoder configs
-    'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
-    'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
-    'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
-    'one_encoder': False, # SET # modality depends on text_only or image_only
-    'common_projection_layer': False, # SET
-
-    'W_layer_gap': 1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
-
-
-    # loss factors
-    'intra_modality_loss': False, 
-    'rsa_loss': False,
-    'pearson_loss': False,
-
-
-    # Saving embeds and encoder hidden states
-    'save_encoder_hidden_states': False, # SET
-    'n_embeds_to_save': 256, # SET
-    # which clip model
-    'openai_clip_model': OpenAIClipPretrainedModels.VIT.value,
-    'hf_clip_model': HFClipPretrainedModels.VIT.value,
-    'train_only_one_batch': False, # SET
-    'save_losses': False,
-    'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
-    'show_incorrect_images': False,
-    }
 
 '''
 2. Training CLIP caption model

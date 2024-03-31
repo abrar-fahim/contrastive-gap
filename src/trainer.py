@@ -306,7 +306,12 @@ class Trainer(TrainerParent):
 
             optimizer.zero_grad()
 
-            if i % save_every == 0 and wandb.config['do_checkpointing']:
+            # calculate current_step
+            current_step = epoch * self.dataset_processor.get_num_batches() + i
+
+            # if i % save_every == 0 and wandb.config['do_checkpointing']:
+
+            if current_step % save_every == 0 and wandb.config['do_checkpointing']:
                 self.save_checkpoint_and_validate(clip_model, epoch, i)
                 pass
 
@@ -329,7 +334,7 @@ class Trainer(TrainerParent):
 
             del loss
 
-            del imgs, captions
+            # del imgs, captions
             
             i += 1
 
