@@ -16,6 +16,9 @@ def cosine_scheduler(optimizer, base_lr, num_warmup_steps, total_steps):
             d = total_steps - num_warmup_steps
             lr = 0.5 * (1 + np.cos(np.pi * n / d)) * base_lr
 
+        
+        
+
         for param_group in optimizer.param_groups:
             param_group["lr"] = lr
             

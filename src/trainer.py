@@ -297,7 +297,10 @@ class Trainer(TrainerParent):
 
             step = self.dataset_processor.get_num_batches() * epoch + i
 
-            scheduler(step)
+
+            if wandb.config['use_scheduler']:
+
+                scheduler(step)
 
 
 

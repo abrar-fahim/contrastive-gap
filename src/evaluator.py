@@ -79,12 +79,16 @@ class Evaluator():
         setting dataloaders
         '''
         if not (os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']):
-            # only create dataloaders if batch is not cached
+
+            if wandb.config['use_train_as_val']:
+                mscoco_val_dataset =  self.dataset_processor.train_dataset
+                batch_size = wandb.config['small_train_loader_batch_size'] # MAYBE CHANGE LATER
+            else:
+                mscoco_val_dataset =  self.dataset_processor.val_dataset
+                batch_size = wandb.config['validation_batch_size']
 
             collate_fn = self.dataset_processor.collate_fn
-            mscoco_val_dataset =  self.dataset_processor.val_dataset
-            collate_fn =  self.dataset_processor.collate_fn
-            mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=wandb.config['validation_batch_size'], collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
+            mscoco_val_dataloader = torch.utils.data.DataLoader(mscoco_val_dataset, batch_size=batch_size, collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
 
 

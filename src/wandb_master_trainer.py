@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Default CLIP with scheduler and grad scaler, and resnet50",
+        "name": "Images only, RN50, train only one batch, val the train batch itself",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -82,14 +82,16 @@ if __name__ == "__main__":
             'one_encoder': {'values': [False]},
             'common_projection_layer': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
-            # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [0.0005]}, # 5e-4, from CyClip paper
+            "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+            # "lr": {'values': [0.0005]}, # 5e-4, from CyClip paper
+
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
             'seed': {'values': [2]},
 
 
-            'W_layer_gap': {'values': [0, 0.25, 0.5, 1, 2]},
+            # 'W_layer_gap': {'values': [0, 0.25, 0.5, 1, 2]},
+            'W_layer_gap': {'values': [-1]},
         },
     }
 
