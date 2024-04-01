@@ -66,7 +66,7 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 32, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
     'small_train_loader_dataset_size': 32, # SO that I'm only training a single batch
-    'num_workers': 0,
+    'num_workers': 4,
     'save_every': 25,
     'loss_weights': {
         'image_to_text_weight': 0.5,
