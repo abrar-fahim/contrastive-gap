@@ -283,10 +283,7 @@ class Trainer(TrainerParent):
         i is parameter because we might be starting in the middle of an epoch from a checkpoint
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
         '''
-
-
-        
-        
+   
 
         if wandb.config['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
@@ -294,6 +291,7 @@ class Trainer(TrainerParent):
         clip_model.train()
 
         for (imgs, captions) in self.dataset_processor.train_dataloader:
+
 
             step = self.dataset_processor.get_num_batches() * epoch + i
 
@@ -306,12 +304,9 @@ class Trainer(TrainerParent):
 
             optimizer.zero_grad()
 
-            # calculate current_step
-            current_step = epoch * self.dataset_processor.get_num_batches() + i
-
             # if i % save_every == 0 and wandb.config['do_checkpointing']:
 
-            if current_step % save_every == 0 and wandb.config['do_checkpointing']:
+            if step % save_every == 0 and wandb.config['do_checkpointing']:
                 self.save_checkpoint_and_validate(clip_model, epoch, i)
                 pass
 
@@ -344,7 +339,13 @@ class Trainer(TrainerParent):
             if wandb.config['max_steps'] is not None and i >= wandb.config['max_steps']:
                 break
 
+            
+
+
+
             torch.cuda.empty_cache()
+
+
 
             
 

@@ -53,8 +53,8 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 128, # SET
-    'validation_batch_size': 128, # SET
+    'validation_dataset_size': 32, # SET
+    'validation_batch_size': 32, # SET
     'cifar_batch_size': 128,
     'use_cached_val_batch': True, 
     'do_checkpointing': True,
@@ -63,9 +63,9 @@ training_hyperparameters = {
     
     
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 128, # SET
+    'small_train_loader_batch_size': 32, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
-    'small_train_loader_dataset_size': 128, # SO that I'm only training a single batch
+    'small_train_loader_dataset_size': 32, # SO that I'm only training a single batch
     'num_workers': 0,
     'save_every': 25,
     'loss_weights': {

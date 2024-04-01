@@ -818,8 +818,8 @@ class Evaluator():
         text_encoder_outputs = text_embeds
 
         # normalize features
-        image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=0, keepdim=True)
-        text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=0, keepdim=True)
+        image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
+        text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
 
 
         # get centroids
@@ -854,8 +854,8 @@ class Evaluator():
             text_encoder_outputs = text_embeds
 
             # normalize features
-            image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=0, keepdim=True)
-            text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=0, keepdim=True)
+            image_encoder_outputs = image_encoder_outputs / torch.norm(image_encoder_outputs, dim=1, keepdim=True)
+            text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)
 
 
             # get centroids
