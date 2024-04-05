@@ -65,12 +65,12 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images only, RN50, train only one batch, val the train batch itself",
+        "name": "Images only toy data, with intra-modality loss",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
             # "intra_modality_loss": {"values": [True, False]},
-            "intra_modality_loss": {"values": [False]},
+            "intra_modality_loss": {"values": [True]},
             "rsa_loss": {"values": [False]},
             "pearson_loss": {"values": [False]},
             # "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
@@ -81,6 +81,7 @@ if __name__ == "__main__":
             'second_caption_offset': {'values': [False]},
             'one_encoder': {'values': [False]},
             'common_projection_layer': {'values': [False]},
+            'scaled_denominator': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             # "lr": {'values': [0.0005]}, # 5e-4, from CyClip paper
@@ -91,7 +92,8 @@ if __name__ == "__main__":
 
 
             # 'W_layer_gap': {'values': [0, 0.25, 0.5, 1, 2]},
-            'W_layer_gap': {'values': [-1]},
+            'W_layer_gap': {'values': [-1, 0]},
+            # 'W_layer_gap': {'values': [-1]},
         },
     }
 

@@ -65,6 +65,9 @@ class ImageEncoder(Encoder):
         image_features = self.image_model(pixel_values=images, output_hidden_states=output_hidden_states)
         # del preprocessed_images
 
+        if self.W is not None and self.W_set:
+            image_features.image_embeds = self.align_embeddings(image_features.image_embeds)
+
         return {
             'embeds': image_features.image_embeds,
             'hidden_states': image_features.hidden_states if output_hidden_states else None,

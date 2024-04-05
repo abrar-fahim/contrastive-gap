@@ -155,7 +155,7 @@ class HFClip(ClipParent):
 
     def setW(self, W: torch.FloatTensor):
 
-        assert isinstance(self.encoder2, TextEncoder), 'Encoder 2 is not text encoder'
+        # assert isinstance(self.encoder2, TextEncoder), 'Encoder 2 is not text encoder'
 
         self.encoder2.setW(W)
 
@@ -401,6 +401,9 @@ class HFClip(ClipParent):
 
             inter_modality_loss = self.loss(logits_per_encoder1_embeds, labels) * encoder1_weight + self.loss(logits_per_encoder2_embeds, labels) * encoder2_weight 
 
+            if wandb.config['scaled_denominator']:
+                inter_modality_loss = inter_modality_loss - torch.log(torch.tensor(logits_per_encoder1_embeds.shape[0]).to(self.device))
+
             del labels
 
             if wandb.config['intra_modality_loss']:
@@ -582,7 +585,8 @@ class HFClip(ClipParent):
                 pearson_rsa_loss = -(text_corr[0, 1] + image_corr[0, 1]) / 2
 
 
-            inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight 
+            inter_modality_loss = self.loss(logits_per_image, labels) * image_weight + self.loss(logits_per_text, labels) * text_weight
+
 
             if wandb.config['intra_modality_loss']:
                 loss = (intra_modality_loss + inter_modality_loss) / 2

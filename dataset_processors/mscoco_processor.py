@@ -246,8 +246,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
             )
         else:
             train_dataset = dset.CocoCaptions(
-            # root = './datasets/mscoco/val2014',
-            root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
+            root = './datasets/mscoco/val2014',
+            # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
             # transform=[transforms.PILToTensor()])
             transform=self.image_preprocessor,

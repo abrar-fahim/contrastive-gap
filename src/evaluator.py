@@ -148,7 +148,7 @@ class Evaluator():
             log to wandb
             '''
 
-            average_intra_modality_cosine_sim = self.get_text_text_similarity() + self.get_image_image_similarity()  / 2
+            average_intra_modality_cosine_sim = (self.get_text_text_similarity() + self.get_image_image_similarity() ) / 2
 
             mods_same = wandb.config['encoder1_modality'] == wandb.config['encoder2_modality']
 

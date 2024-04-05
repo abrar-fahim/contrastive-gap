@@ -29,12 +29,6 @@ class TextEncoder(Encoder):
         self.CLIPTextConfig = CLIPTextConfig
         self.hidden_size = CLIPTextConfig.hidden_size
 
-        self.W = None
-
-        if wandb.config['W_layer_gap'] >= 0:
-            self.W: torch.FloatTensor = torch.empty(512, 512)
-
-            self.W_set = False
 
         self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
@@ -52,45 +46,9 @@ class TextEncoder(Encoder):
             self.text_model = CLIPTextModelWithProjection(CLIPTextConfig).to(self.device)
             self.text_model.init_weights()
 
-
-            
-            
-
         for param in self.text_model.parameters():
             param.requires_grad = True
 
-
-    def setW(self, W: torch.FloatTensor):
-        '''
-        Set W for alignment
-        '''
-
-        assert wandb.config['W_layer_gap'] >= 0, "W_layer_gap must be >= 0"
-        
-
-        assert W.shape == (512, 512), f"self.W.shape = {self.W.shape}"
-
-        self.W = W.to(self.device)
-
-        self.W_set = True
-
-
-
-
-    def align_embeddings(self, embeds: torch.FloatTensor):
-        '''
-        Aligns embeddings to the first encoder's embeddings
-        '''
-
-        assert self.W_set, "W not set"
-
-        # normalize embeds 
-        embeds = embeds / embeds.norm(dim=-1, keepdim=True)
-
-        if self.W is None:
-            return embeds
-
-        return embeds @ self.W.T
 
 
 
