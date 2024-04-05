@@ -16,6 +16,7 @@ from clips.projection_layer import ProjectionLayer
 from collections import OrderedDict
 from typing import Any, Optional, Tuple, Union
 from dataclasses import dataclass
+from src.my_ce_loss import MyCrossEntropyLoss, MyCEAlignmentLoss
 
 @dataclass
 class HFClipOutput(OrderedDict):
@@ -117,7 +118,12 @@ class HFClip(ClipParent):
 
         # if path doesnt exist, it means we're starting from pretrained model anyway
 
-        self.loss = torch.nn.CrossEntropyLoss()
+        # self.loss = torch.nn.CrossEntropyLoss()
+
+        self.loss = MyCrossEntropyLoss()
+        # self.loss = MyCEAlignmentLoss()
+
+
 
         print()
         print('--- HF CLIP MODEL ---')
