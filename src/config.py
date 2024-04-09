@@ -61,7 +61,6 @@ training_hyperparameters = {
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # this randomly initializes weights
     
-    
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 32, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
@@ -78,7 +77,7 @@ training_hyperparameters = {
 
     # encoder modalities
     'encoder1_modality': 'image', # SET # can be 'image' or 'text'
-    'encoder2_modality': 'text', # SET
+    'encoder2_modality': 'image', # SET
 
     # encoder configs
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
@@ -94,7 +93,7 @@ training_hyperparameters = {
     'intra_modality_loss': False, 
     'rsa_loss': False,
     'pearson_loss': False,
-    'scaled_denominator': True, # SET
+    'scaled_denominator': False, # SET
 
 
     # validation batch stuff
