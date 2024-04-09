@@ -15,7 +15,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
         self.train_dataset = None
-
         self.train_dataset = None
         self.train_dataloader = None
         self.train_subset_indices = None
@@ -160,7 +159,27 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
                 
+        if wandb.config['mismatched_pairs']:
 
+            if self.encoder2_modality == 'text':
+
+                assert type(outputs2) == list, f"encoder2 is texts, but outputs2 is not a list: its  {type(outputs2)}"
+                # shuffle outputs2
+                # outputs2 = random.sample(outputs2, len(outputs2))
+
+                # shift outputs2 by 1
+                outputs2 = [outputs2[-1]] + outputs2[:-1]
+
+            elif self.encoder2_modality == 'image':
+
+                assert type(outputs2) == torch.Tensor, f"encoder2 is images, but outputs2 is not a tensor: its {type(outputs2)}"
+
+                # shuffle outputs2
+                # outputs2 = outputs2[torch.randperm(outputs2.size()[0])]
+
+
+                # shift outputs2 by 1
+                outputs2 = torch.roll(outputs2, shifts=1, dims=0)
 
         return (outputs1, outputs2)
 
@@ -248,8 +267,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
             )
         else:
             train_dataset = dset.CocoCaptions(
-            # root = './datasets/mscoco/val2014',
-            root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
+            root = './datasets/mscoco/val2014',
+            # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
             # transform=[transforms.PILToTensor()])
             transform=self.image_preprocessor,

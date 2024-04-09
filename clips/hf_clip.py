@@ -74,8 +74,11 @@ class HFClip(ClipParent):
         self.same_encoder = wandb.config['same_encoder']
         self.second_caption_offset = wandb.config['second_caption_offset']
         self.one_encoder = wandb.config['one_encoder']
+        self.mismatched_pairs = wandb.config['mismatched_pairs']
 
         self.common_projection_layer = common_projection_layer
+
+        
 
         '''
         Set encoders
@@ -120,8 +123,8 @@ class HFClip(ClipParent):
 
         # self.loss = torch.nn.CrossEntropyLoss()
 
-        self.loss = MyCrossEntropyLoss()
-        # self.loss = MyCEAlignmentLoss()
+        # self.loss = MyCrossEntropyLoss()
+        self.loss = MyCEAlignmentLoss()
 
 
 
@@ -324,7 +327,7 @@ class HFClip(ClipParent):
         assert torch.allclose(normalized_encoder1_embeds.norm(p=2, dim=-1), torch.tensor(1.0).to(self.device)), 'encoder1 embeds are not normalized'
         assert torch.allclose(normalized_encoder2_embeds.norm(p=2, dim=-1), torch.tensor(1.0).to(self.device)), 'encoder2 embeds are not normalized'
         
-        if self.same_inputs:
+        if self.same_inputs and not self.mismatched_pairs:
               
 
             if self.encoder1_modality == 'text':

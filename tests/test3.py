@@ -1,16 +1,23 @@
-import sys
-import os
+import torch
 
-# add parent directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-# add sibling directory to path 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# def 
+import random
 
-from dataset_processors.cifar10_processor import CIFAR10Processor
+# seed
+torch.manual_seed(42)
+random.seed(42)
+
+a = torch.tensor([1, 2, 3, 4, 5])
+
+b = [1, 2, 3, 4, 5]
+
+# shift b by one
+c = [b[-1]] + b[:-1]
+# c = b[1:] + [b[0]]
+
+print(c)
 
 
-cifar10 = CIFAR10Processor()
+# shift a by one
+d = torch.roll(a, shifts=1, dims=0)
 
-cifar10.print_dataset_stats()
-
-print(cifar10.val_dataset[0])
+print(d)
