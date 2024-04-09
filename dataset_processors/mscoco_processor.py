@@ -46,7 +46,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if not self.same_inputs and self.encoder1_modality == self.encoder2_modality == 'image':
             self.same_image_transforms = v2.Compose([
-                v2.RandomResizedCrop(size=(224, 224), scale=(0.2, 0.5)),
+                v2.RandomResizedCrop(size=(224, 224), scale=(0.2, 0.5), ),
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
                 # v2.ToDtype(torch.float32, scale=True),
@@ -123,8 +123,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
             else:
                 if self.encoder1_modality == "image":
                     # images should be augmented somehow
-
-                    print('Augmenting images...')
 
                     imgs2 = [self.same_image_transforms(img) for img in imgs]
 

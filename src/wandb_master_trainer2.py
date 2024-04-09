@@ -31,7 +31,7 @@ def main():
     
     wandb.init() 
 
-    print('wandb config ', wandb.config)
+    # print('wandb config ', wandb.config)
 
     # set_hypers() # no need to set hypers anymore, wandb automatically does this
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images toy data, only alignment in CE loss, same encoder, mismatched pairs",
+        "name": "Captions toy data, different inputs, same encoders at init, shared projection only alignment in CE loss",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -74,17 +74,17 @@ if __name__ == "__main__":
             "rsa_loss": {"values": [False]},
             "pearson_loss": {"values": [False]},
             # "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
-            "encoder1_modality": {"values": ["image"]},
-            "encoder2_modality": {"values": ["image"]},
+            "encoder1_modality": {"values": ["text"]},
+            "encoder2_modality": {"values": ["text"]},
 
-            "same_encoder": {"values": [False]},
+            "same_encoder": {"values": [True]},
             "same_inputs": {"values": [False]},
             'second_caption_offset': {'values': [False]},
-            'one_encoder': {'values': [True]},
+            'one_encoder': {'values': [False]},
 
-            'mismatched_pairs': {'values': [True]},
+            'mismatched_pairs': {'values': [False]},
 
-            'common_projection_layer': {'values': [False]},
+            'common_projection_layer': {'values': [True]},
             'scaled_denominator': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
