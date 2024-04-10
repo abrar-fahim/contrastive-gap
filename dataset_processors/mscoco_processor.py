@@ -46,7 +46,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if not self.same_inputs and self.encoder1_modality == self.encoder2_modality == 'image':
             self.same_image_transforms = v2.Compose([
-                v2.RandomResizedCrop(size=(224, 224), scale=(0.2, 0.5), ),
+                v2.RandomResizedCrop(size=(224, 224), scale=(0.2, 0.5), antialias=True),
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
                 # v2.ToDtype(torch.float32, scale=True),
@@ -256,17 +256,26 @@ class MSCOCOProcessor(DatasetProcessorParent):
         - self.show_real_images_captions is set to True in the middle of do_validation in validate.py
         '''
 
+        root: str = None
+        
+        if wandb.config['host'] == 'cirrus':
+            root = './datasets/mscoco/val2014'
+
+        elif wandb.config['host'] == 'local':
+            root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014'
+        else:
+            raise ValueError('Invalid host')
+
         if wandb.config['show_incorrect_images'] or self.return_org_imgs_collate_fn: 
             # no preprocess here, instead have it in collate fn
-            train_dataset = dset.CocoCaptions(root = './datasets/mscoco/val2014',
+            train_dataset = dset.CocoCaptions(root = root,
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
             # transform=[transforms.PILToTensor()])
             # transform=self.preprocess, # transforming in collate instead
             )
         else:
             train_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco/val2014',
-            # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
+            root = root,
             annFile = 'datasets/mscoco/annotations/captions_val2014.json',
             # transform=[transforms.PILToTensor()])
             transform=self.image_preprocessor,

@@ -16,6 +16,7 @@ import pickle
 from scipy import stats
 from sklearn.linear_model import LogisticRegression
 from torch.utils.data import DataLoader
+from sklearn.decomposition import PCA
 
 
 import sys
@@ -53,6 +54,9 @@ class Evaluator():
         self.mscoco_train_dataloader: torch.utils.data.DataLoader = None
 
         self.val_outputs: HFClipOutput = None
+
+        self.pca: PCA = PCA(n_components=2) # for visualizing embeddings
+        self.pca_fitted = False
 
 
         '''
@@ -238,6 +242,54 @@ class Evaluator():
 
                 )
 
+            if wandb.config['visualize_embeddings']:
+                self.plot_embeddings()
+
+    def plot_embeddings(self):
+        '''
+        plot embeddings
+        '''
+
+        encoder1_embeddings = self.val_outputs.image_embeds
+        encoder2_embeddings = self.val_outputs.text_embeds
+
+        # normalize embeddings
+        encoder1_embeddings = encoder1_embeddings / torch.norm(encoder1_embeddings, dim=1, keepdim=True)
+        encoder2_embeddings = encoder2_embeddings / torch.norm(encoder2_embeddings, dim=1, keepdim=True)
+
+        # pca to 2d
+
+        all_embeddings = torch.cat((encoder1_embeddings, encoder2_embeddings), dim=0)
+
+        if not self.pca_fitted:
+            self.pca.fit(all_embeddings.cpu().numpy())
+            self.pca_fitted = True
+        
+        all_embeddings_pca = self.pca.transform(all_embeddings.cpu().numpy())
+
+
+
+        # plot
+        plt.scatter(all_embeddings_pca[:encoder1_embeddings.shape[0], 0], all_embeddings_pca[:encoder1_embeddings.shape[0], 1], label='image', color='red')
+        plt.scatter(all_embeddings_pca[encoder1_embeddings.shape[0]:, 0], all_embeddings_pca[encoder1_embeddings.shape[0]:, 1], label='text', color='blue')
+
+
+
+        # draw lines between embeddings
+        for i in range(encoder1_embeddings.shape[0]):
+            plt.plot([all_embeddings_pca[i, 0], all_embeddings_pca[i + encoder1_embeddings.shape[0], 0]], [all_embeddings_pca[i, 1], all_embeddings_pca[i + encoder1_embeddings.shape[0], 1]], color='black', alpha=0.5)
+
+        # fix x and y limits
+        plt.xlim(-0.5, 0.5)
+        plt.ylim(-0.5, 0.5)
+
+        plt.legend()
+        plt.show()
+
+        
+
+
+        pass
 
     def get_clip_features_and_labels(self, clip_model: HFClip, dataloader: DataLoader) -> dict:
         '''

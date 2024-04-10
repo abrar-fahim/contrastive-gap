@@ -84,7 +84,7 @@ def main():
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
 
-
+        
     device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
     print('device ', device)
