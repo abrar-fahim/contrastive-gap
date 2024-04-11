@@ -11,6 +11,7 @@ import numpy as np
 from collections import OrderedDict
 
 from torchvision.transforms import v2
+from torchvision.transforms.functional import resized_crop
 class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
@@ -46,7 +47,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if not self.same_inputs and self.encoder1_modality == self.encoder2_modality == 'image':
             self.same_image_transforms = v2.Compose([
-                v2.RandomResizedCrop(size=(224, 224), scale=(0.2, 0.5), antialias=True),
+                # v2.RandomResizedCrop(size=(224, 224), scale=(0.2, 0.5), antialias=True),
+                
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),
                 # v2.ToDtype(torch.float32, scale=True),
@@ -124,7 +126,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
                 if self.encoder1_modality == "image":
                     # images should be augmented somehow
 
-                    imgs2 = [self.same_image_transforms(img) for img in imgs]
+                    # imgs2 = [self.same_image_transforms(img) for img in imgs]
+                    imgs2 = [resized_crop(img, size=(224, 224), top=50, left=50, height=100, width=100, antialias=True) for img in imgs]
 
                     
 
