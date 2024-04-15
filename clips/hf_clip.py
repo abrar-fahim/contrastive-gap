@@ -77,6 +77,7 @@ class HFClip(ClipParent):
         self.mismatched_pairs = wandb.config['mismatched_pairs']
 
         self.common_projection_layer = common_projection_layer
+        self.shared_transformer_layers = wandb.config['shared_transfomer_layers']
 
         
 
@@ -123,8 +124,8 @@ class HFClip(ClipParent):
 
         # self.loss = torch.nn.CrossEntropyLoss()
 
-        # self.loss = MyCrossEntropyLoss()
-        self.loss = MyCEAlignmentLoss()
+        self.loss = MyCrossEntropyLoss()
+        # self.loss = MyCEAlignmentLoss()
 
 
 

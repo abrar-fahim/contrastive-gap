@@ -56,6 +56,16 @@ class ClipAssembler():
 
         self.clip_vision_config = CLIPVisionConfig()
 
+
+        if wandb.config['shared_transformer_layers']:
+            # set text config to be same as vision config
+
+            self.clip_text_config.hidden_size = self.clip_vision_config.hidden_size
+            self.clip_text_config.layer_norm_eps = self.clip_vision_config.layer_norm_eps
+            self.clip_text_config.num_attention_heads = self.clip_vision_config.num_attention_heads
+            self.clip_text_config.attention_dropout = self.clip_vision_config.attention_dropout
+            self.clip_text_config.initializer_factor = self.clip_vision_config.initializer_factor
+           
         '''
         Setting Encoders
         '''
@@ -125,6 +135,30 @@ class ClipAssembler():
             self.projection_layer = ProjectionLayer()
         else:
             self.projection_layer = None
+
+
+        if wandb.config['shared_transformer_layers']:
+            print()
+            print("--- Setting shared transformer layers --- ")
+            
+            if type(self.encoder1) == TextEncoder:
+                model1 = self.encoder1.text_model
+            elif type(self.encoder1) == ImageEncoder:
+                model1 = self.encoder1.image_model
+            
+            if type(self.encoder2) == TextEncoder:
+                model2 = self.encoder2.text_model
+            elif type(self.encoder2) == ImageEncoder:
+                model2 = self.encoder2.image_model
+
+            model1.encoder = model2.encoder
+
+            # config stuff used in encoder
+            # hidden_size, layer_norm_eps, 
+
+
+
+            
 
 
 

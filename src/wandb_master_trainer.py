@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images, alignment only loss, no logit scaling",
+        "name": "Images, Full CLIP loss, shared transformer layers",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -85,6 +85,7 @@ if __name__ == "__main__":
             'mismatched_pairs': {'values': [False]},
 
             'common_projection_layer': {'values': [False]},
+            'shared_transformer_layers': {'values': [True]},
             'scaled_denominator': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

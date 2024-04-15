@@ -80,19 +80,23 @@ training_hyperparameters = {
 
     # these are set by wandb sweep
 
-    # encoder modalities
+    # Architecture settings
     'encoder1_modality': 'image', # SET # can be 'image' or 'text'
     'encoder2_modality': 'image', # SET
 
-    # encoder configs
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
+    'one_encoder': True, # SET # modality depends on text_only or image_only
+    'common_projection_layer': False, # SET
+    'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+    'shared_transfomer_layers': True , # SET
+
+    # encoder configs
+   
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
-    'one_encoder': True, # SET # modality depends on text_only or image_only
     'mismatched_pairs': False, # SET 
-    'common_projection_layer': False, # SET
 
-    'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+
 
 
     # loss factors
