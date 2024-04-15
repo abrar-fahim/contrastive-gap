@@ -31,7 +31,7 @@ def main():
     
     wandb.init() 
 
-    print('wandb config ', wandb.config)
+    # print('wandb config ', wandb.config)
 
     # set_hypers() # no need to set hypers anymore, wandb automatically does this
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images toy data, only alignment in CE loss, same encoder, mismatched pairs",
+        "name": "Images real inputs, FULL CLIP loss, one encoder",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -80,9 +80,9 @@ if __name__ == "__main__":
             "same_encoder": {"values": [False]},
             "same_inputs": {"values": [False]},
             'second_caption_offset': {'values': [False]},
-            'one_encoder': {'values': [True]},
+            'one_encoder': {'values': [False]},
 
-            'mismatched_pairs': {'values': [True]},
+            'mismatched_pairs': {'values': [False]},
 
             'common_projection_layer': {'values': [False]},
             'scaled_denominator': {'values': [False]},

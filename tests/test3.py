@@ -1,23 +1,34 @@
 import torch
 
-import random
+import sys
+import os
 
-# seed
-torch.manual_seed(42)
-random.seed(42)
+# add parent directory to path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-a = torch.tensor([1, 2, 3, 4, 5])
+# add sibling directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-b = [1, 2, 3, 4, 5]
-
-# shift b by one
-c = [b[-1]] + b[:-1]
-# c = b[1:] + [b[0]]
-
-print(c)
+from src.my_ce_loss import MyCEAlignmentLoss, MyCrossEntropyLoss
 
 
-# shift a by one
-d = torch.roll(a, shifts=1, dims=0)
 
-print(d)
+
+# identity matrix of size n
+def identity(n):
+    return torch.eye(n)
+
+
+
+a = identity(32) * 100
+
+print(a)
+
+labels = torch.arange(32)
+
+print('my ce loss ', MyCrossEntropyLoss()(a,labels))
+
+print('my ce alignment loss ', MyCEAlignmentLoss()(a, labels))
+
+
+

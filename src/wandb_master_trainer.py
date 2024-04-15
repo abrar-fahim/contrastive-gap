@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images toy data, different inputs, one encoder, only alignment in CE loss",
+        "name": "Images, alignment only loss, no logit scaling",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -80,7 +80,7 @@ if __name__ == "__main__":
             "same_encoder": {"values": [False]},
             "same_inputs": {"values": [False]},
             'second_caption_offset': {'values': [False]},
-            'one_encoder': {'values': [True]},
+            'one_encoder': {'values': [False]},
 
             'mismatched_pairs': {'values': [False]},
 

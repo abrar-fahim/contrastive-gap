@@ -37,7 +37,7 @@ training_hyperparameters = {
 
     # hardware settings
     'cuda_device': 'cuda:0', # SET index of GPU
-    'host': 'local', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
+    'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
 
 
 
@@ -81,8 +81,8 @@ training_hyperparameters = {
     # these are set by wandb sweep
 
     # encoder modalities
-    'encoder1_modality': 'text', # SET # can be 'image' or 'text'
-    'encoder2_modality': 'text', # SET
+    'encoder1_modality': 'image', # SET # can be 'image' or 'text'
+    'encoder2_modality': 'image', # SET
 
     # encoder configs
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
@@ -116,8 +116,8 @@ training_hyperparameters = {
 
 
     # Evaluator settings
-    'visualize_embeddings': True, # CHANGE IN LOCAL
-    'save_every': 5, # CHANGE IN LOCAL
+    'visualize_embeddings': False, # CHANGE IN LOCAL
+    'save_every': 25, # CHANGE IN LOCAL
     
     'save_losses': False,
     'csv_path': 'stats/',
