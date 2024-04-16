@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images same inputs, W init = 0, full CLIP loss",
+        "name": "Images, full CLIP loss, shared transformer layers AND shared conv layers, Winit=0, same inputs",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -78,13 +78,14 @@ if __name__ == "__main__":
             "encoder2_modality": {"values": ["image"]},
 
             "same_encoder": {"values": [False]},
-            "same_inputs": {"values": [True]},
+            "same_inputs": {"values": [False]},
             'second_caption_offset': {'values': [False]},
             'one_encoder': {'values': [False]},
 
             'mismatched_pairs': {'values': [False]},
 
             'common_projection_layer': {'values': [False]},
+            'shared_transformer_layers': {'values': [True]},
             'scaled_denominator': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
@@ -93,7 +94,6 @@ if __name__ == "__main__":
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
             'seed': {'values': [2]},
-
 
             # 'W_layer_gap': {'values': [0, 0.25, 0.5, 1, 2]},
             'W_layer_gap': {'values': [0]},

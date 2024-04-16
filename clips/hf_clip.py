@@ -77,7 +77,7 @@ class HFClip(ClipParent):
         self.mismatched_pairs = wandb.config['mismatched_pairs']
 
         self.common_projection_layer = common_projection_layer
-        self.shared_transformer_layers = wandb.config['shared_transfomer_layers']
+        self.shared_transformer_layers = wandb.config['shared_transformer_layers']
 
         
 

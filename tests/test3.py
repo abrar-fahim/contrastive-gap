@@ -16,11 +16,11 @@ from src.my_ce_loss import MyCEAlignmentLoss, MyCrossEntropyLoss
 
 # identity matrix of size n
 def identity(n):
-    return torch.eye(n)
+    return torch.eye(n, dtype=torch.float32)
 
 
 
-a = identity(32) * 100
+a = identity(32) * 90
 
 print(a)
 

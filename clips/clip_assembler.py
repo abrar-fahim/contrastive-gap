@@ -142,16 +142,48 @@ class ClipAssembler():
             print("--- Setting shared transformer layers --- ")
             
             if type(self.encoder1) == TextEncoder:
-                model1 = self.encoder1.text_model
-            elif type(self.encoder1) == ImageEncoder:
-                model1 = self.encoder1.image_model
-            
-            if type(self.encoder2) == TextEncoder:
-                model2 = self.encoder2.text_model
-            elif type(self.encoder2) == ImageEncoder:
-                model2 = self.encoder2.image_model
 
-            model1.encoder = model2.encoder
+                if type(self.encoder2) == ImageEncoder:
+
+                    self.encoder1.text_model.text_model.encoder = self.encoder2.image_model.vision_model.encoder
+
+                    self.encoder1.text_model.text_projection = self.encoder2.image_model.visual_projection
+
+                elif type(self.encoder2) == TextEncoder:
+
+                    self.encoder1.text_model.text_model.encoder = self.encoder2.text_model.text_model.encoder
+
+                    self.encoder1.text_model.text_projection = self.encoder2.text_model.text_projection
+            elif type(self.encoder1) == ImageEncoder:
+
+                if type(self.encoder2) == ImageEncoder:
+
+
+                    print('hereeee')
+
+                    self.encoder1.image_model.vision_model.encoder = self.encoder2.image_model.vision_model.encoder
+
+                    self.encoder1.image_model.visual_projection = self.encoder2.image_model.visual_projection
+
+                    self.encoder1.image_model.vision_model.post_layernorm = self.encoder2.image_model.vision_model.post_layernorm
+
+                    self.encoder1.image_model.vision_model.pre_layrnorm = self.encoder2.image_model.vision_model.pre_layrnorm
+
+                    # self.encoder1.image_model.vision_model.embeddings = self.encoder2.image_model.vision_model.embeddings
+
+                    # check if encoder weights are same
+                    assert str(self.encoder1.image_model.vision_model.encoder.state_dict()) == str(self.encoder2.image_model.vision_model.encoder.state_dict()), "Encoder 1 and Encoder 2 are not same at init"
+
+
+                    assert str(self.encoder1.image_model.visual_projection.state_dict()) == str(self.encoder2.image_model.visual_projection.state_dict()), "Projection 1 and Projection 2 are not same at init"
+
+                elif type(self.encoder2) == TextEncoder:
+
+                    self.encoder1.image_model.vision_model.encoder = self.encoder2.text_model.text_model.encoder
+
+                    self.encoder1.image_model.visual_projection = self.encoder2.text_model.text_projection
+
+            
 
             # config stuff used in encoder
             # hidden_size, layer_norm_eps, 

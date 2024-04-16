@@ -85,14 +85,14 @@ training_hyperparameters = {
     'encoder2_modality': 'image', # SET
 
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
-    'one_encoder': True, # SET # modality depends on text_only or image_only
+    'one_encoder': False, # SET # modality depends on text_only or image_only
     'common_projection_layer': False, # SET
-    'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
-    'shared_transfomer_layers': True , # SET
+    'W_layer_gap': 0, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
+    'shared_transformer_layers': True , # SET
 
     # encoder configs
    
-    'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
+    'same_inputs': True, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
     'mismatched_pairs': False, # SET 
 
