@@ -70,7 +70,7 @@ def linear_seperability(a_points, b_points):
 
     # get random indices
 
-    indices = torch.randperm(len(a_points))
+    indices = torch.randperm(len(a_points), device=a_points.device)
 
     train_indices = indices[:n_train]
 
@@ -131,7 +131,7 @@ def classification_acc(a_points, b_points):
 
         preds = torch.argmax(class_probs, dim=1)
 
-        labels = torch.arange(n)
+        labels = torch.arange(n, device=a_points.device)
 
         acc = torch.sum(preds == labels).item() / n
 
@@ -147,11 +147,18 @@ T = 0.01
 
 n_epochs = 10000
 
-batch_size = 128
+batch_size = 256
 
 lr = 0.01
 
+evaluate_every = 100
+
 torch.manual_seed(0)
+
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+print('device ', device)
 
 # generate random point in unit sphere
 
@@ -174,13 +181,16 @@ b = MultivariateNormal(b_mean, torch.eye(d) * 0.01)
 a_points = a.sample((n,))
 b_points = b.sample((n,))
 
+a_points = a_points.to(device)
+b_points = b_points.to(device)
+
 # normalize
 a_points = a_points / a_points.norm(dim=1).view(-1, 1)
 b_points = b_points / b_points.norm(dim=1).view(-1, 1)
 
 
 # select n_visualize points to visualize from a and b
-plot(a_points[:n_visualize], b_points[:n_visualize])
+plot(a_points[:n_visualize].cpu(), b_points[:n_visualize].cpu())
 
 
 
@@ -217,14 +227,14 @@ for epoch in epochs:
 
         step = epoch * (n // batch_size) + i
 
-        scheduler(step)
+        # scheduler(step)
 
         sgd.zero_grad()
 
         
 
         # select batch_size points randomly from a and b
-        indices = torch.randint(0, n, (batch_size,))
+        indices = torch.randint(0, n, (batch_size,), device=device)
         a_batch = ab[0, indices]
         b_batch = ab[1, indices]
 
@@ -246,7 +256,7 @@ for epoch in epochs:
         scaled_logits = logits / T
 
         # labels are the diagonal of the matrix
-        labels = torch.arange(batch_size)
+        labels = torch.arange(batch_size, device=device)
 
         # compute loss
         loss_value = loss(scaled_logits, labels)
@@ -260,7 +270,7 @@ for epoch in epochs:
         sgd.step()
 
 
-        if epoch % 1000 == 0:
+        if epoch % evaluate_every == 0 and i == 0:
             print('loss', loss_value.item())
             print('linear seperability', linear_seperability(ab[0].detach(), ab[1].detach()))
             print('classification accuracy', classification_acc(ab[0].detach(), ab[1].detach()))
@@ -268,6 +278,6 @@ for epoch in epochs:
 
 # visualize the points
         
-plot(ab[0, :n_visualize].detach(), ab[1, :n_visualize].detach())
+plot(ab[0, :n_visualize].detach().cpu(), ab[1, :n_visualize].detach().cpu())
 
 
