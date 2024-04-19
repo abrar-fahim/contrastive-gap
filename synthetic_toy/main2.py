@@ -18,7 +18,6 @@ from src.scheduler import cosine_scheduler
 from sklearn.decomposition import PCA
 from dataset import SyntheticDataset
 import wandb
-from torch.cuda.amp import GradScaler
 
 
 
@@ -178,8 +177,6 @@ torch.manual_seed(hypers['seed'])
 
 dataset = SyntheticDataset(n=hypers['n'], d=hypers['d'])
 
-scaler = GradScaler()
-
 
 
 
@@ -193,8 +190,6 @@ loss = MyCrossEntropyLoss()
 
 # - optimizer -
 # sgd = SGD([dataset.ab], lr=hypers['lr'])
-
-dataset.move_to_device()
 
 sgd = AdamW([dataset.ab], lr=hypers['lr'], weight_decay=0)
 
@@ -229,7 +224,7 @@ for epoch in epochs:
 
         step = epoch * (hypers['n'] // hypers['batch_size']) + i
 
-        # scheduler(step)
+        scheduler(step)
 
         sgd.zero_grad()
 
@@ -261,14 +256,10 @@ for epoch in epochs:
         # print('loss', loss_value.item())
 
         # - backward -
-
-        scaler.scale(loss_value).backward()
-        # loss_value.backward()
+        loss_value.backward()
 
         # - step -
         sgd.step()
-        scaler.step(sgd)
-        scaler.update()
 
 
         if epoch % hypers['evaluate_every'] == 0 and i == 0:

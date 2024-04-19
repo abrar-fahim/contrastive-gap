@@ -36,6 +36,12 @@ class SyntheticDataset(torch.utils.data.Dataset):
 
 
 
+    def move_to_device(self):
+
+        self.ab.requires_grad = False
+        self.ab = self.ab.to(self.device)
+        self.ab.requires_grad = True
+
 
     def __len__(self):
         return self.n
