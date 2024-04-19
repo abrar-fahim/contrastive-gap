@@ -133,6 +133,10 @@ def classification_acc(a_points, b_points):
         return acc
 
 def centroid_distance(a_points, b_points):
+
+    a_points = a_points / a_points.norm(dim=1).view(-1, 1)
+    b_points = b_points / b_points.norm(dim=1).view(-1, 1)
+
     # get centroids
     a_centroid = a_points.mean(dim=0)
     b_centroid = b_points.mean(dim=0)
@@ -160,12 +164,12 @@ def eval(a_points, b_points, loss, step):
 hypers = {
     'seed': 0,
     'd': 3,
-    'n': 4096,
+    'n': 32,
+    'batch_size' : 32,
     'n_visualize' : 30,
     'T' : 0.01,
     'n_epochs' : 10000,
-    'batch_size' : 4096,
-    'lr' : 0.01,
+    'lr' : 0.1,
     'evaluate_every' : 100, # epochs
      
 }
@@ -178,7 +182,7 @@ torch.manual_seed(hypers['seed'])
 
 dataset = SyntheticDataset(n=hypers['n'], d=hypers['d'])
 
-scaler = GradScaler()
+# scaler = GradScaler()
 
 
 
@@ -191,17 +195,14 @@ plot(dataset[:hypers['n_visualize']][0].detach().cpu(), dataset[:hypers['n_visua
 loss = MyCrossEntropyLoss()
 
 
-# - optimizer -
-# sgd = SGD([dataset.ab], lr=hypers['lr'])
 
-dataset.move_to_device()
 
-sgd = AdamW([dataset.ab], lr=hypers['lr'], weight_decay=0)
+
 
 n_steps = hypers['n_epochs'] * (hypers['n'] // hypers['batch_size'])
 
 # - scheduler -
-scheduler = cosine_scheduler(sgd, hypers['lr'], 100, n_steps)
+# scheduler = cosine_scheduler(sgd, hypers['lr'], 100, n_steps)
 
 
 
@@ -210,9 +211,20 @@ epochs = tqdm(range(hypers['n_epochs']))
 
 loss_value = torch.tensor(0.0)
 
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=hypers['batch_size'], shuffle=True)
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# before training, convert to spherical coordinates
+dataset.convert_to_spherical()
+
+dataset.move_to_device()
+
+# - optimizer -
+# sgd = SGD([dataset.ab], lr=hypers['lr'])
+sgd = AdamW([dataset.ab], lr=hypers['lr'], weight_decay=0)
+
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=hypers['batch_size'], shuffle=True)
 
 
 for epoch in epochs:
@@ -220,6 +232,13 @@ for epoch in epochs:
     i = 0
 
 
+    # max_magnitude = torch.max(torch.norm(dataset.ab, dim=2))
+    # min_magnitude = torch.min(torch.norm(dataset.ab, dim=2))
+
+    # max_magnitude = 1
+    # min_magnitude = 1
+
+    # epochs.set_description(f'Epoch {epoch}, loss: {loss_value.item()}, max: {max_magnitude.item()}, min: {min_magnitude.item()}')
     epochs.set_description(f'Epoch {epoch}, loss: {loss_value.item()}')
 
     for a_batch, b_batch in dataloader:
@@ -227,20 +246,40 @@ for epoch in epochs:
         a_batch = a_batch.to(device)
         b_batch = b_batch.to(device)
 
+        # convert to cartesian coordinates
+        a_batch = dataset.sph2cart(a_batch)
+        b_batch = dataset.sph2cart(b_batch)
+
         step = epoch * (hypers['n'] // hypers['batch_size']) + i
+
+        # dataset.normalize_points()
+
+        # # setup optimizer with every epoch
+        # sgd = SGD([dataset.ab], lr=hypers['lr'])
 
         # scheduler(step)
 
+        # with torch.no_grad():
+
+            
+
+        # dataset.ab.requires_grad = True
+        
+
         sgd.zero_grad()
+
 
         
 
         # select batch_size points randomly from a and b
         indices = torch.randint(0, hypers['n'], (hypers['batch_size'],), device=device)
 
+
+
         # normalize
         a_batch = a_batch / a_batch.norm(dim=1).view(-1, 1)
         b_batch = b_batch / b_batch.norm(dim=1).view(-1, 1)
+        
         
         # - loss -
 
@@ -262,20 +301,29 @@ for epoch in epochs:
 
         # - backward -
 
-        scaler.scale(loss_value).backward()
-        # loss_value.backward()
+        # scaler.scale(loss_value).backward()
+        loss_value.backward()
 
         # - step -
         sgd.step()
-        scaler.step(sgd)
-        scaler.update()
+        # scaler.step(sgd)
+        # scaler.update()
+
+        # dataset.clamp_spherical_coords()
+
+        
 
 
         if epoch % hypers['evaluate_every'] == 0 and i == 0:
+
+            print('max', torch.max(torch.norm(a_batch.detach(), dim=1)).item())
+            print('min', torch.min(torch.norm(b_batch.detach(), dim=1)).item())
+
             print('loss', loss_value.item())
             print('linear seperability', linear_seperability(a_batch.detach(), b_batch.detach()))
             print('classification accuracy', classification_acc(a_batch.detach(), b_batch.detach()))
             print('centroid distance', centroid_distance(a_batch.detach(), b_batch.detach()))
+
 
             eval(a_batch.detach(), b_batch.detach(), loss_value.item(), step)
 
