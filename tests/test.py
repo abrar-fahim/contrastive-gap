@@ -15,6 +15,7 @@ def findW(x, y):
     u, s, v = torch.svd(yx)
 
     w = u @ v.T
+    
 
     return w
 

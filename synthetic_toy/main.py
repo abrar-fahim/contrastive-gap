@@ -27,6 +27,8 @@ from src.scheduler import cosine_scheduler
 
 from sklearn.decomposition import PCA
 
+from dataset import SyntheticDataset
+
 # generate cluster of points around a point in unit sphere
 
 def plot(a_points, b_points):
@@ -131,7 +133,7 @@ def classification_acc(a_points, b_points):
 
         preds = torch.argmax(class_probs, dim=1)
 
-        labels = torch.arange(n, device=a_points.device)
+        labels = torch.arange(a_points.shape[0], device=a_points.device)
 
         acc = torch.sum(preds == labels).item() / n
 
@@ -155,58 +157,21 @@ evaluate_every = 100
 
 torch.manual_seed(0)
 
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-print('device ', device)
-
-# generate random point in unit sphere
-
-# a = MultivariateNormal(torch.tensor([0, 1, 0], dtype=torch.float32, requires_grad=True), torch.eye(d) * 0.01)
+dataset = SyntheticDataset(n=n, d=d)
 
 
-# b = MultivariateNormal(torch.tensor([0, -1, 0], dtype=torch.float32, requires_grad=True), torch.eye(d) * 0.01)
-
-a_mean = torch.zeros(d, dtype=torch.float32)
-a_mean[1] = 1
-
-b_mean = torch.zeros(d, dtype=torch.float32)
-b_mean[1] = -1
-
-a = MultivariateNormal(a_mean, torch.eye(d) * 0.01)
-b = MultivariateNormal(b_mean, torch.eye(d) * 0.01)
-
-# generate the points
-
-a_points = a.sample((n,))
-b_points = b.sample((n,))
-
-a_points = a_points.to(device)
-b_points = b_points.to(device)
-
-# normalize
-a_points = a_points / a_points.norm(dim=1).view(-1, 1)
-b_points = b_points / b_points.norm(dim=1).view(-1, 1)
 
 
 # select n_visualize points to visualize from a and b
-plot(a_points[:n_visualize].cpu(), b_points[:n_visualize].cpu())
+plot(dataset[:n_visualize][0].detach().cpu(), dataset[:n_visualize][1].detach().cpu())
 
 
 
 loss = MyCrossEntropyLoss()
 
-# optimize the positions of the points
-
-ab = torch.stack([a_points, b_points], dim=0)
-
-ab.requires_grad = True
-
-
-# print('a and b', ab)
 
 # - optimizer -
-sgd = SGD([ab], lr=lr)
+sgd = SGD([dataset.ab], lr=lr)
 
 n_steps = n_epochs * (n // batch_size)
 
@@ -220,10 +185,22 @@ epochs = tqdm(range(n_epochs))
 
 loss_value = torch.tensor(0.0)
 
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
 for epoch in epochs:
+
+    i = 0
+
+
     epochs.set_description(f'Epoch {epoch}, loss: {loss_value.item()}')
 
-    for i in range(n // batch_size): # for each point
+    for a_batch, b_batch in dataloader:
+
+        a_batch = a_batch.to(device)
+        b_batch = b_batch.to(device)
 
         step = epoch * (n // batch_size) + i
 
@@ -235,16 +212,11 @@ for epoch in epochs:
 
         # select batch_size points randomly from a and b
         indices = torch.randint(0, n, (batch_size,), device=device)
-        a_batch = ab[0, indices]
-        b_batch = ab[1, indices]
 
         # normalize
         a_batch = a_batch / a_batch.norm(dim=1).view(-1, 1)
         b_batch = b_batch / b_batch.norm(dim=1).view(-1, 1)
         
-
-        
-
         # - loss -
 
         # find similarity between a_batch and b_batch
@@ -272,12 +244,14 @@ for epoch in epochs:
 
         if epoch % evaluate_every == 0 and i == 0:
             print('loss', loss_value.item())
-            print('linear seperability', linear_seperability(ab[0].detach(), ab[1].detach()))
-            print('classification accuracy', classification_acc(ab[0].detach(), ab[1].detach()))
+            print('linear seperability', linear_seperability(a_batch.detach(), b_batch.detach()))
+            print('classification accuracy', classification_acc(a_batch.detach(), b_batch.detach()))
+
+        i += 1
 
 
 # visualize the points
         
-plot(ab[0, :n_visualize].detach().cpu(), ab[1, :n_visualize].detach().cpu())
+plot(dataset[:n_visualize][0].detach().cpu(), dataset[:n_visualize][1].detach().cpu())
 
 
