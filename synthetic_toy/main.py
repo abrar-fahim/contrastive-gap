@@ -7,27 +7,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # add sibling directory to path 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-
 import torch
-
 from torch.optim import SGD
-
 from torch.distributions.multivariate_normal import MultivariateNormal
-
 from src.my_ce_loss import MyCrossEntropyLoss
-
 import matplotlib.pyplot as plt
-
 from tqdm import tqdm
-
 from sklearn.linear_model import LogisticRegression
-
 from src.scheduler import cosine_scheduler
-
 from sklearn.decomposition import PCA
-
 from dataset import SyntheticDataset
+import wandb
 
 # generate cluster of points around a point in unit sphere
 
@@ -43,13 +33,13 @@ def plot(a_points, b_points):
 
     ab = pca.fit_transform(ab)
 
-    a_points = ab[:n_visualize]
-    b_points = ab[n_visualize:]
+    a_points = ab[:hypers['n_visualize']]
+    b_points = ab[hypers['n_visualize']:]
     fig = plt.figure()
 
     ax = fig.add_subplot(111, projection='3d')
 
-    for i in range(n_visualize):
+    for i in range(hypers['n_visualize']):
         ax.scatter(a_points[i, 0], a_points[i, 1], a_points[i, 2], c='r')
         ax.scatter(b_points[i, 0], b_points[i, 1], b_points[i, 2], c='b')
 
@@ -127,43 +117,68 @@ def classification_acc(a_points, b_points):
         # get logits
         logits = torch.matmul(a_points, b_points.t())
 
-        scaled_logits = logits / T
+        scaled_logits = logits / hypers['T']
 
-        class_probs = torch.nn.functional.softmax(logits, dim=1)
+        class_probs = torch.nn.functional.softmax(scaled_logits, dim=1)
 
         preds = torch.argmax(class_probs, dim=1)
 
         labels = torch.arange(a_points.shape[0], device=a_points.device)
 
-        acc = torch.sum(preds == labels).item() / n
+        acc = torch.sum(preds == labels).item() / a_points.shape[0]
 
         return acc
 
-d = 3
+def centroid_distance(a_points, b_points):
+    # get centroids
+    a_centroid = a_points.mean(dim=0)
+    b_centroid = b_points.mean(dim=0)
 
-n = 2048
+    return torch.norm(a_centroid - b_centroid)
 
-n_visualize = 30
+def eval(self, a_points, b_points, step):
+    # normalize
+    a_points = a_points / a_points.norm(dim=1).view(-1, 1)
+    b_points = b_points / b_points.norm(dim=1).view(-1, 1)
 
-T = 0.01
+    wandb.log(
+        data={
+            'linear_seperability': linear_seperability(a_points, b_points),
+            'classification_accuracy': classification_acc(a_points, b_points),
+            'centroid_euclidean_distance': centroid_distance(a_points, b_points),
 
-n_epochs = 10000
+        },
+        step=step
+    )
 
-batch_size = 256
 
-lr = 0.01
 
-evaluate_every = 100
+hypers = {
+    'seed': 0,
+    'd': 3,
+    'n': 2048,
+    'n_visualize' : 30,
+    'T' : 0.01,
+    'n_epochs' : 10000,
+    'batch_size' : 256,
+    'lr' : 0.01,
+    'evaluate_every' : 100,
+     
+}
 
-torch.manual_seed(0)
+wandb.init(project='synthetic_toy_data', config=hypers)
 
-dataset = SyntheticDataset(n=n, d=d)
+
+
+torch.manual_seed(hypers['seed'])
+
+dataset = SyntheticDataset(n=hypers['n'], d=hypers['d'])
 
 
 
 
 # select n_visualize points to visualize from a and b
-plot(dataset[:n_visualize][0].detach().cpu(), dataset[:n_visualize][1].detach().cpu())
+plot(dataset[:hypers['n_visualize']][0].detach().cpu(), dataset[:hypers['n_visualize']][1].detach().cpu())
 
 
 
@@ -171,21 +186,21 @@ loss = MyCrossEntropyLoss()
 
 
 # - optimizer -
-sgd = SGD([dataset.ab], lr=lr)
+sgd = SGD([dataset.ab], lr=hypers['lr'])
 
-n_steps = n_epochs * (n // batch_size)
+n_steps = hypers['n_epochs'] * (hypers['n'] // hypers['batch_size'])
 
 # - scheduler -
-scheduler = cosine_scheduler(sgd, lr, 100, n_steps)
+scheduler = cosine_scheduler(sgd, hypers['lr'], 100, n_steps)
 
 
 
 
-epochs = tqdm(range(n_epochs))
+epochs = tqdm(range(hypers['n_epochs']))
 
 loss_value = torch.tensor(0.0)
 
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+dataloader = torch.utils.data.DataLoader(dataset, batch_size=hypers['batch_size'], shuffle=True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -202,7 +217,7 @@ for epoch in epochs:
         a_batch = a_batch.to(device)
         b_batch = b_batch.to(device)
 
-        step = epoch * (n // batch_size) + i
+        step = epoch * (hypers['n'] // hypers['batch_size']) + i
 
         # scheduler(step)
 
@@ -211,7 +226,7 @@ for epoch in epochs:
         
 
         # select batch_size points randomly from a and b
-        indices = torch.randint(0, n, (batch_size,), device=device)
+        indices = torch.randint(0, hypers['n'], (hypers['batch_size'],), device=device)
 
         # normalize
         a_batch = a_batch / a_batch.norm(dim=1).view(-1, 1)
@@ -225,10 +240,10 @@ for epoch in epochs:
         logits = torch.matmul(a_batch, b_batch.t()) # shape (batch_size, batch_size)
 
         # scale with T
-        scaled_logits = logits / T
+        scaled_logits = logits / hypers['T']
 
         # labels are the diagonal of the matrix
-        labels = torch.arange(batch_size, device=device)
+        labels = torch.arange(hypers['batch_size'], device=device)
 
         # compute loss
         loss_value = loss(scaled_logits, labels)
@@ -242,16 +257,21 @@ for epoch in epochs:
         sgd.step()
 
 
-        if epoch % evaluate_every == 0 and i == 0:
+        if epoch % hypers['evaluate_every'] == 0 and i == 0:
             print('loss', loss_value.item())
             print('linear seperability', linear_seperability(a_batch.detach(), b_batch.detach()))
             print('classification accuracy', classification_acc(a_batch.detach(), b_batch.detach()))
+            print('centroid distance', centroid_distance(a_batch.detach(), b_batch.detach()))
+
+            eval(a_batch.detach(), b_batch.detach(), step)
+
+
 
         i += 1
 
 
 # visualize the points
         
-plot(dataset[:n_visualize][0].detach().cpu(), dataset[:n_visualize][1].detach().cpu())
+plot(dataset[:hypers['n_visualize']][0].detach().cpu(), dataset[:hypers['n_visualize']][1].detach().cpu())
 
 

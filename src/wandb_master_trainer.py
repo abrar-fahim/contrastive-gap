@@ -65,7 +65,7 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Images, full CLIP loss, shared transformer layers, same inputs, Winit =0 ",
+        "name": "Images only, same inputs, Winit = 0 ",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -78,14 +78,14 @@ if __name__ == "__main__":
             "encoder2_modality": {"values": ["image"]},
 
             "same_encoder": {"values": [False]},
-            "same_inputs": {"values": [True]},
+            "same_inputs": {"values": [False]},
             'second_caption_offset': {'values': [False]},
             'one_encoder': {'values': [False]},
 
             'mismatched_pairs': {'values': [False]},
 
             'common_projection_layer': {'values': [False]},
-            'shared_transformer_layers': {'values': [True]},
+            'shared_transformer_layers': {'values': [False]},
             'scaled_denominator': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
