@@ -298,7 +298,7 @@ class HFClip(ClipParent):
         if self.common_projection_layer:
             encoder1_outputs = self.common_projection_layer(encoder1_outputs)
 
-        assert encoder1_outputs.shape[1] == 512, 'encoder1 output shape is not 512'
+        assert encoder1_outputs.shape[1] == wandb.config['clip_projection_dim'], 'encoder1 output shape != clip_projection_dim'
 
         
 
@@ -315,7 +315,7 @@ class HFClip(ClipParent):
         if self.common_projection_layer:
             encoder2_outputs = self.common_projection_layer(encoder2_outputs)
 
-        assert encoder2_outputs.shape[1] == 512, 'encoder2 output shape is not 512'
+        assert encoder2_outputs.shape[1] == wandb.config['clip_projection_dim'], 'encoder2 output shape is not clip_projection_dim'
 
         # normalize features
         normalized_encoder1_embeds = encoder1_outputs / encoder1_outputs.norm(p=2, dim=-1, keepdim=True)

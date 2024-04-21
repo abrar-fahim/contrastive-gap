@@ -56,6 +56,10 @@ class ClipAssembler():
 
         self.clip_vision_config = CLIPVisionConfig()
 
+        if wandb.config['clip_projection_dim'] != 512:
+            self.clip_vision_config.projection_dim = wandb.config['clip_projection_dim']
+            self.clip_text_config.projection_dim = wandb.config['clip_projection_dim']
+
 
         if wandb.config['shared_transformer_layers']:
             # set text config to be same as vision config
