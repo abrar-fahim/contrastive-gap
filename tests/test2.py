@@ -3,6 +3,8 @@ import torch
 import sys
 import os
 
+print(torch.exp(torch.tensor(1e-3)))
+
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,9 +24,12 @@ temperature = 0.01
 
 n = 10
 
-images = torch.randint(0, 5, (n, 512), dtype=torch.float32)
+# images = torch.randint(0, 4, (n, 3), dtype=torch.float32)
+images = torch.randn(n, 512)
 
-captions = torch.randint(0, 5, (n, 512), dtype=torch.float32)
+# captions = torch.randint(0, 4, (n, 3), dtype=torch.float32)
+
+captions = torch.randn(n, 512)
 
 # normalize
 normalized_images = images / torch.norm(images, p=2, dim=1, keepdim=True)

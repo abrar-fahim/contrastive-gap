@@ -294,6 +294,8 @@ class HFClip(ClipParent):
         encoder1_input_ids = encoder1_outputs['input_ids']
         encoder1_outputs = encoder1_outputs['embeds']
 
+        # print('encoder 1 outputs ', encoder1_outputs)
+
 
         if self.common_projection_layer:
             encoder1_outputs = self.common_projection_layer(encoder1_outputs)
@@ -311,6 +313,8 @@ class HFClip(ClipParent):
         encoder2_hidden_states  = encoder2_outputs['hidden_states']
         encoder2_input_ids = encoder2_outputs['input_ids']
         encoder2_outputs = encoder2_outputs['embeds']
+
+        # print('encoder 1 outputs ', encoder1_outputs)
 
         if self.common_projection_layer:
             encoder2_outputs = self.common_projection_layer(encoder2_outputs)
@@ -347,6 +351,8 @@ class HFClip(ClipParent):
 
         logits_per_encoder1_embeds = normalized_encoder1_embeds @ normalized_encoder2_embeds.t() * self.logit_scale.exp() # logit_scale.exp() is 1 / temperature, so 100 for 0.01
         logits_per_encoder2_embeds = normalized_encoder2_embeds @ normalized_encoder1_embeds.t() * self.logit_scale.exp()
+
+        print('logits per encoder 1 embeds ', logits_per_encoder1_embeds)
 
         labels = torch.arange(normalized_encoder1_embeds.shape[0]).to(self.device)
 
