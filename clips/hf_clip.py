@@ -352,7 +352,7 @@ class HFClip(ClipParent):
         logits_per_encoder1_embeds = normalized_encoder1_embeds @ normalized_encoder2_embeds.t() * self.logit_scale.exp() # logit_scale.exp() is 1 / temperature, so 100 for 0.01
         logits_per_encoder2_embeds = normalized_encoder2_embeds @ normalized_encoder1_embeds.t() * self.logit_scale.exp()
 
-        print('logits per encoder 1 embeds ', logits_per_encoder1_embeds)
+        # print('logits per encoder 1 embeds ', logits_per_encoder1_embeds)
 
         labels = torch.arange(normalized_encoder1_embeds.shape[0]).to(self.device)
 

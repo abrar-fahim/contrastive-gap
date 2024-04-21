@@ -171,7 +171,7 @@ hypers = {
     'n_epochs' : 10000000,
     'lr' : 0.01,
     'evaluate_every' : 100, # epochs,
-    'unit_sphere_loss_weight' : 0
+    'unit_sphere_loss_weight' : 0.3
      
 }
 
