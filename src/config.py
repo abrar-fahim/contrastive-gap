@@ -59,19 +59,19 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 32, # SET
-    'validation_batch_size': 32, # SET
+    'validation_dataset_size': 2048, # SET
+    'validation_batch_size': 2048, # SET
     'cifar_batch_size': 128,
-    'use_cached_val_batch': True, 
+    'use_cached_val_batch': False, 
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # this randomly initializes weights
     
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 32, # SET
+    'small_train_loader_batch_size': 128, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
-    'small_train_loader_dataset_size': 32, # SO that I'm only training a single batch
-    'num_workers': 0,
+    'small_train_loader_dataset_size': 30000, # SO that I'm only training a single batch
+    'num_workers': 4,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -82,23 +82,20 @@ training_hyperparameters = {
 
     # Architecture settings
     'encoder1_modality': 'image', # SET # can be 'image' or 'text'
-    'encoder2_modality': 'image', # SET
+    'encoder2_modality': 'text', # SET
 
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'one_encoder': False, # SET # modality depends on text_only or image_only
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 3, # SET # this is the size of the projection layer
+    'clip_projection_dim': 512, # SET # this is the size of the projection layer
 
     # encoder configs
    
     'same_inputs': False, # SET # ONLY WORKS FOR text_only=True
     'second_caption_offset': False, # SET # ONLY WORKS FOR text encoders
     'mismatched_pairs': False, # SET 
-
-
-
 
     # loss factors
     'intra_modality_loss': False, 
@@ -109,7 +106,7 @@ training_hyperparameters = {
 
     # validation batch stuff
     'train_only_one_batch': False,
-    'use_train_as_val': True, # SET
+    'use_train_as_val': False, # SET
 
 
     # Saving embeds and encoder hidden states

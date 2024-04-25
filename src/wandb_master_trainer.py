@@ -65,39 +65,24 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Default CLIP in 3D",
+        "name": "Starting with one dimensionality value",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
-            # "intra_modality_loss": {"values": [True, False]},
-            "intra_modality_loss": {"values": [False]},
-            "rsa_loss": {"values": [False]},
-            "pearson_loss": {"values": [False]},
-            # "training_hyperparameters": {"values": [config.training_hyperparameters]}, # just to keep track of hypers used for this sweep.
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            "same_encoder": {"values": [False]},
-            "same_inputs": {"values": [False]},
-            'second_caption_offset': {'values': [False]},
-            'one_encoder': {'values': [False]},
+            'clip_projection_dim': {'values': [3]}, # 512
 
-            'mismatched_pairs': {'values': [False]},
-
-            'common_projection_layer': {'values': [False]},
-            'shared_transformer_layers': {'values': [False]},
-            'scaled_denominator': {'values': [False]},
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             # "lr": {'values': [0.0005]}, # 5e-4, from CyClip paper
 
-            # 'W_layer_gap': {'values': [0, 0.25, 0.5, 1, 2]},
-            # 'W_layer_gap': {'values': [0]},
-            'W_layer_gap': {'values': [-1]},
-
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
             'seed': {'values': [2]},
+
+
 
         },
     }
