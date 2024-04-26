@@ -202,6 +202,11 @@ class Trainer(TrainerParent):
     def __init__(self, dataset_processor, evaluator: Evaluator) -> None:
         super().__init__(dataset_processor, evaluator)
 
+        if wandb.config['use_train_as_val']:
+
+            self.cached_images_batch = None
+            self.cached_captions_batch = None
+
 
     def calculateW(self, clip_model: HFClip):
         '''
@@ -290,7 +295,23 @@ class Trainer(TrainerParent):
 
         clip_model.train()
 
-        for (imgs, captions) in self.dataset_processor.train_dataloader:
+        
+
+        if wandb.config['use_train_as_val']:
+
+            if self.cached_images_batch is None:
+                for (imgs, captions) in self.dataset_processor.train_dataloader:
+                    self.cached_images_batch = imgs
+                    self.cached_captions_batch = captions
+                    break
+
+                
+            dataloader = [(self.cached_images_batch, self.cached_captions_batch)]
+        else:
+            dataloader = self.dataset_processor.train_dataloader
+
+        # for (imgs, captions) in self.dataset_processor.train_dataloader:
+        for (imgs, captions) in dataloader:
 
 
             step = self.dataset_processor.get_num_batches() * epoch + i

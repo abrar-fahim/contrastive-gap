@@ -31,12 +31,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:0'
+config_cuda_device = 'cuda:1'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:0', # SET index of GPU
+    'cuda_device': 'cuda:1`', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
 
 
@@ -47,7 +47,7 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 100, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'use_scheduler': False,
@@ -59,10 +59,10 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 2048, # SET
-    'validation_batch_size': 2048, # SET
+    'validation_dataset_size': 128, # SET
+    'validation_batch_size': 128, # SET
     'cifar_batch_size': 128,
-    'use_cached_val_batch': False, 
+    
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # this randomly initializes weights
@@ -70,8 +70,8 @@ training_hyperparameters = {
     'use_small_trainloader': True, # this is ignored when using WIT400
     'small_train_loader_batch_size': 128, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
-    'small_train_loader_dataset_size': 30000, # SO that I'm only training a single batch
-    'num_workers': 4,
+    'small_train_loader_dataset_size': 128, # SO that I'm only training a single batch
+    'num_workers': 0,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -83,13 +83,12 @@ training_hyperparameters = {
     # Architecture settings
     'encoder1_modality': 'image', # SET # can be 'image' or 'text'
     'encoder2_modality': 'text', # SET
-
     'same_encoder': False, # SET # ONLY WORKS FOR text_only=True
     'one_encoder': False, # SET # modality depends on text_only or image_only
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 512, # SET # this is the size of the projection layer
+    'clip_projection_dim': 5, # SET # this is the size of the projection layer
 
     # encoder configs
    
@@ -106,7 +105,8 @@ training_hyperparameters = {
 
     # validation batch stuff
     'train_only_one_batch': False,
-    'use_train_as_val': False, # SET
+    'use_train_as_val': True, # SET
+    'use_cached_val_batch': True, 
 
 
     # Saving embeds and encoder hidden states
@@ -125,47 +125,4 @@ training_hyperparameters = {
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
-    }
-
-
-
-'''
-2. Training CLIP caption model
-'''
-
-
-clip_caption_prev_checkpoint_epoch = 3
-
-clip_caption_model_train_hyperparameters = {
-    'batch_size': 150,
-    'n_epochs': 10,
-    'save_every': 1,
-    'lr': 2e-5,
-    'dataset_size': 30000,
-    'train_from_scratch': False,
-    'continue_train_from_prev_checkpoint': False,
-    'prev_checkpoint_epoch': clip_caption_prev_checkpoint_epoch,
-    'model_config': ClipCaptionModelMapping.MLP,
-    'only_prefix': True, # whether to train just MLP, or MLP + gpt
-    'show_real_images': False,
-}
-
-
-clip_caption_model_weight_paths = {
-    "og_mscoco": "caption_checkpoints/coco_weights.pt", # this is default
-    # "og_mscoco": "caption_checkpoints/default_clip_coco_prefix-360_DEFAULT.pt", # this is default
-
-    # "finetuned_caption": "caption_checkpoints/finetuned_clip_coco_prefix-009.pt",
-    
-
-    'finetuned_caption_temp': f"caption_checkpoints/finetuned_temp_clip_coco_prefix-{clip_caption_prev_checkpoint_epoch:03d}_FINETUNED_TEMP.pt",
-
-}
-
-
-
-
-clip_caption_transformer_model_weight_paths = {
-    # 'og_mscoco': 'caption_checkpoints/transformer_coco_weights.pt',
-    'finetuned_caption_temp': f"caption_checkpoints/transformer_finetuned_temp_clip_coco_prefix-{clip_caption_prev_checkpoint_epoch:03d}.pt",
 }

@@ -238,7 +238,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
+                        # 'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -514,6 +514,9 @@ class Evaluator():
 
         text_rank = torch.count_nonzero(S > 1)
 
+        print('image_rank ', image_rank)
+        print('text_rank ', text_rank)  
+
         return {
             'image_rank': image_rank,
             'text_rank': text_rank
@@ -602,6 +605,8 @@ class Evaluator():
 
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+        print('val_image_classification_accuracy ', val_image_classification_accuracy.item())
 
         return val_image_classification_accuracy.item()
 

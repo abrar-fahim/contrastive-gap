@@ -9,7 +9,7 @@ import webdataset as wds
 from clips.hf_clip import HFClip
 import numpy as np
 import wandb
-from src.config import config_cuda_device, clip_caption_model_train_hyperparameters
+from src.config import config_cuda_device
 
 class WITProcessor(DatasetProcessorParent):
 

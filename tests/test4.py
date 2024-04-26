@@ -10,14 +10,5 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-a = torch.tensor([1, 2, 3], dtype=torch.float32)
-
-b = torch.tensor([4, 5, 6], dtype=torch.float32)
-
-a = a / a.norm(dim=0)
-b = b / b.norm(dim=0)
-
-# cosine sim between a and b
-cosine_sim = torch.dot(a, b)
-
-print('cosine_sim ', cosine_sim)
+for (a, b) in [(1,2)]:
+    print(a,b)
