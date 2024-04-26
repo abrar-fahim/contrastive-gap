@@ -72,7 +72,7 @@ if __name__ == "__main__":
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [3]}, # 512
+            'clip_projection_dim': {'values': [5]}, # 512
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

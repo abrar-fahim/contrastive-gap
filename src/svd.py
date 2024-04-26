@@ -69,6 +69,7 @@ def main():
             print('image embeds rank ', torch.linalg.matrix_rank(image_embeds, ))
 
             print('image embeds S ', S)
+            print('image my rank ', torch.count_nonzero(S > 1))
             print( ' --- ' )
 
             # compute rank of text_embeds

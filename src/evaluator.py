@@ -177,6 +177,8 @@ class Evaluator():
             average_linear_probe_accuracy = np.mean(list(linear_probe_accuracies.values()))
             std_dev_linear_probe_accuracy = np.std(list(linear_probe_accuracies.values()))
 
+            ranks = self.get_rank()
+
             if wandb is not None:
                 wandb.log(
                     data={
@@ -192,6 +194,10 @@ class Evaluator():
                         'linear_seperability_accuracy': self.get_linear_seperability(),
                         'centroid_cosine_similarity': self.get_centroid_cosine_similarity(),
                         'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
+
+                        # rank stuff
+                        'image_rank': ranks['image_rank'],
+                        'text_rank': ranks['text_rank'],
 
                         # linear probe acc
                         'cifar10_linear_probe_accuracy': linear_probe_accuracies['cifar10'],
@@ -232,7 +238,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        # 'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
+                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -483,6 +489,36 @@ class Evaluator():
             # save data
             with open(save_path, 'wb') as f:
                 pickle.dump([step_data], f)
+
+
+    def get_rank(self) ->  dict:
+        '''
+        Get rank (threshold = 1) using SVD, of image and text embeds
+        Rank of only first config['batch_size'] embeds
+        '''
+
+        image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']]
+        text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']]
+
+        # normalize
+        image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
+        text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
+
+        # get rank
+        U, S, Vh = torch.linalg.svd(image_embeds)
+
+        # rank is number of singular values greater than 1
+        image_rank = torch.count_nonzero(S > 1)
+
+        U, S, Vh = torch.linalg.svd(text_embeds)
+
+        text_rank = torch.count_nonzero(S > 1)
+
+        return {
+            'image_rank': image_rank,
+            'text_rank': text_rank
+        }
+        
 
 
     def linear_probe_cifar10(self, clip_model:HFClip):

@@ -47,10 +47,10 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 4000, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 100, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
-    'use_scheduler': True,
+    'use_scheduler': False,
     'n_warmup_steps': 100,
     'vision_model': 'VIT', # RN50 or VIT
 
