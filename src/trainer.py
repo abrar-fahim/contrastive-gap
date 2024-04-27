@@ -297,7 +297,9 @@ class Trainer(TrainerParent):
 
         
 
-        if wandb.config['use_train_as_val']:
+        if wandb.config['small_train_loader_batch_size'] == wandb.config['small_train_loader_dataset_size']:
+
+            # if I'm training on just one batch, I can just use the same batch for every iteration
 
             if self.cached_images_batch is None:
                 for (imgs, captions) in self.dataset_processor.train_dataloader:
