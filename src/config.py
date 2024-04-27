@@ -36,7 +36,7 @@ config_cuda_device = 'cuda:1'
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:1`', # SET index of GPU
+    'cuda_device': 'cuda:1', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
 
 
@@ -59,8 +59,8 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 128, # SET
-    'validation_batch_size': 128, # SET
+    'validation_dataset_size': 1024, # SET
+    'validation_batch_size': 1024, # SET
     'cifar_batch_size': 128,
     
     'do_checkpointing': True,
@@ -68,10 +68,10 @@ training_hyperparameters = {
     'train_from_scratch': True, # this randomly initializes weights
     
     'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 128, # SET
+    'small_train_loader_batch_size': 256, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
-    'small_train_loader_dataset_size': 128, # SO that I'm only training a single batch
-    'num_workers': 0,
+    'small_train_loader_dataset_size': 1024, # SO that I'm only training a single batch
+    'num_workers': 4,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -88,7 +88,7 @@ training_hyperparameters = {
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 5, # SET # this is the size of the projection layer
+    'clip_projection_dim': 512, # SET # this is the size of the projection layer
 
     # encoder configs
    
@@ -119,10 +119,10 @@ training_hyperparameters = {
 
     # Evaluator settings
     'visualize_embeddings': False, # CHANGE IN LOCAL
-    'save_every': 25, # CHANGE IN LOCAL
+    'save_every': 100, # CHANGE IN LOCAL
     
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder_d', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

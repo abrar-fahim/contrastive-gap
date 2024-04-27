@@ -81,7 +81,8 @@ class Evaluator():
 
         self.encoder1_pooled_hidden_states = []
         self.encoder2_pooled_hidden_states = []
-        self.layers_to_use = [0, 3, 6, 9, 12] # these are the layers to use for computing mean cosine similarity
+        # self.layers_to_use = [0, 3, 6, 9, 12] # these are the layers to use for computing mean cosine similarity
+        self.layers_to_use = [-1] # these are the layers to use for computing mean cosine similarity
 
 
         '''
@@ -198,6 +199,27 @@ class Evaluator():
                         # rank stuff
                         'image_rank': ranks['image_rank'],
                         'text_rank': ranks['text_rank'],
+                        'full_image_rank': ranks['full_image_rank'],
+                        'full_text_rank': ranks['full_text_rank'],
+                        'first_lt1_value': ranks['first_lt1_value'],
+                        'avg_S': ranks['avg_S'],
+                        'image_S0': ranks['image_S'][0],
+                        'image_S1': ranks['image_S'][1],
+                        'image_S2': ranks['image_S'][2],
+                        # 'image_S3': ranks['image_S'][3],
+                        # 'image_S4': ranks['image_S'][4],
+                        # 'image_S5': ranks['image_S'][5],
+                        # 'image_S6': ranks['image_S'][6],
+                        # 'image_S7': ranks['image_S'][7],
+                        'text_S0': ranks['text_S'][0],
+                        'text_S1': ranks['text_S'][1],
+                        'text_S2': ranks['text_S'][2],
+                        # 'text_S3': ranks['text_S'][3],
+                        # 'text_S4': ranks['text_S'][4],
+                        # 'text_S5': ranks['text_S'][5],
+                        # 'text_S6': ranks['text_S'][6],
+                        # 'text_S7': ranks['text_S'][7],
+
 
                         # linear probe acc
                         'cifar10_linear_probe_accuracy': linear_probe_accuracies['cifar10'],
@@ -416,19 +438,28 @@ class Evaluator():
 
         for layer in self.layers_to_use:
 
-            # pool hidden states to convert from sequence to single value
+            image_embeds = self.val_outputs.image_embeds
+            text_embeds = self.val_outputs.text_embeds
 
-            e1_pool = clip_model.encoder1.pool_hidden_state(encoder1_hidden_states[layer], self.val_outputs.encoder1_input_ids)
+            if layer < 0:
+                e1_pool = image_embeds
+                e2_pool = text_embeds
 
-            e2_pool = clip_model.encoder2.pool_hidden_state(encoder2_hidden_states[layer], self.val_outputs.encoder2_input_ids)
+            else:
+
+
+                # pool hidden states to convert from sequence to single value
+
+                e1_pool = clip_model.encoder1.pool_hidden_state(encoder1_hidden_states[layer], self.val_outputs.encoder1_input_ids)
+
+                e2_pool = clip_model.encoder2.pool_hidden_state(encoder2_hidden_states[layer], self.val_outputs.encoder2_input_ids)
 
 
             # pooled_hidden_states shape: ([batch_size, hidden_size])
 
             # following assertions work because in HFClipOutput, image_embeds = encoder1 and text_embeds = encoder2
 
-            image_embeds = self.val_outputs.image_embeds
-            text_embeds = self.val_outputs.text_embeds
+            
 
             assert e1_pool.shape == (image_embeds.shape[0], clip_model.encoder1.hidden_size), f'e1_pool.shape = {e1_pool.shape}, expected shape = ({image_embeds.shape[0]}, {clip_model.encoder1.hidden_size})'
 
@@ -497,29 +528,72 @@ class Evaluator():
         Rank of only first config['batch_size'] embeds
         '''
 
-        image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']]
-        text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']]
+        # sklearn import pca
+        # from sklearn.decomposition import PCA
+
+
+        # data matrix needs to be in (d, n) format, where d is the number of features and n is the number of samples
+
+
+
+        image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']].T
+        text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']].T
+
+        # embeds shape: ([dimensionality, batch_size])
 
         # normalize
-        image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
-        text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
+        image_embeds = image_embeds / torch.norm(image_embeds, dim=0, keepdim=True)
+        text_embeds = text_embeds / torch.norm(text_embeds, dim=0, keepdim=True)
+
+        # get pytorch rank
+        full_image_rank = torch.linalg.matrix_rank(image_embeds)
+        full_text_rank = torch.linalg.matrix_rank(text_embeds)
 
         # get rank
         U, S, Vh = torch.linalg.svd(image_embeds)
+
+        image_S = S
+
+        
+
 
         # rank is number of singular values greater than 1
         image_rank = torch.count_nonzero(S > 1)
 
         U, S, Vh = torch.linalg.svd(text_embeds)
 
+        text_S = S
+
         text_rank = torch.count_nonzero(S > 1)
+
+        # get first element that is less than 1
+        lt1_values = S[S <= 1]
+
+        if len(lt1_values) > 0:
+            first_lt1_value = lt1_values[0] # works because S is sorted in descending order
+        else:
+            first_lt1_value = -1
+
+
+
+        # get average S value
+        avg_S = torch.mean(S)
 
         print('image_rank ', image_rank)
         print('text_rank ', text_rank)  
 
+
+
         return {
             'image_rank': image_rank,
-            'text_rank': text_rank
+            'text_rank': text_rank,
+            'full_image_rank': full_image_rank,
+            'full_text_rank': full_text_rank,
+            'first_lt1_value': first_lt1_value,
+            'avg_S': avg_S,
+            'image_S': image_S,
+            'text_S': text_S
+
         }
         
 

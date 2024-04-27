@@ -726,6 +726,9 @@ def generate_csv_file_name(clip_model=None):
                 trainmode = 'finetune'
             new_part = part.replace('trainmode', trainmode)
 
+        elif 'd' in part:
+            new_part = part.replace('d', str(wandb.config['clip_projection_dim']))
+
         elif 'captionencoder' in part:
 
             acronym = 'default'

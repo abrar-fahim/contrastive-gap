@@ -72,11 +72,11 @@ if __name__ == "__main__":
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [5]}, # 512
+            'clip_projection_dim': {'values': [10]}, # 512
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            # "lr": {'values': [0.0005]}, # 5e-4, from CyClip paper
+            # "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
