@@ -12,6 +12,12 @@ from collections import OrderedDict
 
 from torchvision.transforms import v2
 from torchvision.transforms.functional import resized_crop
+from itertools import repeat
+
+
+
+
+
 class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
@@ -333,8 +339,25 @@ class MSCOCOProcessor(DatasetProcessorParent):
         
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,)
+
+
+        # self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True,)
+
+
+        self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, 
+                                           batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=batch_size, drop_last=False)))
+
+        # self.train_dataloader = self.repeater(self.train_dataloader)
+        # self.train_dataloader = RepeatDataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
+
+
+        # self.train_dataloader = DataLoader(dataset_to_use, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, batch_sampler=RepeatBatchSampler(batch_size))
         self.train_subset_indices = subset_indices
+
+    def repeater(self, dataloader):
+        for loader in repeat(dataloader):
+            for data in loader:
+                yield data
 
     def load_val_dataset(self):
 
@@ -381,9 +404,54 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
 
         
-        
+# class _RepeatSampler(object):
+#     """ Sampler that repeats forever.
 
+#     Args:
+#         sampler (Sampler)
+#     """
+
+#     def __init__(self, sampler):
+#         self.sampler = sampler
+
+#     def __iter__(self):
+#         while True:
+#             yield from iter(self.sampler)
+
+#     def __len__(self):
+#         return len(self.sampler)
+
+# create sampler that repeats forever
+
+class RepeatSampler(torch.utils.data.Sampler):
+    def __init__(self, sampler):
+        self.sampler = sampler
+
+    def __iter__(self):
+        while True:
+            yield from iter(self.sampler)
+
+    def __len__(self):
+        return len(self.sampler)
+
+
+class RepeatDataLoader(torch.utils.data.dataloader.DataLoader):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    # next
+    def __next__(self):
+        # make sure to return a batch even if the dataset is exhausted
+        try:
+            # batch = super().__next__()
+            print('nexting')
+            batch = next(self.__iter__())
+        except StopIteration:
+            print('stopped? ')
+            self.__iter__ = iter(self)
+            batch = next(self.__iter__())
+
+        return batch
         
-        
-        
-        
+    

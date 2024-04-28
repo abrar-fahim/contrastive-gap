@@ -57,7 +57,7 @@ def main():
     # train_clip.main()
     # wandb.finish() 
 
-# if main
+# if main 
 if __name__ == "__main__":
 
 

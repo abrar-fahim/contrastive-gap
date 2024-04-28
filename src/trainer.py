@@ -14,6 +14,9 @@ from torch.autograd.profiler import record_function
 import importlib
 from torch.cuda.amp import GradScaler
 
+
+from itertools import repeat
+
 import wandb
 
 
@@ -27,7 +30,9 @@ from dataset_processors.mscoco_processor import MSCOCOProcessor
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # add sibling directory to path 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # def 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # def
+
+from dataset_processors.mscoco_processor import RepeatDataLoader, RepeatSampler
 
 from clips.hf_clip import HFClipOutput, HFClip
 from config import config_cuda_device
@@ -281,9 +286,12 @@ class Trainer(TrainerParent):
             return W
 
 
-
+    def repeater(self, data_loader):
+        for loader in repeat(data_loader):
+            for data in loader:
+                yield data
     
-    def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, scheduler =None, i=0, epoch=0, save_every=10):
+    def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, scheduler =None, i=0, epoch=0, save_every=10) -> int:
         '''
         i is parameter because we might be starting in the middle of an epoch from a checkpoint
         epoch is a parameter as we dont know this, since this class doesnt maintain global training state
@@ -314,7 +322,13 @@ class Trainer(TrainerParent):
 
         # dataloader = self.dataset_processor.train_dataloader
 
+        
+
+        # for (imgs, captions) in self.repeater(self.dataset_processor.train_dataloader):
         for (imgs, captions) in self.dataset_processor.train_dataloader:
+
+        # while True:
+        #     (imgs, captions) = next(self.dataset_processor.train_dataloader)
         # for (imgs, captions) in dataloader:
 
 
@@ -364,11 +378,17 @@ class Trainer(TrainerParent):
             if wandb.config['max_steps'] is not None and i >= wandb.config['max_steps']:
                 break
 
+            if type(self.dataset_processor.train_dataloader.batch_sampler) == RepeatSampler and i >= self.dataset_processor.get_num_batches():
+                i = 0
+                epoch += 1
+
             
 
 
 
             torch.cuda.empty_cache()
+
+        return epoch
 
 
 

@@ -88,7 +88,7 @@ training_hyperparameters = {
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 512, # SET # this is the size of the projection layer
+    'clip_projection_dim': 8, # SET # this is the size of the projection layer
 
     # encoder configs
    

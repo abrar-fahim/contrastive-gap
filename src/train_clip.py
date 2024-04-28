@@ -266,7 +266,9 @@ def main():
         if not i_loaded_from_checkpoint:
             i = 0
 
-        trainer.train_one_epoch(clip_model, optimizer, scaler=scaler,  scheduler=scheduler ,i=i, epoch=epoch, save_every=wandb.config['save_every'])
+        epoch = trainer.train_one_epoch(clip_model, optimizer, scaler=scaler,  scheduler=scheduler ,i=i, epoch=epoch, save_every=wandb.config['save_every'])
+
+        # returns epoch because trainer can run multiple epochs on its own for efficiency
 
         
 
