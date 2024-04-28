@@ -65,14 +65,14 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Training with just one batch, val on same batch",
+        "name": "trying training with 4 batches now",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [10]}, # 512
+            'clip_projection_dim': {'values': [8]}, # 512
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

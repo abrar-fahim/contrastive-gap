@@ -333,7 +333,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         
         # set class variables
         self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
+        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,)
         self.train_subset_indices = subset_indices
 
     def load_val_dataset(self):

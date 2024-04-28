@@ -92,7 +92,8 @@ class Evaluator():
 
             if wandb.config['use_train_as_val']:
                 mscoco_val_dataset =  self.dataset_processor.train_dataset
-                batch_size = wandb.config['small_train_loader_batch_size'] # MAYBE CHANGE LATER
+                # batch_size = wandb.config['small_train_loader_batch_size'] # MAYBE CHANGE LATER
+                batch_size = wandb.config['validation_batch_size']
             else:
                 mscoco_val_dataset =  self.dataset_processor.val_dataset
                 batch_size = wandb.config['validation_batch_size']

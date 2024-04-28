@@ -293,27 +293,29 @@ class Trainer(TrainerParent):
         if wandb.config['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
-        clip_model.train()
+        # clip_model.train()
 
         
 
-        if wandb.config['small_train_loader_batch_size'] == wandb.config['small_train_loader_dataset_size']:
+        # if wandb.config['small_train_loader_batch_size'] == wandb.config['small_train_loader_dataset_size']:
 
             # if I'm training on just one batch, I can just use the same batch for every iteration
 
-            if self.cached_images_batch is None:
-                for (imgs, captions) in self.dataset_processor.train_dataloader:
-                    self.cached_images_batch = imgs
-                    self.cached_captions_batch = captions
-                    break
+        #     if self.cached_images_batch is None:
+        #         for (imgs, captions) in self.dataset_processor.train_dataloader:
+        #             self.cached_images_batch = imgs
+        #             self.cached_captions_batch = captions
+        #             break
 
                 
-            dataloader = [(self.cached_images_batch, self.cached_captions_batch)]
-        else:
-            dataloader = self.dataset_processor.train_dataloader
+        #     dataloader = [(self.cached_images_batch, self.cached_captions_batch)]
+        # else:
+        #     dataloader = self.dataset_processor.train_dataloader
 
-        # for (imgs, captions) in self.dataset_processor.train_dataloader:
-        for (imgs, captions) in dataloader:
+        # dataloader = self.dataset_processor.train_dataloader
+
+        for (imgs, captions) in self.dataset_processor.train_dataloader:
+        # for (imgs, captions) in dataloader:
 
 
             step = self.dataset_processor.get_num_batches() * epoch + i
