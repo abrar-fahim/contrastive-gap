@@ -47,10 +47,11 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
+    # 'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
     'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
-    'use_scheduler': False,
+    'use_scheduler': True,
     'n_warmup_steps': 100,
     'vision_model': 'VIT', # RN50 or VIT
 
@@ -59,19 +60,20 @@ training_hyperparameters = {
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2,
-    'validation_dataset_size': 1024, # SET
-    'validation_batch_size': 1024, # SET
+    'validation_dataset_size': 2048, # SET
+    'validation_batch_size': 2048, # SET
     'cifar_batch_size': 128,
     
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # this randomly initializes weights
     
-    'use_small_trainloader': True, # this is ignored when using WIT400
-    'small_train_loader_batch_size': 256, # SET
+    'use_small_trainloader': False, # this is ignored when using WIT400
+    # 'small_train_loader_batch_size': 6, # SET
     # 'small_train_loader_dataset_size': 35000, # 30000
-    'small_train_loader_dataset_size': 1024, # SO that I'm only training a single batch
-    'num_workers': 4,
+    # 'small_train_loader_dataset_size': 80000, # when using training set
+    # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
+    'num_workers': 8,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -88,7 +90,7 @@ training_hyperparameters = {
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 8, # SET # this is the size of the projection layer
+    'clip_projection_dim': 512, # SET # this is the size of the projection layer
 
     # encoder configs
    
@@ -101,6 +103,8 @@ training_hyperparameters = {
     'rsa_loss': False,
     'pearson_loss': False,
     'scaled_denominator': False, # SET
+    'svd_loss': False,
+    'uniformity_loss': False,
 
 
     # validation batch stuff
@@ -119,10 +123,10 @@ training_hyperparameters = {
 
     # Evaluator settings
     'visualize_embeddings': False, # CHANGE IN LOCAL
-    'save_every': 100, # CHANGE IN LOCAL
+    'save_every': 50, # CHANGE IN LOCAL
     
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_Wiweight_tweight_loss_seed_trainmode_captionencoder_d', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_d', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

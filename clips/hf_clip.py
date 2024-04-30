@@ -363,6 +363,33 @@ class HFClip(ClipParent):
 
         if output_loss == True:
 
+            if wandb.config['uniformity_loss']:
+                # uniformity loss
+                encoder1_sq_pdist = torch.pdist(normalized_encoder1_embeds, p=2).pow(2)
+                encoder2_sq_pdist = torch.pdist(normalized_encoder2_embeds, p=2).pow(2)
+
+                encoder1_uniformity_loss = encoder1_sq_pdist.mul(-2).exp().mean().log()
+                encoder2_uniformity_loss = encoder2_sq_pdist.mul(-2).exp().mean().log()
+
+                uniformity_loss = 0.5 * encoder1_uniformity_loss + 0.5 * encoder2_uniformity_loss
+
+
+            if wandb.config['svd_loss']:
+                encoder1_svd_vals = torch.linalg.svdvals(normalized_encoder1_embeds)
+                encoder2_svd_vals = torch.linalg.svdvals(normalized_encoder2_embeds)
+
+                # difference between highest and lowest singular values
+                encover1_svd_diff = encoder1_svd_vals.max() - encoder1_svd_vals.min()
+                encoder2_svd_diff = encoder2_svd_vals.max() - encoder2_svd_vals.min()
+
+                svd_loss = 0.5 * encover1_svd_diff ** 2 + 0.5 *  encoder2_svd_diff ** 2
+
+                # compute average of singular values
+                # encover1_svd_avg = torch.mean(encoder1_svd_vals)
+                # encoder2_svd_avg = torch.mean(encoder2_svd_vals)
+
+                # svd_loss = 
+
             if wandb.config['intra_modality_loss']:
                 # find cosine similarities between image embeddings themselves
                 scaled_image_image_similarity = normalized_encoder1_embeds @ normalized_encoder1_embeds.t() * self.intra_modality_logit_scale.exp()
@@ -428,6 +455,10 @@ class HFClip(ClipParent):
                 loss = inter_modality_loss + rsa_loss
             elif wandb.config['pearson_loss']:
                 loss = inter_modality_loss + pearson_rsa_loss
+            elif wandb.config['svd_loss']:
+                loss = inter_modality_loss + svd_loss
+            elif wandb.config['uniformity_loss']:
+                loss = inter_modality_loss + uniformity_loss
                 
             else:
                 loss = inter_modality_loss
@@ -438,6 +469,8 @@ class HFClip(ClipParent):
                     'rsa': rsa_loss.item() if wandb.config['rsa_loss'] else -100,
                     'intra_modality': intra_modality_loss.item() if wandb.config['intra_modality_loss'] else -100,
                     'pearson_rsa': pearson_rsa_loss.item() if wandb.config['pearson_loss'] else -100,
+                    'svd': svd_loss.item() if wandb.config['svd_loss'] else -100,
+                    'uniformity': uniformity_loss.item() if wandb.config['uniformity_loss'] else -100,
                     'total': loss.item(),
                 }
 

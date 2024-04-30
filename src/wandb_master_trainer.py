@@ -65,14 +65,17 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "trying training with 4 batches now",
+        "name": "uniformity loss 128D, 128b, full MSCOCO, scheduler",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [8]}, # 512
+            'clip_projection_dim': {'values': [128]}, # 512
+
+            'intra_modality_loss': {'values': [False]},
+            'uniformity_loss': {'values': [True]},
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

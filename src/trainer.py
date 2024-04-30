@@ -74,145 +74,6 @@ class TrainerParent(ABC):
         # mp.set_start_method('forkserver')
         pass
 
-    @abstractmethod
-    def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
-        pass
-
-    def save_checkpoint_and_validate(self, clip_model, epoch, i):
-
-        clip_model.eval()
-        print()
-        print('--- VALIDATING ---')
-        print()
-
-        self.evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
-
-        # do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False, wandb=self.wandb, val_dataset_processor=val_dataset_processor)
-
-        clip_model.train()
-
-
-        checkpoint_to_save = {
-            'epoch': epoch,
-            'model_state_dict': clip_model.state_dict(),
-            # 'optimizer_state_dict': optimizer.state_dict(),
-            # 'train_dataloader': train_dataloader,
-            'dataloader_enumerator_index': i,
-            }
-        print()
-        print('saving checkpoint')
-        print()
-        torch.save(checkpoint_to_save, get_checkpoint_path())
-
-
-class GradCacheTrainer(TrainerParent):
-    '''
-    This handles operations of one epoch
-    This class does NOT care about maintaining states of dataloders, optimizers, schedulers, etc.
-    '''
-    def __init__(self, train_dataset, val_dataset) -> None:
-        super().__init__(train_dataset, val_dataset)
-
-    def __init__(self, dataset_processor, evaluator:Evaluator) -> None:
-        super().__init__(dataset_processor, evaluator)
-    
-
-    def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
-        '''
-        i is parameter because we might be starting in the middle of an epoch from a checkpoint
-        epoch is a parameter as we dont know this, since this class doesnt maintain global training state
-        '''
-
-        if wandb.config['train_only_one_batch']:
-            torch.random.manual_seed(42) # reset seed so that same batch is output everytime
-
-        clip_model.train()
-        
-        clip_model_grad_cache = GradCacheWrapper(clip_model)
-
-        cache_x = []
-        cache_y = []
-        closures_x = []
-        closures_y = []
-
-        step = i # this is the number of times we've called optimizer.step()  
-
-        optimizer.zero_grad()
-
-        for substep, sub_batch in enumerate(train_dataloader):
-            imgs, captions = sub_batch
-
-            if self.use_grad_cache:
-                r_imgs, c_imgs = clip_model_grad_cache.get_image_projections(imgs)
-                r_txts, c_txts = clip_model_grad_cache.get_text_projections(captions)
-
-                # print progress every 5 steps
-                if substep % 5 == 0:
-                    print('substep: ', substep)
-
-                cache_x.append(r_imgs)
-                cache_y.append(r_txts)
-                closures_x.append(c_imgs)
-                closures_y.append(c_txts)
-
-                if (substep + 1) % wandb.config['grad_cache_multiplier'] == 0:
-
-
-                    loss = clip_model_grad_cache.contrastive_loss(cache_x, cache_y)
-                    loss.backward()
-                
-                    # TEST THESE FOR LOOPS LATER 
-                    for f, r in zip(closures_x, cache_x):
-                        f(r)
-                    for f, r in zip(closures_y, cache_y):
-                        f(r)
-
-                    cache_x = []
-                    cache_y = []
-                    closures_x = []
-                    closures_y = []
-                
-                    optimizer.step()
-                    step += 1
-                    # scaler.update()
-                    optimizer.zero_grad()
-
-                    print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, loss.item()))
-
-                    if step % save_every == 0 and wandb.config['do_checkpointing']: 
-
-                        # for old_p in self.val_processes:
-                        #     old_p.join()
-
-                        # p = mp.Process(target=self.save_checkpoint_and_validate, args=(clip_model, train_dataloader, optimizer, epoch, step))
-                        self.save_checkpoint_and_validate(clip_model, train_dataloader, optimizer, epoch, step)
-                        # p.start()
-                        # self.val_processes.append(p)
-
-
-                    if wandb.config['train_only_one_batch']:
-                        break
-
-                    if wandb.config['max_steps'] is not None and step >= wandb.config['max_steps']:
-                        break
-
-                    step += 1
-
-
-class Trainer(TrainerParent):
-
-    def __init__(self, train_dataset, val_dataset) -> None:
-        super().__init__(train_dataset, val_dataset)
-
-    def __init__(self, dataset_processor, evaluator: Evaluator) -> None:
-        super().__init__(dataset_processor, evaluator)
-
-        if wandb.config['use_train_as_val']:
-
-            self.cached_images_batch = None
-            self.cached_captions_batch = None
-
-
     def calculateW(self, clip_model: HFClip):
         '''
         Calculate W matrix that aligns two modalities at init
@@ -285,11 +146,141 @@ class Trainer(TrainerParent):
 
             return W
 
+    @abstractmethod
+    def train_one_epoch(self, clip_model, train_dataloader, optimizer, i=0, epoch=0, save_every=10):
+        pass
 
-    def repeater(self, data_loader):
-        for loader in repeat(data_loader):
-            for data in loader:
-                yield data
+    def save_checkpoint_and_validate(self, clip_model, epoch, i):
+
+        clip_model.eval()
+        print()
+        print('--- VALIDATING ---')
+        print()
+
+        self.evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
+
+        # do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False, wandb=self.wandb, val_dataset_processor=val_dataset_processor)
+
+        clip_model.train()
+
+
+        checkpoint_to_save = {
+            'epoch': epoch,
+            'model_state_dict': clip_model.state_dict(),
+            # 'optimizer_state_dict': optimizer.state_dict(),
+            # 'train_dataloader': train_dataloader,
+            'dataloader_enumerator_index': i,
+            }
+        print()
+        print('saving checkpoint')
+        print()
+        torch.save(checkpoint_to_save, get_checkpoint_path())
+
+
+class GradCacheTrainer(TrainerParent):
+    '''
+    This handles operations of one epoch
+    This class does NOT care about maintaining states of dataloders, optimizers, schedulers, etc.
+    '''
+    def __init__(self, train_dataset, val_dataset) -> None:
+        super().__init__(train_dataset, val_dataset)
+
+    def __init__(self, dataset_processor, evaluator:Evaluator) -> None:
+        super().__init__(dataset_processor, evaluator)
+    
+
+    def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, scheduler =None,i=0, epoch=0, save_every=10) -> int:
+        '''
+        i is parameter because we might be starting in the middle of an epoch from a checkpoint
+        epoch is a parameter as we dont know this, since this class doesnt maintain global training state
+        '''
+
+        if wandb.config['train_only_one_batch']:
+            torch.random.manual_seed(42) # reset seed so that same batch is output everytime
+
+        clip_model.train()
+        
+        clip_model_grad_cache = GradCacheWrapper(clip_model)
+
+        cache_x = []
+        cache_y = []
+        closures_x = []
+        closures_y = []
+
+        step = i # this is the number of times we've called optimizer.step()  
+
+        optimizer.zero_grad()
+
+        for substep, sub_batch in enumerate(self.dataset_processor.train_dataloader):
+            imgs, captions = sub_batch
+
+            if self.use_grad_cache:
+                r_imgs, c_imgs = clip_model_grad_cache.get_image_projections(imgs)
+                r_txts, c_txts = clip_model_grad_cache.get_text_projections(captions)
+
+                # print progress every 5 steps
+                if substep % 5 == 0:
+                    print('substep: ', substep)
+
+                cache_x.append(r_imgs)
+                cache_y.append(r_txts)
+                closures_x.append(c_imgs)
+                closures_y.append(c_txts)
+
+                if (substep + 1) % wandb.config['grad_cache_multiplier'] == 0:
+
+
+                    loss = clip_model_grad_cache.contrastive_loss(cache_x, cache_y)
+                    loss.backward()
+                
+                    # TEST THESE FOR LOOPS LATER 
+                    for f, r in zip(closures_x, cache_x):
+                        f(r)
+                    for f, r in zip(closures_y, cache_y):
+                        f(r)
+
+                    cache_x = []
+                    cache_y = []
+                    closures_x = []
+                    closures_y = []
+                
+                    optimizer.step()
+                    step += 1
+                    # scaler.update()
+                    optimizer.zero_grad()
+
+                    print('[%d, %5d] loss: %.3f' % (epoch + 1, step + 1, loss.item()))
+
+                    if step % save_every == 0 and wandb.config['do_checkpointing']: 
+
+                        # for old_p in self.val_processes:
+                        #     old_p.join()
+
+                        # p = mp.Process(target=self.save_checkpoint_and_validate, args=(clip_model, train_dataloader, optimizer, epoch, step))
+                        self.save_checkpoint_and_validate(clip_model, epoch, step)
+                        # p.start()
+                        # self.val_processes.append(p)
+
+
+                    if wandb.config['train_only_one_batch']:
+                        break
+
+                    if wandb.config['max_steps'] is not None and step >= wandb.config['max_steps']:
+                        break
+
+                    step += 1
+
+        return epoch
+
+
+class Trainer(TrainerParent):
+
+    def __init__(self, train_dataset, val_dataset) -> None:
+        super().__init__(train_dataset, val_dataset)
+
+    def __init__(self, dataset_processor, evaluator: Evaluator) -> None:
+        super().__init__(dataset_processor, evaluator)
+
     
     def train_one_epoch(self, clip_model, optimizer, scaler: GradScaler=None, scheduler =None, i=0, epoch=0, save_every=10) -> int:
         '''
@@ -301,35 +292,11 @@ class Trainer(TrainerParent):
         if wandb.config['train_only_one_batch']:
             torch.random.manual_seed(42) # reset seed so that same batch is output everytime
 
-        # clip_model.train()
+        clip_model.train()
 
         
-
-        # if wandb.config['small_train_loader_batch_size'] == wandb.config['small_train_loader_dataset_size']:
-
-            # if I'm training on just one batch, I can just use the same batch for every iteration
-
-        #     if self.cached_images_batch is None:
-        #         for (imgs, captions) in self.dataset_processor.train_dataloader:
-        #             self.cached_images_batch = imgs
-        #             self.cached_captions_batch = captions
-        #             break
-
-                
-        #     dataloader = [(self.cached_images_batch, self.cached_captions_batch)]
-        # else:
-        #     dataloader = self.dataset_processor.train_dataloader
-
-        # dataloader = self.dataset_processor.train_dataloader
-
-        
-
-        # for (imgs, captions) in self.repeater(self.dataset_processor.train_dataloader):
         for (imgs, captions) in self.dataset_processor.train_dataloader:
 
-        # while True:
-        #     (imgs, captions) = next(self.dataset_processor.train_dataloader)
-        # for (imgs, captions) in dataloader:
 
 
             step = self.dataset_processor.get_num_batches() * epoch + i
@@ -342,8 +309,6 @@ class Trainer(TrainerParent):
 
 
             optimizer.zero_grad()
-
-            # if i % save_every == 0 and wandb.config['do_checkpointing']:
 
             if step % save_every == 0 and wandb.config['do_checkpointing']:
                 self.save_checkpoint_and_validate(clip_model, epoch, i)

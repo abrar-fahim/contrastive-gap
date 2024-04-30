@@ -255,10 +255,81 @@ class MSCOCOProcessor(DatasetProcessorParent):
         random.seed(worker_seed)
 
 
+    
     def load_train_dataset(self):
 
+        self.train_dataset = dset.CocoCaptions(
+            root = './datasets/mscoco_new/train2014',
+            annFile = 'datasets/mscoco/annotations/captions_train2014.json',
+            transform=self.image_preprocessor,
+        )
 
-        
+        self.train_dataloader = DataLoader(self.train_dataset, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
+                                           batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(self.train_dataset), batch_size=wandb.config['batch_size'], drop_last=False)))
+
+
+   
+    def load_val_dataset(self):
+        val_dataset = dset.CocoCaptions(
+            root = './datasets/mscoco/val2014',
+            annFile= './datasets/mscoco/annotations/captions_val2014.json',
+        )
+
+        # generate random indices
+        val_indices = torch.randint(0, len(val_dataset) , (wandb.config['validation_dataset_size'],))
+
+        val_data_subset = Subset(val_dataset, val_indices)
+
+        self.val_dataset = val_data_subset # using only one validation batch for now. change to use entire val batch LATER
+
+
+
+
+
+    def print_dataset_stats(self):
+
+        print()
+        print('--- TRAIN DATASET STATS ---')
+        print()
+
+        print('no of train samples: ', len(self.train_dataset))
+
+        print()
+        print('--- VAL DATASET STATS ---')
+        print()
+
+
+        print('no of val samples: ', len(self.val_dataset))
+
+
+    def load_val_dataset_old(self):
+
+        val_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['validation_dataset_size'],))
+
+        # make sure that the validation indices are not in the training indices
+        j = 0
+        while j < wandb.config['validation_dataset_size']:
+            while val_indices[j] in self.train_subset_indices:
+                val_indices[j] = torch.randint(0, len(self.train_dataset) , (1,))
+            j += 1
+
+
+        val_data_subset = Subset(self.train_dataset, val_indices)
+
+
+
+        # no need val dataloader as I'm creating it in do_validation in utils
+
+        # val_dataloader = DataLoader(val_data_subset, batch_size=wandb.config['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker)
+
+
+        # set class variables
+        self.val_dataset = val_data_subset
+        # self.val_dataloader = val_dataloader
+
+
+    def load_train_dataset_old(self):
+
         '''
         comparing with training hyperparameters and not self.show_real_images_captions, because:
         - training hyperparameters stays constant throghout
@@ -268,7 +339,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         root: str = None
         
         if wandb.config['host'] == 'cirrus':
-            root = './datasets/mscoco/val2014'
+            # root = './datasets/mscoco/val2014'
+            root = './datasets/mscoco_new/train2014'
 
         elif wandb.config['host'] == 'local':
             root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014'
@@ -285,7 +357,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         else:
             train_dataset = dset.CocoCaptions(
             root = root,
-            annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+            # annFile = 'datasets/mscoco/annotations/captions_val2014.json',
+            annFile = 'datasets/mscoco/annotations/captions_train2014.json',
             # transform=[transforms.PILToTensor()])
             transform=self.image_preprocessor,
             )
@@ -344,7 +417,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True,)
 
 
-        self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, 
+        self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
                                            batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=batch_size, drop_last=False)))
 
         # self.train_dataloader = self.repeater(self.train_dataloader)
@@ -354,74 +427,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # self.train_dataloader = DataLoader(dataset_to_use, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, batch_sampler=RepeatBatchSampler(batch_size))
         self.train_subset_indices = subset_indices
 
-    def repeater(self, dataloader):
-        for loader in repeat(dataloader):
-            for data in loader:
-                yield data
-
-    def load_val_dataset(self):
-
-        val_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['validation_dataset_size'],))
-
-        # make sure that the validation indices are not in the training indices
-        j = 0
-        while j < wandb.config['validation_dataset_size']:
-            while val_indices[j] in self.train_subset_indices:
-                val_indices[j] = torch.randint(0, len(self.train_dataset) , (1,))
-            j += 1
 
 
-        val_data_subset = Subset(self.train_dataset, val_indices)
-
-
-
-        # no need val dataloader as I'm creating it in do_validation in utils
-
-        # val_dataloader = DataLoader(val_data_subset, batch_size=wandb.config['validation_batch_size'], shuffle=True, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker)
-
-
-        # set class variables
-        self.val_dataset = val_data_subset
-        # self.val_dataloader = val_dataloader
-
-    def print_dataset_stats(self):
-
-        print()
-        print('--- TRAIN DATASET STATS ---')
-        print()
-
-        print('no of train samples: ', len(self.train_dataset))
-
-        print()
-        print('--- VAL DATASET STATS ---')
-        print()
-
-
-        print('no of val samples: ', len(self.val_dataset))
-
-
-
-
-
-        
-# class _RepeatSampler(object):
-#     """ Sampler that repeats forever.
-
-#     Args:
-#         sampler (Sampler)
-#     """
-
-#     def __init__(self, sampler):
-#         self.sampler = sampler
-
-#     def __iter__(self):
-#         while True:
-#             yield from iter(self.sampler)
-
-#     def __len__(self):
-#         return len(self.sampler)
-
-# create sampler that repeats forever
 
 class RepeatSampler(torch.utils.data.Sampler):
     def __init__(self, sampler):
@@ -434,24 +441,4 @@ class RepeatSampler(torch.utils.data.Sampler):
     def __len__(self):
         return len(self.sampler)
 
-
-class RepeatDataLoader(torch.utils.data.dataloader.DataLoader):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    
-    # next
-    def __next__(self):
-        # make sure to return a batch even if the dataset is exhausted
-        try:
-            # batch = super().__next__()
-            print('nexting')
-            batch = next(self.__iter__())
-        except StopIteration:
-            print('stopped? ')
-            self.__iter__ = iter(self)
-            batch = next(self.__iter__())
-
-        return batch
-        
     

@@ -351,12 +351,15 @@ def cleanup_after_training():
         print(f'removed {mscoco_batch_file_path}')
     else:
         print(f'{mscoco_batch_file_path} does not exist')
+
+
+    print(" --- NOT REMOVING BATCH CACHE FILE --- ")
     
-    if os.path.exists(mscoco_train_dataset_batch_file_path):
-        os.remove(mscoco_train_dataset_batch_file_path)
-        print(f'removed {mscoco_train_dataset_batch_file_path}')
-    else:
-        print(f'{mscoco_train_dataset_batch_file_path} does not exist')
+    # if os.path.exists(mscoco_train_dataset_batch_file_path):
+    #     os.remove(mscoco_train_dataset_batch_file_path)
+    #     print(f'removed {mscoco_train_dataset_batch_file_path}')
+    # else:
+    #     print(f'{mscoco_train_dataset_batch_file_path} does not exist')
 
     # if os.path.exists(embeddings_path):
     #     os.remove(embeddings_path)
@@ -715,6 +718,9 @@ def generate_csv_file_name(clip_model=None):
 
             if wandb.config['intra_modality_loss']:
                 new_part = part.replace('loss', 'Lit_ii_tt')
+
+            elif wandb.config['uniformity_loss']:
+                new_part = part.replace('loss', 'uniform')
             else:
                 new_part = part.replace('loss', 'Lit')
         elif 'seed' in part:

@@ -181,6 +181,25 @@ class Evaluator():
 
             ranks = self.get_rank()
 
+            n_s_buckets = 8
+
+            # group S values into buckets, and get mean of each bucket
+            # S shape: (clip_projection_dim, )
+
+            image_S_buckets = torch.chunk(ranks['image_S'], n_s_buckets) 
+            text_S_buckets = torch.chunk(ranks['text_S'], n_s_buckets)
+
+            if len(image_S_buckets) < n_s_buckets:
+                image_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_S_buckets))])
+            
+            if len(text_S_buckets) < n_s_buckets:
+                text_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_S_buckets))])
+
+            image_S_bucket_means = [torch.mean(bucket) for bucket in image_S_buckets]
+            text_S_bucket_means = [torch.mean(bucket) for bucket in text_S_buckets]
+
+
+
             if wandb is not None:
                 wandb.log(
                     data={
@@ -190,6 +209,8 @@ class Evaluator():
                         'train_intermodality_loss': val_loss['inter_modality'],
                         'train_rsa_loss': val_loss['rsa'],
                         'train_pearson_loss': val_loss['pearson_rsa'],
+                        'svd': val_loss['svd'],
+                        'uniformity': val_loss['uniformity'],
                         'train_total_loss':val_loss['total'],
                         'mean_pairwise_euclidean_distance':  self.get_mean_pairwise_euclidean_distance(),
                         'mean_cosine_similarity': self.get_mean_cosine_similarity(clip_model.temperature),
@@ -204,22 +225,45 @@ class Evaluator():
                         'full_text_rank': ranks['full_text_rank'],
                         'first_lt1_value': ranks['first_lt1_value'],
                         'avg_S': ranks['avg_S'],
-                        'image_S0': ranks['image_S'][0],
-                        'image_S1': ranks['image_S'][1],
-                        'image_S2': ranks['image_S'][2],
-                        'image_S3': ranks['image_S'][3],
-                        'image_S4': ranks['image_S'][4],
-                        'image_S5': ranks['image_S'][5],
-                        'image_S6': ranks['image_S'][6],
-                        'image_S7': ranks['image_S'][7],
-                        'text_S0': ranks['text_S'][0],
-                        'text_S1': ranks['text_S'][1],
-                        'text_S2': ranks['text_S'][2],
-                        'text_S3': ranks['text_S'][3],
-                        'text_S4': ranks['text_S'][4],
-                        'text_S5': ranks['text_S'][5],
-                        'text_S6': ranks['text_S'][6],
-                        'text_S7': ranks['text_S'][7],
+
+                        # bucketed S values
+
+                        'image_S0': image_S_bucket_means[0],
+                        'image_S1': image_S_bucket_means[1],
+                        'image_S2': image_S_bucket_means[2],
+                        'image_S3': image_S_bucket_means[3],
+                        'image_S4': image_S_bucket_means[4],
+                        'image_S5': image_S_bucket_means[5],
+                        'image_S6': image_S_bucket_means[6],
+                        'image_S7': image_S_bucket_means[7],
+                        'text_S0': text_S_bucket_means[0],
+                        'text_S1': text_S_bucket_means[1],
+                        'text_S2': text_S_bucket_means[2],
+                        'text_S3': text_S_bucket_means[3],
+                        'text_S4': text_S_bucket_means[4],
+                        'text_S5': text_S_bucket_means[5],
+                        'text_S6': text_S_bucket_means[6],
+                        'text_S7': text_S_bucket_means[7],
+
+
+
+                        # 'image_S0': ranks['image_S'][0],
+                        # 'image_S1': ranks['image_S'][1],
+                        # 'image_S2': ranks['image_S'][2],
+                        # 'image_S3': ranks['image_S'][3],
+                        # 'image_S4': ranks['image_S'][4],
+                        # 'image_S5': ranks['image_S'][5],
+                        # 'image_S6': ranks['image_S'][6],
+                        # 'image_S7': ranks['image_S'][7],
+                        # 'text_S0': ranks['text_S'][0],
+                        # 'text_S1': ranks['text_S'][1],
+                        # 'text_S2': ranks['text_S'][2],
+                        # 'text_S3': ranks['text_S'][3],
+                        # 'text_S4': ranks['text_S'][4],
+                        # 'text_S5': ranks['text_S'][5],
+                        # 'text_S6': ranks['text_S'][6],
+                        # 'text_S7': ranks['text_S'][7],
+
 
 
                         # linear probe acc
@@ -261,7 +305,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        # 'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
+                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -523,6 +567,8 @@ class Evaluator():
                 pickle.dump([step_data], f)
 
 
+
+
     def get_rank(self) ->  dict:
         '''
         Get rank (threshold = 1) using SVD, of image and text embeds
@@ -537,8 +583,10 @@ class Evaluator():
 
 
 
-        image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']].T
-        text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']].T
+        image_embeds = self.val_outputs.image_embeds[:wandb.config['validation_batch_size']].T
+        text_embeds = self.val_outputs.text_embeds[:wandb.config['validation_batch_size']].T
+        # image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']].T
+        # text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']].T
 
         # embeds shape: ([dimensionality, batch_size])
 
@@ -554,6 +602,8 @@ class Evaluator():
         U, S, Vh = torch.linalg.svd(image_embeds)
 
         image_S = S
+
+        
 
         
 
