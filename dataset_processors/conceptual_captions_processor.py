@@ -9,6 +9,7 @@ from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 from clips.hf_clip import HFClip
 import numpy as np
 from collections import OrderedDict
+import torchdata.datapipes as dp
 
 from torchvision.transforms import v2
 from torchvision.transforms.functional import resized_crop
@@ -24,13 +25,21 @@ from typing import Generator, List, Tuple, Sequence
 import asyncio
 from torchdata.datapipes.iter import HttpReader, LineReader
 
+TSV_URLS = {
+    'train': './datasets/conceptual_captions/Train-GCC-training.tsv',
+    'val': './datasets/conceptual_captions/GCC-1.1.0-Validation.tsv'
+    # 'train': 'https://storage.cloud.google.com/gcc-data/Train/GCC-training.tsv?_ga=2.191230122.-1896153081.1529438250'
+}
 
-
-class MSCOCOProcessor(DatasetProcessorParent):
+class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
     
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
+
+        self.train_data_pipe: IterDataPipe = None
+        self.val_data_pipe: IterDataPipe = None
+
         self.train_dataset = None
         self.train_dataset = None
         self.train_dataloader = None
@@ -74,14 +83,14 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         # always need to first load train then load val dataset. Fix this confusing requirement later
         self.load_train_dataset()
-        self.load_val_dataset()
+        # self.load_val_dataset()
 
 
     def collate_fn(self, batch):
         '''
         batch is a list of tuples?
         each tuple is of the form (image, caption)
-        image is a tensor of shape [3, 224, 224]
+        image is a jpeg image
         caption is a tuple of strings
         '''
 
@@ -91,9 +100,13 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         imgs, og_captions = zip(*batch)
 
+        imgs = tuple(self.image_preprocessor(img) for img in imgs)
+
 
         # keep only first caption for each image
-        captions = [caption[0] for caption in og_captions]
+        # captions = [caption[0] for caption in og_captions]
+
+        captions = og_captions
         # remove repeats in captions and imgs
 
         org_len = len(captions)
@@ -121,7 +134,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
             # outputs1 = imgs
 
-            # preprocessed_images = tuple(self.image_preprocessor(img) for img in imgs)
+            
 
             preprocessed_images = torch.stack(imgs)
 
@@ -130,9 +143,15 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         if self.encoder2_modality == 'text':
             if self.same_inputs:
-                outputs2 = [caption[0] for caption in og_captions]
+                # outputs2 = [caption[0] for caption in og_captions]
+                outputs2 = captions
             else:
-                outputs2 = [caption[1] for caption in og_captions]
+                # outputs2 = [caption[1] for caption in og_captions]
+                outputs2 = captions
+
+                if self.encoder1_modality == 'text':
+                    raise NotImplementedError("There is only one caption to sample from in conceptual captions")
+            
 
         elif self.encoder2_modality == 'image':
             if self.same_inputs:
@@ -265,67 +284,16 @@ class MSCOCOProcessor(DatasetProcessorParent):
         random.seed(worker_seed)
 
 
+
+
     def load_train_dataset(self):
 
-        train_dataset = load_dataset('conceptual_captions')
+        self.train_data_pipe = conceptual_captions_3m(split="train")
+
+        batch_size = wandb.config['batch_size']
 
 
-
-
-        
-
-
-
-
-        subset_indices = torch.randint(0, len(train_dataset) , (wandb.config['small_train_loader_dataset_size'],)) 
-
-        # no problems upto here
-
-
-
-        # always defined and exists, but only used when small training loader is used, and we're not loading from checkpoint at start
-
-        dataset_to_use = None
-        batch_size = None
-
-        checkpoint_path = get_checkpoint_path()
-
-        # NOT SAVING DATALOADER IN CHECKPOINT, so load dataloader normally
-
-        # if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint'] and wandb.config['do_checkpointing']:
-
-        #     '''
-        #     Load from checkpoint``
-        #     '''
-        #     print('Loading dataloader from checkpoint...')
-
-        #     checkpoint = torch.load(checkpoint_path)
-        #     self.train_dataloader = checkpoint['train_dataloader']
-        #     # keep self.train_dataset same as in init, since it doesnt matter
-        #     return
-
-        
-        '''
-        Not loading from checkpoint, so prepare new dataloader
-        '''
-        if wandb.config['use_small_trainloader']:
-
-            '''
-            Prepare subset of training dataset
-            '''
-            train_data_subset = Subset(train_dataset, subset_indices)
-            dataset_to_use = train_data_subset
-            batch_size = wandb.config['small_train_loader_batch_size']
-
-        else:
-
-            dataset_to_use = train_dataset
-            batch_size = wandb.config['batch_size']
-        
-        # set class variables
-        self.train_dataset = dataset_to_use
-        self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
-        self.train_subset_indices = subset_indices
+        self.train_dataloader = DataLoader(self.train_data_pipe, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
     def load_val_dataset(self):
 
@@ -389,20 +357,49 @@ async def async_batch_get_images(
         return await asyncio.gather(*[async_get_image(session, url) for url in urls])
 
 
+def _datapipe_from_tsv_url(
+    tsv_url: str, buffer_size: int = 128
+) -> IterDataPipe[Tuple[Image.Image, str]]:
+    # pipe = HttpReader([tsv_url])
+    # pipe = LineReader(pipe, return_path=False)
+
+    # source_dp = IterableWrapper([(tsv_url, io.StringIO(text1)), ("file2", io.StringIO(text2))])
+
+
+    pipe = dp.iter.FileOpener([tsv_url], mode='r')
+
+    pipe = LineReader(pipe, return_path=False)
+    # # use pipe to read from local file
+    # pipe = LineReader(pipe, return_path=True)
+    # LineReader downloads raw bytes.  Decode them to strings, then split.
+    pipe = pipe.map(lambda line: line.split("\t"))
+
+    return ParallelSampleLoader(pipe, buffer_size=buffer_size)
+
+def conceptual_captions_3m(
+    split: str = "train", buffer_size: int = 128
+) -> IterDataPipe[Tuple[Image.Image, str]]:
+    return _datapipe_from_tsv_url(tsv_url=TSV_URLS[split], buffer_size=buffer_size)
 
 class ParallelSampleLoader(IterDataPipe):
     def __init__(
-        self, dp: IterDataPipe[Tuple[str, str]], buffer_size: int = 256
+        self, dp: IterDataPipe[Tuple[str, str]], buffer_size: int = 128
     ) -> None:
         super().__init__()
         self.dp = dp
         self.buffer_size = buffer_size
+
+        self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
+
+        _, self.image_preprocessor = clip.load(wandb.config['openai_clip_model'], device=self.device)
 
     def __iter__(self) -> Generator[Tuple[Image.Image, str], None, None]:
         pipe: IterDataPipe[List[Tuple[str, str]]] = self.dp.batch(self.buffer_size)
         for batch in pipe:
             # The batch is a list of tuples, where the first element is the
             # caption, and the second element is the URL of the image.
+
+            # print('batch: ', batch)
             captions = [x[0] for x in batch]
             image_urls = [x[1] for x in batch]
             images = asyncio.run(async_batch_get_images(image_urls))
@@ -410,22 +407,3 @@ class ParallelSampleLoader(IterDataPipe):
             for image, caption in zip(images, captions):
                 if image is not None:
                     yield image, caption
-
-        
-    
-def _datapipe_from_tsv_url(
-    tsv_url: str, buffer_size: int = 256
-) -> IterDataPipe[Tuple[Image.Image, str]]:
-    pipe = HttpReader([tsv_url])
-    pipe = LineReader(pipe, return_path=False)
-    # LineReader downloads raw bytes.  Decode them to strings, then split.
-    pipe = pipe.map(lambda line: line.decode("utf-8").split("\t"))
-
-    return ParallelSampleLoader(pipe, buffer_size=buffer_size)
-
-def conceptual_captions_3m(
-    split: str = "train", buffer_size: int = 256
-) -> IterDataPipe[Tuple[Image.Image, str]]:
-    return _datapipe_from_tsv_url(tsv_url=TSV_URLS[split], buffer_size=buffer_size)
-        
-        

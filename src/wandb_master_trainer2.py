@@ -62,10 +62,11 @@ if __name__ == "__main__":
 
 
     sweep_configuration = {
-        "method": "grid",
+        # "method": "grid",
+        "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "uniformity loss 512D, 128b, full MSCOCO",
+        "name": "Uniformity loss shuffle on 512D, 128b, full MSCOCO, tuning lr, wdecay=0.35",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
@@ -76,9 +77,10 @@ if __name__ == "__main__":
 
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
+            'weight_decay': {'values': [0.35]}, 
 
-            # "lr": {"max": 7e-5, "min": 1e-6},
-            "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+            "lr": {"max": 1e-3, "min": 5e-5},
+            # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             # "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
@@ -105,4 +107,5 @@ if __name__ == "__main__":
     # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
     wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
  
+
 

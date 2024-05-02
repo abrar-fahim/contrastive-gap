@@ -31,12 +31,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:3'
+config_cuda_device = 'cuda:1'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:3', # SET index of GPU
+    'cuda_device': 'cuda:1', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
 
 
@@ -47,19 +47,20 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    # 'n_epochs': 20, # SET 12 for scratch, (6 for finetune?)
-    'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 10, # SET 12 for scratch, (6 for finetune?)
+    # 'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
     'use_scheduler': False,
-    'n_warmup_steps': 1000,
+    'n_warmup_steps': 10000,
     'vision_model': 'VIT', # RN50 or VIT
+    # 'vision_model': 'RN50', # RN50 or VIT
 
 
 
     'temperature': 0.01,
     'intra_modality_temperature': 0.01,
-    'weight_decay': 0.2,
+    'weight_decay': 0.2, # LARGER weight decay means MORE regularization
     'validation_dataset_size': 2048, # SET
     'validation_batch_size': 2048, # SET
     'cifar_batch_size': 128,

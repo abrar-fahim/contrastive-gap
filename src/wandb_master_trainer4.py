@@ -65,21 +65,21 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "default loss train as val 512D, 128b, full MSCOCO",
+        "name": "default loss shuffle on 1024d, 128b, full MSCOCO, hypers",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [512]}, # 512
+            'clip_projection_dim': {'values': [1024]}, # 512
 
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False]},
 
             # "lr": {"max": 7e-5, "min": 1e-6},
-            "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            # "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
