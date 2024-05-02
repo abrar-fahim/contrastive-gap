@@ -83,7 +83,7 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
         # always need to first load train then load val dataset. Fix this confusing requirement later
         self.load_train_dataset()
-        # self.load_val_dataset()
+        self.load_val_dataset()
 
 
     def collate_fn(self, batch):
@@ -100,7 +100,14 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
         imgs, og_captions = zip(*batch)
 
+
+        imgs = tuple(img.convert('RGBA') for img in imgs)
+
+
+
         imgs = tuple(self.image_preprocessor(img) for img in imgs)
+
+
 
 
         # keep only first caption for each image
@@ -297,14 +304,9 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
     def load_val_dataset(self):
 
-        val_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['validation_dataset_size'],))
+        self.val_data_pipe = conceptual_captions_3m(split="val")
 
-        # make sure that the validation indices are not in the training indices
-        j = 0
-        while j < wandb.config['validation_dataset_size']:
-            while val_indices[j] in self.train_subset_indices:
-                val_indices[j] = torch.randint(0, len(self.train_dataset) , (1,))
-            j += 1
+        val_indices = torch.randint(0, 15840 , (wandb.config['validation_dataset_size'],))
 
 
         val_data_subset = Subset(self.train_dataset, val_indices)
