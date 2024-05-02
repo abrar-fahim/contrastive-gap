@@ -17,6 +17,7 @@ b = torch.randn(6,8)
 
 U, S, Vh = torch.linalg.svd(b)
 
+print(loss)
 
 print('s ', S)
 
