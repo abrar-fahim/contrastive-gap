@@ -31,12 +31,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:0'
+config_cuda_device = 'cuda:3'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:0', # SET index of GPU
+    'cuda_device': 'cuda:3', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
 
 
@@ -51,8 +51,8 @@ training_hyperparameters = {
     'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
-    'use_scheduler': True,
-    'n_warmup_steps': 100,
+    'use_scheduler': False,
+    'n_warmup_steps': 1000,
     'vision_model': 'VIT', # RN50 or VIT
 
 
@@ -109,7 +109,7 @@ training_hyperparameters = {
 
     # validation batch stuff
     'train_only_one_batch': False,
-    'use_train_as_val': True, # SET
+    'use_train_as_val': False, # SET
     'use_cached_val_batch': True, 
 
 
@@ -123,7 +123,7 @@ training_hyperparameters = {
 
     # Evaluator settings
     'visualize_embeddings': False, # CHANGE IN LOCAL
-    'save_every': 50, # CHANGE IN LOCAL
+    'save_every': 200, # CHANGE IN LOCAL
     
     'save_losses': False,
     'csv_path': 'stats/',

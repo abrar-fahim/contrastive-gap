@@ -346,14 +346,16 @@ def cleanup_after_training():
 
     embeddings_path = get_embeddings_path()
 
-    if os.path.exists(mscoco_batch_file_path):
-        os.remove(mscoco_batch_file_path)
-        print(f'removed {mscoco_batch_file_path}')
-    else:
-        print(f'{mscoco_batch_file_path} does not exist')
-
-
     print(" --- NOT REMOVING BATCH CACHE FILE --- ")
+
+    # if os.path.exists(mscoco_batch_file_path):
+    #     os.remove(mscoco_batch_file_path)
+    #     print(f'removed {mscoco_batch_file_path}')
+    # else:
+    #     print(f'{mscoco_batch_file_path} does not exist')
+
+
+    
     
     # if os.path.exists(mscoco_train_dataset_batch_file_path):
     #     os.remove(mscoco_train_dataset_batch_file_path)

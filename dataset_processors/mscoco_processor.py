@@ -6,13 +6,11 @@ import random
 from torch.utils.data import DataLoader, Subset
 from src.utils import  get_checkpoint_path
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
-from clips.hf_clip import HFClip
 import numpy as np
 from collections import OrderedDict
 
 from torchvision.transforms import v2
 from torchvision.transforms.functional import resized_crop
-from itertools import repeat
 
 
 
@@ -273,6 +271,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         val_dataset = dset.CocoCaptions(
             root = './datasets/mscoco/val2014',
             annFile= './datasets/mscoco/annotations/captions_val2014.json',
+            transform=self.image_preprocessor,
         )
 
         # generate random indices
@@ -417,7 +416,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
         # self.train_dataloader = DataLoader(dataset_to_use, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True,)
 
 
-        self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
+        self.train_dataloader = DataLoader(dataset_to_use, shuffle=True, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
                                            batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=batch_size, drop_last=False)))
 
         # self.train_dataloader = self.repeater(self.train_dataloader)

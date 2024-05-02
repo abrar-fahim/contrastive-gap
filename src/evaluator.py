@@ -126,6 +126,8 @@ class Evaluator():
                 (mscoco_val_imgs, mscoco_val_captions) = batch
                 print('val batch loading done')
 
+                break
+
             if wandb.config['use_cached_val_batch']:
                 print('saving batch to cache')
                 # save batch to cache

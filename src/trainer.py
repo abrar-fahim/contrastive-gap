@@ -32,7 +32,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # add sibling directory to path 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # def
 
-from dataset_processors.mscoco_processor import RepeatDataLoader, RepeatSampler
+from dataset_processors.mscoco_processor import RepeatSampler
 
 from clips.hf_clip import HFClipOutput, HFClip
 from config import config_cuda_device

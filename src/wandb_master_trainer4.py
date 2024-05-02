@@ -65,17 +65,17 @@ if __name__ == "__main__":
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "uniformity loss, 32D 256bn",
+        "name": "default loss train as val 512D, 128b, full MSCOCO",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
             "temperature": {"values": [0.01]},
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [32]}, # 512
+            'clip_projection_dim': {'values': [512]}, # 512
 
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
 
             # "lr": {"max": 7e-5, "min": 1e-6},
             "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
@@ -105,4 +105,5 @@ if __name__ == "__main__":
     # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
     wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
  
+
 
