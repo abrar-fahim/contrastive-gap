@@ -30,7 +30,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# de
 from src.utils import generate_csv_file_name, get_embeddings_path
 from src.config import *
 from clips.hf_clip import HFClipOutput, HFClip
-from dataset_processors.mscoco_processor import MSCOCOProcessor # change this to dataset_processor_parent later, after you write the abstract functions there.
+from dataset_processors.mscoco_processor import MSCOCOProcessor  # change this to dataset_processor_parent later, after you write the abstract functions there.
 
 from dataset_processors.dataset_processor_parent import DatasetProcessorParent
 from dataset_processors.cifar10_processor import CIFAR10Processor
@@ -41,12 +41,14 @@ from dataset_processors.dtd_processor import DTDProcessor
 from dataset_processors.caltech101_processor import Caltech101Processor
 from dataset_processors.fgvc_aircraft_processor import FGVCAircraftProcessor
 from dataset_processors.stanford_cars_processor import StanfordCarsProcessor
+from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
+
 
 class Evaluator():
-    def __init__(self, dataset_processor: MSCOCOProcessor):
+    def __init__(self, dataset_processor: DatasetProcessorParent):
         self.dataset_processor = dataset_processor
 
-        self.mscoco_batch_file_path = f"datasets/mscoco/val_batch_cache_{generate_csv_file_name()}.pt"
+        self.mscoco_batch_file_path = f"datasets/{wandb.config['dataset']}/val_batch_cache_{generate_csv_file_name()}.pt"
 
         self.mscoco_train_dataset_batch_file_path = self.mscoco_batch_file_path
 
@@ -91,11 +93,20 @@ class Evaluator():
         if not (os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']):
 
             if wandb.config['use_train_as_val']:
-                mscoco_val_dataset =  self.dataset_processor.train_dataset
+
+                if type(self.dataset_processor) == MSCOCOProcessor:
+                    mscoco_val_dataset = self.dataset_processor.train_dataloader
+
+                elif type(self.dataset_processor) == ConceptualCaptionsProcessor:
+                    mscoco_val_dataset =  self.dataset_processor.train_data_pipe
                 # batch_size = wandb.config['small_train_loader_batch_size'] # MAYBE CHANGE LATER
                 batch_size = wandb.config['validation_batch_size']
             else:
-                mscoco_val_dataset =  self.dataset_processor.val_dataset
+
+                if type(self.dataset_processor) == MSCOCOProcessor:
+                    mscoco_val_dataset = self.dataset_processor.val_dataset
+                elif type(self.dataset_processor) == ConceptualCaptionsProcessor:
+                    mscoco_val_dataset =  self.dataset_processor.val_data_pipe
                 batch_size = wandb.config['validation_batch_size']
 
             collate_fn = self.dataset_processor.collate_fn
@@ -200,6 +211,8 @@ class Evaluator():
             image_S_bucket_means = [torch.mean(bucket) for bucket in image_S_buckets]
             text_S_bucket_means = [torch.mean(bucket) for bucket in text_S_buckets]
 
+            print('temp ', clip_model.get_temperature())
+
 
 
             if wandb is not None:
@@ -219,6 +232,10 @@ class Evaluator():
                         'linear_seperability_accuracy': self.get_linear_seperability(),
                         'centroid_cosine_similarity': self.get_centroid_cosine_similarity(),
                         'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
+
+
+                        # temperature
+                        'temperature': clip_model.get_temperature(),
 
                         # rank stuff
                         'image_rank': ranks['image_rank'],

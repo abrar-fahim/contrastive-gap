@@ -32,7 +32,8 @@ class TextEncoder(Encoder):
 
         self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
-        if from_pretrained:
+        # if from_pretrained:
+        if False:
             print()
             print(f" --- Initializing {name} from pretrained model ---")
             print()

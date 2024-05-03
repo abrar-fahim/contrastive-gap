@@ -157,11 +157,15 @@ class HFClip(ClipParent):
         self.intra_modality_logit_scale.requires_grad = False
         
     
-        self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=False, device=self.device))
-        self.logit_scale.requires_grad = False
+        self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=True, device=self.device))
+        self.logit_scale.requires_grad = True
       
         
         self.to(self.device)
+
+    def get_temperature(self) -> float:
+        # calculate current temp from logit scale
+        return 1 / self.logit_scale.exp().item()
 
     def setW(self, W: torch.FloatTensor):
 
@@ -264,16 +268,14 @@ class HFClip(ClipParent):
         Need to normalize since we'll eventually compute cosine similarity, but maybe dont do that here?
         '''
 
-        
 
-
-
-
-
-
+    def clamp_logit_scale(self):
+        self.logit_scale.data.clamp_(min=0, max=np.log(100))
 
 
     def forward(self, encoder1_inputs, encoder2_inputs, output_loss=True, return_all=False, output_intra_modality_loss=False, output_hidden_states=False):
+
+        
         '''
         outputs = HFClipOutput(
             loss=loss,

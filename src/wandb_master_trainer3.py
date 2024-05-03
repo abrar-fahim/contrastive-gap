@@ -60,27 +60,31 @@ def main():
 # if main 
 if __name__ == "__main__":
 
-
+    '''
+    CHANGE CUDAAA TOOOO
+    '''
     sweep_configuration = {
         "method": "grid",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "default loss shuffle on 512d, 128b, full MSCOCO, hypers, wdecay=0.4",
+        "name": "learned temp, default loss on 512D, 128b, full MSCOCO, hypers, wdecay=0.2",
         "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "parameters": {
-            "temperature": {"values": [0.01]},
+            "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
             "encoder1_modality": {"values": ["image"]},
             "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [1024]}, # 512
+            'clip_projection_dim': {'values': [512]}, # 512
+            'batch_size': {'values': [128]},
+            'vision_model': {'values': ['VIT']}, # RN50 or VIT
 
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False]},
             'weight_decay': {'values': [0.2]}, 
 
-            "lr": {"max": 1e-3, "min": 5e-5},
+            # "lr": {"max": 1e-3, "min": 5e-5},
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            # "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},

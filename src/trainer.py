@@ -297,6 +297,9 @@ class Trainer(TrainerParent):
         
         for (imgs, captions) in self.dataset_processor.train_dataloader:
 
+            with torch.no_grad():
+                clip_model.clamp_logit_scale()
+
 
 
             step = self.dataset_processor.get_num_batches() * epoch + i

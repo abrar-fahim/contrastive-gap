@@ -40,8 +40,8 @@ processor = ConceptualCaptionsProcessor()
 
 # for image, caption in tqdm(data_pipe):
 for image, caption in tqdm(processor.train_dataloader):
-    print(f"Caption: {caption}")
-    print(f"Image size: {image.shape}")
+    # print(f"Caption: {caption}")
+    # print(f"Image size: {image.shape}")
     # Don't do anything here.  We just want to test the loading speed.
     pass
 

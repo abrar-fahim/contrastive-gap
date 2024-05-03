@@ -100,12 +100,7 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
         imgs, og_captions = zip(*batch)
 
-
-        imgs = tuple(img.convert('RGBA') for img in imgs)
-
-
-
-        imgs = tuple(self.image_preprocessor(img) for img in imgs)
+        imgs = tuple(self.image_preprocessor(img.convert("RGBA")) for img in imgs)
 
 
 
@@ -282,6 +277,8 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
 
     def get_num_batches(self) -> int:
+
+        return 3318333 / wandb.config['batch_size']
         return len(self.train_dataloader)
     
     @staticmethod
@@ -306,9 +303,9 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
         self.val_data_pipe = conceptual_captions_3m(split="val")
 
-        val_indices = torch.randint(0, 15840 , (wandb.config['validation_dataset_size'],))
+        # val_indices = torch.randint(0, 15840 , (wandb.config['validation_dataset_size'],))
 
-
+        val_indices = torch.arange(0, wandb.config['validation_dataset_size'])
         val_data_subset = Subset(self.train_dataset, val_indices)
 
 
@@ -328,14 +325,14 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
         print('--- TRAIN DATASET STATS ---')
         print()
 
-        print('no of train samples: ', len(self.train_dataset))
+        print('no of train samples: ', 3318333)
 
         print()
         print('--- VAL DATASET STATS ---')
         print()
 
 
-        print('no of val samples: ', len(self.val_dataset))
+        print('no of val samples: ', 15840)
 
 
 

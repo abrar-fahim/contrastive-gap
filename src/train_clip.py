@@ -39,6 +39,7 @@ from src.config import *
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.wit_processor import WITProcessor
 from dataset_processors.cifar10_processor import CIFAR10Processor
+from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
 from trainer import Trainer, GradCacheTrainer
 from clips.clip_assembler import ClipAssembler
 import numpy as np
@@ -95,6 +96,8 @@ def main():
         dataset_processor = MSCOCOProcessor()
     elif wandb.config['dataset'] == ClipDatasets.WIT400.value:
         dataset_processor = WITProcessor()
+    elif wandb.config['dataset'] == ClipDatasets.CONCEPTUAL_CAPTIONS.value:
+        dataset_processor = ConceptualCaptionsProcessor()
 
 
     # cifar_dataset_processor = CIFAR10Processor()
@@ -138,7 +141,7 @@ def main():
 
     # setup adamW optimizer
 
-    optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'])
+    optimizer = optim.AdamW(clip_model.parameters(), lr=wandb.config['lr'], weight_decay=wandb.config['weight_decay'], betas=(0.9, 0.99))
 
     scaler = GradScaler()
 

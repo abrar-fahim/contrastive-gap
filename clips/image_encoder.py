@@ -33,7 +33,8 @@ class ImageEncoder(Encoder):
 
         self.vision_model = wandb.config['vision_model']
 
-        if from_pretrained:
+        # if from_pretrained:
+        if False:
             print()
             print(f" --- Initializing {name} from pretrained model ---")
             print()
