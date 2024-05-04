@@ -32,12 +32,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:2'
+config_cuda_device = 'cuda:5'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:2', # SET index of GPU
+    'cuda_device': 'cuda:5', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
 
 
@@ -49,7 +49,7 @@ training_hyperparameters = {
     'batch_size': 128, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 64, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 25, # SET 12 for scratch, (6 for finetune?)
     # 'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 1.5e-5,
@@ -130,6 +130,6 @@ training_hyperparameters = {
     
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_d', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_d_val_bsize', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

@@ -66,24 +66,29 @@ if __name__ == "__main__":
         "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "default loss shuffle on 512D, 128b, full MSCOCO, tuning lr, wdecay=0.35",
-        "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
+        "name": "default loss 512D, 128b, full MSCOCO, use train as val",
+        # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
+        "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.01]},
-            "encoder1_modality": {"values": ["image"]},
-            "encoder2_modality": {"values": ["text"]},
-
+   
             'clip_projection_dim': {'values': [512]}, # 512
+            'batch_size': {'values': [128]},
+            'vision_model': {'values': ['VIT']}, # RN50 or VIT
 
-            'intra_modality_loss': {'values': [False]},
+            # --- CUDA: 5 ---
+
+            # LOSS STUFF
+            "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
             'uniformity_loss': {'values': [False]},
-            'weight_decay': {'values': [0.35]}, 
+            # 'weight_decay': {'min': 0.2, 'max': 0.6,},
+            'weight_decay': {'values': [0.2]},
 
-            "lr": {"max": 1e-3, "min": 5e-5},
+            'use_train_as_val': {'values': [True]}, # SET
+
+            # "lr": {"max": 2e-4, "min": 4e-5},
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            # "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
 
-            # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
             'seed': {'values': [2]},
 

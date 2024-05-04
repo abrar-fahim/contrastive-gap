@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import src.config as config
 
-config.config_cuda_device = 'cuda:4' # SET the cuda device to be used in host4
+config.config_cuda_device = 'cuda:5' # SET the cuda device to be used in host4
 
 from src.wandb_master_trainer import main
 

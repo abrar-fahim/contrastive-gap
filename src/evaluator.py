@@ -95,7 +95,7 @@ class Evaluator():
             if wandb.config['use_train_as_val']:
 
                 if type(self.dataset_processor) == MSCOCOProcessor:
-                    mscoco_val_dataset = self.dataset_processor.train_dataloader
+                    mscoco_val_dataset = self.dataset_processor.train_dataset
 
                 elif type(self.dataset_processor) == ConceptualCaptionsProcessor:
                     mscoco_val_dataset =  self.dataset_processor.train_data_pipe
@@ -487,7 +487,8 @@ class Evaluator():
         with torch.no_grad():
             clip_model.eval()
             # val_outputs = do_validation(clip_model, mscoco_val_imgs, mscoco_val_captions, device, self.wandb)
-            val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=True, output_intra_modality_loss=True) # outputting everything all at once and storing them
+            # val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=True, output_intra_modality_loss=True) # outputting everything all at once and storing them
+            val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=False, output_intra_modality_loss=True) # outputting everything all at once and storing them
             self.val_outputs = val_outputs
 
 

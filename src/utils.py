@@ -764,6 +764,8 @@ def generate_csv_file_name(clip_model=None):
             else:
                 encoder2 = 'E2'
 
+                
+
 
 
             # if wandb.config['encoder1_modality'] == wandb.config['encoder2_modality'] == 'text':
@@ -786,6 +788,19 @@ def generate_csv_file_name(clip_model=None):
 
         elif 'd' in part:
             new_part = part.replace('d', str(wandb.config['clip_projection_dim']))
+
+        elif 'val' in part:
+
+            if wandb.config['use_train_as_val']:
+
+                new_part = part.replace('val', 'train_as_val')
+
+            else:
+                new_part = part.replace('val', 'val_as_val')
+
+        elif 'bsize' in part:
+            new_part = part.replace('bsize', str(wandb.config['validation_batch_size']))
+        
 
         else:
             new_part = part
