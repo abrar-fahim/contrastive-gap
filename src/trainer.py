@@ -214,6 +214,10 @@ class GradCacheTrainer(TrainerParent):
         for substep, sub_batch in enumerate(self.dataset_processor.train_dataloader):
             imgs, captions = sub_batch
 
+            if imgs == None:
+                # happens when OSError in conceptual captions dataloader
+                continue
+
             if self.use_grad_cache:
                 r_imgs, c_imgs = clip_model_grad_cache.get_image_projections(imgs)
                 r_txts, c_txts = clip_model_grad_cache.get_text_projections(captions)
