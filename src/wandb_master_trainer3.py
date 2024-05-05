@@ -60,33 +60,33 @@ def main():
 # if main 
 if __name__ == "__main__":
 
-  
+
     sweep_configuration = {
-        "method": "grid",
+        # "method": "grid",
+        "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "learned temp, VIT, 512 val batch size,  default loss 512D, 128b, full MSCOCO, wdecay=0.5, lr=1e-4",
-        "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
+        "name": "CYCLIP run, VIT, default loss 512D, 128b, full ConCaps, train as val scheduler on",
+        # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
+        "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
-            "encoder1_modality": {"values": ["image"]},
-            "encoder2_modality": {"values": ["text"]},
 
-            'clip_projection_dim': {'values': [512]}, # 512
+            # CUDA: 3
+
+            'clip_projection_dim': {'values': [1024]}, # 512
             'batch_size': {'values': [128]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
 
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False]},
-            'weight_decay': {'values': [0.5]}, 
+            # 'weight_decay': {'min': 0.2, 'max': 0.6,},
+            'weight_decay': {'values': [0.1]},
+            'use_train_as_val': {'values': [True]}, # SET
 
-            '''
-            CHANGE CUDAAA TOOOO
-            '''
-
-            # "lr": {"max": 1e-3, "min": 5e-5},
+            # "lr": {"max": 2e-4, "min": 4e-5},
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},

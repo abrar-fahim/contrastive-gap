@@ -297,6 +297,10 @@ class Trainer(TrainerParent):
         
         for (imgs, captions) in self.dataset_processor.train_dataloader:
 
+            if imgs == None:
+                # happens when OSError in conceptual captions dataloader
+                continue
+
             with torch.no_grad():
                 clip_model.clamp_logit_scale()
 

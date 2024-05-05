@@ -62,8 +62,8 @@ if __name__ == "__main__":
 
 
     sweep_configuration = {
-        # "method": "grid",
-        "method": "bayes",
+        "method": "grid",
+        # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
         "name": "default loss 512D, 128b, full MSCOCO, use train as val",

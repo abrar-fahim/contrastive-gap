@@ -100,7 +100,18 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
         imgs, og_captions = zip(*batch)
 
-        imgs = tuple(self.image_preprocessor(img.convert("RGBA")) for img in imgs)
+        try:
+
+
+            imgs = tuple(self.image_preprocessor(img.convert("RGBA")) for img in imgs)
+            # imgs = tuple(self.image_preprocessor(img) for img in imgs)
+
+        except Exception as e:
+
+            print('Exception in collate_fn: ', e)
+
+            return (None, None)
+
 
 
 
