@@ -483,6 +483,8 @@ class Evaluator():
 
         
     def set_val_outputs(self, clip_model: HFClip):
+
+        
         
         with torch.no_grad():
             clip_model.eval()

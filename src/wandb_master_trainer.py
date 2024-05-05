@@ -62,35 +62,38 @@ if __name__ == "__main__":
 
 
     sweep_configuration = {
-        # "method": "grid",
-        "method": "bayes",
+        "method": "grid",
+        # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, VIT, default loss 512D, 128b, full ConCaps, scheduler on",
+        "name": "CYCLIP run, Rn50, default loss 1024D, 128b, full ConCaps, val as val scheduler on",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
 
-            'clip_projection_dim': {'values': [512]}, # 512
+            # CUDA: 0
+            'clip_projection_dim': {'values': [1024]}, # 512
             'batch_size': {'values': [128]},
-            'vision_model': {'values': ['VIT']}, # RN50 or VIT
+            'vision_model': {'values': ['RN50']}, # RN50 or VIT
 
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
             'weight_decay': {'values': [0.1]},
+            'use_train_as_val': {'values': [False]}, # SET
 
-            # "lr": {"max": 2e-4, "min": 4e-5},
+            'validation_dataset_size': {'values': [512]},
+            'validation_batch_size': {'values': [512]},
+            
+
+            # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},
             'seed': {'values': [2]},
-
-
-
         },
     }
 

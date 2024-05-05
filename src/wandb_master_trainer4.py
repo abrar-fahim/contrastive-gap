@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, VIT, default loss 512D, 128b, full ConCaps, scheduler on",
+        "name": "CYCLIP run, VIT, default loss 512D, 128b, full ConCaps, val as val scheduler on",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -82,6 +82,7 @@ if __name__ == "__main__":
             'uniformity_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
             'weight_decay': {'values': [0.1]},
+            'use_train_as_val': {'values': [False]}, # SET
 
             # "lr": {"max": 2e-4, "min": 4e-5},
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp

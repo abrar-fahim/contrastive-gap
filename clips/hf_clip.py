@@ -302,7 +302,7 @@ class HFClip(ClipParent):
         if self.common_projection_layer:
             encoder1_outputs = self.common_projection_layer(encoder1_outputs)
 
-        assert encoder1_outputs.shape[1] == wandb.config['clip_projection_dim'], 'encoder1 output shape != clip_projection_dim'
+        assert encoder1_outputs.shape[1] == wandb.config['clip_projection_dim'], f'encoder1 output shape != clip_projection_dim {encoder1_outputs.shape[1]} != {wandb.config["clip_projection_dim"]}'
 
         
 

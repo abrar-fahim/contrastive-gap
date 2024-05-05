@@ -7,10 +7,11 @@ import torch.nn.functional as F
 from torch import nn
 
 from transformers.models.clip.modeling_clip import CLIPVisionModelOutput
+from transformers import CLIPVisionConfig
 
 
 class Rn50ModelWithProjection(nn.Module):
-    def __init__(self, config: dict):
+    def __init__(self, config: CLIPVisionConfig):
         '''
         config is a dict for now
         '''
@@ -26,7 +27,9 @@ class Rn50ModelWithProjection(nn.Module):
         output_width = 7 # 224 / 32
         image_resolution = output_width * 32
 
-        embed_dim = 512 # originally was 1024 in cyclip
+        # embed_dim = 512 # originally was 1024 in cyclip
+        embed_dim = config.projection_dim
+
 
         vision_heads = vision_width * 32 // 64
 

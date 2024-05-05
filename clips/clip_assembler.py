@@ -57,6 +57,8 @@ class ClipAssembler():
         self.clip_vision_config = CLIPVisionConfig()
 
         if wandb.config['clip_projection_dim'] != 512:
+
+            print('setting projection dim to ', wandb.config['clip_projection_dim'])
             self.clip_vision_config.projection_dim = wandb.config['clip_projection_dim']
             self.clip_text_config.projection_dim = wandb.config['clip_projection_dim']
 

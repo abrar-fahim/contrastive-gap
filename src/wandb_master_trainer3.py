@@ -62,8 +62,8 @@ if __name__ == "__main__":
 
 
     sweep_configuration = {
-        # "method": "grid",
-        "method": "bayes",
+        "method": "grid",
+        # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
         "name": "CYCLIP run, VIT, default loss 512D, 128b, full ConCaps, train as val scheduler on",
@@ -84,7 +84,7 @@ if __name__ == "__main__":
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
 
-            # "lr": {"max": 2e-4, "min": 4e-5},
+            # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
