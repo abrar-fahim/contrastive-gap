@@ -44,13 +44,13 @@ training_hyperparameters = {
     'selected_clip_model': selected_clip_model.value,
     # 'dataset': ClipDatasets.MSCOCO.value,
     'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
-    'batch_size': 128, 
+    'batch_size': 256, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
-    'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
+    'n_epochs': 64, # SET 12 for scratch, (6 for finetune?)
     # 'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
-    'lr': 1.5e-5,
+    'lr': 5e-4,
     'use_scheduler': True,
     'n_warmup_steps': 10000,
     'vision_model': 'VIT', # RN50 or VIT
@@ -60,9 +60,9 @@ training_hyperparameters = {
 
     'temperature': 0.07,
     'intra_modality_temperature': 0.01,
-    'weight_decay': 0.2, # LARGER weight decay means MORE regularization
-    'validation_dataset_size': 512, # SET
-    'validation_batch_size': 512, # SET
+    'weight_decay': 0.1, # LARGER weight decay means MORE regularization
+    'validation_dataset_size': 2048, # SET
+    'validation_batch_size': 2048, # SET
     'cifar_batch_size': 128,
     
     'do_checkpointing': True,
@@ -74,7 +74,7 @@ training_hyperparameters = {
     # 'small_train_loader_dataset_size': 35000, # 30000
     # 'small_train_loader_dataset_size': 80000, # when using training set
     # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
-    'num_workers': 12,
+    'num_workers': 24,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -91,7 +91,7 @@ training_hyperparameters = {
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 1024, # SET # this is the size of the projection layer
+    'clip_projection_dim': 512, # SET # this is the size of the projection layer
 
     # encoder configs
    

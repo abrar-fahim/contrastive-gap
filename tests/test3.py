@@ -34,14 +34,14 @@ torch.manual_seed(wandb.config['seed'])
 
 from tqdm import tqdm
 from dataset_processors.mscoco_processor import MSCOCOProcessor
+from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
 
-# processor = ConceptualCaptionsProcessor()
-processor = MSCOCOProcessor()
+processor = ConceptualCaptionsProcessor()
+# processor = MSCOCOProcessor()
 
 # for image, caption in tqdm(data_pipe):
 for image, caption in tqdm(processor.train_dataloader):
 
-    print('caption 0 ', caption[0])
 
     if image == None:
         print('Image is None')

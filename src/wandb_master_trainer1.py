@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, VIT, uniformity loss 512D, 256b, full ConCaps, val as val scheduler on",
+        "name": "CYCLIP run, VIT, uniformity loss 512D, 256b, full ConCaps, val as val scheduler on, 128 batch size in data pipe",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -80,16 +80,21 @@ if __name__ == "__main__":
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
+            'use_scheduler': {'values': [True]},
+            'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [False]}, # SET
 
             'validation_dataset_size': {'values': [2048]},
             'validation_batch_size': {'values': [2048]},
+            'n_workers': {'values': [4]},
+            
             
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [64]},
 
             # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
             # 'seed': {'values': [42, 10, 100]},

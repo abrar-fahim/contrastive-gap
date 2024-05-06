@@ -85,12 +85,13 @@ if __name__ == "__main__":
             'clip_projection_dim': {'values': [8, 32]}, # 512
             'batch_size': {'values': [8, 32, 128, 256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]}, # because its just small dataset
+            'use_scheduler': {'values': [False]}, # because its just small dataset
             'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [500]}, 
+            "lr": {'values': [1e-3]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [10]}, 
+            'n_workers': {'values': [4]}, # SET
 
 
 

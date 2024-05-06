@@ -303,12 +303,12 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
     def load_train_dataset(self):
 
-        self.train_data_pipe = conceptual_captions_3m(split="train")
+        self.train_data_pipe = conceptual_captions_3m(split="train", buffer_size=256)
 
         batch_size = wandb.config['batch_size']
 
 
-        self.train_dataloader = DataLoader(self.train_data_pipe, batch_size=batch_size, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
+        self.train_dataloader = DataLoader(self.train_data_pipe, batch_size=batch_size, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']))
 
     def load_val_dataset(self):
 
@@ -366,47 +366,69 @@ async def async_batch_get_images(
     async with aiohttp.ClientSession(timeout=client_timeout) as session:
         return await asyncio.gather(*[async_get_image(session, url) for url in urls])
 
+def package_images_captions(batch):
+    # The batch is a list of tuples, where the first element is the
+    # caption, and the second element is the URL of the image.
 
+    # print('batch: ', batch)
+    captions = [x[0] for x in batch]
+    image_urls = [x[1] for x in batch]
+    images = asyncio.run(async_batch_get_images(image_urls))
+
+    for image, caption in zip(images, captions):
+        if image is not None:
+            yield image, caption
 def _datapipe_from_tsv_url(
-    tsv_url: str, buffer_size: int = 64
+    tsv_url: str, buffer_size: int = 256
 ) -> IterDataPipe[Tuple[Image.Image, str]]:
     # pipe = HttpReader([tsv_url])
     # pipe = LineReader(pipe, return_path=False)
 
     # source_dp = IterableWrapper([(tsv_url, io.StringIO(text1)), ("file2", io.StringIO(text2))])
 
+    datapipe = (
+        dp.iter.FileOpener([tsv_url], mode='r')
+        .readlines(return_path=False)
+        .shuffle()
+        .sharding_filter()
+        .map(lambda line: line.split("\t"))
+        .batch(buffer_size)
+        
+        
+        # .map(lambda x: package_images_captions(x))
+    )
 
-    pipe = dp.iter.FileOpener([tsv_url], mode='r')
+    # pipe = pipe.sharding_filter()
 
-    pipe = LineReader(pipe, return_path=False)
-    # # use pipe to read from local file
-    # pipe = LineReader(pipe, return_path=True)
-    # LineReader downloads raw bytes.  Decode them to strings, then split.
+    # pipe = LineReader(pipe, return_path=False)
+    # # # use pipe to read from local file
+    # # pipe = LineReader(pipe, return_path=True)
+    # # LineReader downloads raw bytes.  Decode them to strings, then split.
 
-    pipe = pipe.sharding_filter()
-    pipe = pipe.map(lambda line: line.split("\t"))
+    
+    # pipe = pipe.map(lambda line: line.split("\t"))
 
-    return ParallelSampleLoader(pipe, buffer_size=buffer_size)
+    return ParallelSampleLoader(datapipe)
+    # return datapipe
 
 def conceptual_captions_3m(
-    split: str = "train", buffer_size: int = 64
+    split: str = "train", buffer_size: int = 256
 ) -> IterDataPipe[Tuple[Image.Image, str]]:
     return _datapipe_from_tsv_url(tsv_url=TSV_URLS[split], buffer_size=buffer_size)
 
+
+
+
 class ParallelSampleLoader(IterDataPipe):
     def __init__(
-        self, dp: IterDataPipe[Tuple[str, str]], buffer_size: int = 256
+        self, dp: IterDataPipe[Tuple[str, str]]
     ) -> None:
         super().__init__()
         self.dp = dp
-        self.buffer_size = buffer_size
-
-        self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
-
-        _, self.image_preprocessor = clip.load(wandb.config['openai_clip_model'], device=self.device)
 
     def __iter__(self) -> Generator[Tuple[Image.Image, str], None, None]:
-        pipe: IterDataPipe[List[Tuple[str, str]]] = self.dp.batch(self.buffer_size)
+        # pipe: IterDataPipe[List[Tuple[str, str]]] = self.dp.batch(self.buffer_size)
+        pipe = self.dp
         for batch in pipe:
             # The batch is a list of tuples, where the first element is the
             # caption, and the second element is the URL of the image.
