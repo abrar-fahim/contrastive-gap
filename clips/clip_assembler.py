@@ -62,6 +62,10 @@ class ClipAssembler():
             self.clip_vision_config.projection_dim = wandb.config['clip_projection_dim']
             self.clip_text_config.projection_dim = wandb.config['clip_projection_dim']
 
+        if wandb.config['vision_model'] == 'VIT':
+            # using base patch 16 now
+            self.clip_vision_config.patch_size = 16
+
 
         if wandb.config['shared_transformer_layers']:
             # set text config to be same as vision config

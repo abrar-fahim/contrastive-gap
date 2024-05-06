@@ -32,12 +32,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:1'
+config_cuda_device = 'cuda:0'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:1', # SET index of GPU
+    'cuda_device': 'cuda:0', # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 2,
@@ -61,8 +61,8 @@ training_hyperparameters = {
     'temperature': 0.07,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.2, # LARGER weight decay means MORE regularization
-    'validation_dataset_size': 32, # SET
-    'validation_batch_size': 32, # SET
+    'validation_dataset_size': 2048, # SET
+    'validation_batch_size': 2048, # SET
     'cifar_batch_size': 128,
     
     'do_checkpointing': True,
@@ -128,6 +128,6 @@ training_hyperparameters = {
     
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

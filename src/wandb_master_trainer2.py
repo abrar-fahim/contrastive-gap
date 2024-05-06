@@ -66,16 +66,16 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, Rn50, uniformity loss 1024D, 128b, full ConCaps, val as val scheduler on",
+        "name": "CYCLIP run, VIT, uniformity loss 1024D, 256b, full ConCaps, val as val scheduler on",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
 
-            # CUDA: 3
+            # CUDA: 0
             'clip_projection_dim': {'values': [1024]}, # 512
-            'batch_size': {'values': [128]},
-            'vision_model': {'values': ['RN50']}, # RN50 or VIT
+            'batch_size': {'values': [256]},
+            'vision_model': {'values': ['VIT']}, # RN50 or VIT
 
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
@@ -83,8 +83,8 @@ if __name__ == "__main__":
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [False]}, # SET
 
-            'validation_dataset_size': {'values': [512]},
-            'validation_batch_size': {'values': [512]},
+            'validation_dataset_size': {'values': [2048]},
+            'validation_batch_size': {'values': [2048]},
             
 
             # "lr": {"max": 2e-4, "min": 4e-5},and

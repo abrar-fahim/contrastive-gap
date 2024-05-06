@@ -317,7 +317,7 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
         # val_indices = torch.randint(0, 15840 , (wandb.config['validation_dataset_size'],))
 
         val_indices = torch.arange(0, wandb.config['validation_dataset_size'])
-        val_data_subset = Subset(self.train_dataset, val_indices)
+        val_data_subset = Subset(self.val_data_pipe, val_indices)
 
 
 
@@ -368,7 +368,7 @@ async def async_batch_get_images(
 
 
 def _datapipe_from_tsv_url(
-    tsv_url: str, buffer_size: int = 128
+    tsv_url: str, buffer_size: int = 64
 ) -> IterDataPipe[Tuple[Image.Image, str]]:
     # pipe = HttpReader([tsv_url])
     # pipe = LineReader(pipe, return_path=False)
@@ -389,13 +389,13 @@ def _datapipe_from_tsv_url(
     return ParallelSampleLoader(pipe, buffer_size=buffer_size)
 
 def conceptual_captions_3m(
-    split: str = "train", buffer_size: int = 128
+    split: str = "train", buffer_size: int = 64
 ) -> IterDataPipe[Tuple[Image.Image, str]]:
     return _datapipe_from_tsv_url(tsv_url=TSV_URLS[split], buffer_size=buffer_size)
 
 class ParallelSampleLoader(IterDataPipe):
     def __init__(
-        self, dp: IterDataPipe[Tuple[str, str]], buffer_size: int = 128
+        self, dp: IterDataPipe[Tuple[str, str]], buffer_size: int = 256
     ) -> None:
         super().__init__()
         self.dp = dp

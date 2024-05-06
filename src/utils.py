@@ -803,6 +803,9 @@ def generate_csv_file_name(clip_model=None):
 
         elif 'dataset' in part:
             new_part = part.replace('dataset', wandb.config['dataset'])
+
+        elif 'vmodel' in part:
+            new_part = part.replace('vmodel', wandb.config['vision_model'])
         
 
         else:
