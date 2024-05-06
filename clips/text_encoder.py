@@ -53,7 +53,7 @@ class TextEncoder(Encoder):
 
 
 
-    def forward(self, captions, output_hidden_states=False):
+    def forward(self, captions: list, output_hidden_states=False):
 
         tokenized_captions = self.tokenize_captions(captions)
 
@@ -71,7 +71,7 @@ class TextEncoder(Encoder):
 
 
 
-    def tokenize_captions(self, captions):
+    def tokenize_captions(self, captions: list):
         return self.tokenizer(captions, padding=True, truncation=True, return_tensors="pt").to(self.device)
     
 

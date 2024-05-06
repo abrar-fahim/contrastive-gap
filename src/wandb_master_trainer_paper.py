@@ -65,10 +65,10 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap persists even after accounting for all factors",
+        "name": "Gap persists even after accounting for all factors, scheduling",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
+            "temperature": {"values": [0.07]}, # learnable temperature now, so this i s the starting temp
 
             
             # CUDA: 0
@@ -84,10 +84,11 @@ if __name__ == "__main__":
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [128]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [False]}, # because its just small dataset
+            'use_scheduler': {'values': [True]}, # because its just small dataset
+            'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
-            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
 
 
 

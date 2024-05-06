@@ -12,6 +12,8 @@ import wandb
 
 from torchvision.datasets import CIFAR10
 
+from tqdm import tqdm
+
 
 class CIFAR10Processor(DatasetProcessorParent):
 
@@ -21,7 +23,14 @@ class CIFAR10Processor(DatasetProcessorParent):
 
         self.name = 'CIFAR 10'
         self.keyname = self.name.replace(' ', '').lower()
+        dataset_config = eval(open(f"{self.root}/classes.py", "r").read())
+
+        # print('dataset config ', dataset_config)
+        classes, templates = dataset_config["classes"], dataset_config["templates"]
+
+        self.templates = templates
         self.print_dataset_stats()
+
         
 
 
@@ -31,7 +40,13 @@ class CIFAR10Processor(DatasetProcessorParent):
         self.classes = self.val_dataset.classes
 
         # add 'photo of ' to the beginning of each class name
-        self.classes = ['photo of ' + class_name for class_name in self.classes]
+
+
+        # self.classes = ['photo of ' + class_name for class_name in self.classes]
+
+
+    def set_class_embeddings(self, class_embeddings: torch.Tensor):
+        self.class_embeddings = class_embeddings
 
     def load_train_dataset(self):
         self.train_dataset = CIFAR10(root=self.root, train=True, download=True, transform=self.preprocess)

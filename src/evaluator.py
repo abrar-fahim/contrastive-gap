@@ -81,6 +81,9 @@ class Evaluator():
 
             self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
 
+
+
+
         self.encoder1_pooled_hidden_states = []
         self.encoder2_pooled_hidden_states = []
         # self.layers_to_use = [0, 3, 6, 9, 12] # these are the layers to use for computing mean cosine similarity
@@ -154,6 +157,8 @@ class Evaluator():
 
         with torch.no_grad():
 
+
+
             self.set_val_outputs(clip_model)
             # self.set_pooled_hidden_states(clip_model)
 
@@ -166,6 +171,8 @@ class Evaluator():
             '''
             log to wandb
             '''
+
+
 
             average_intra_modality_cosine_sim = (self.get_text_text_similarity() + self.get_image_image_similarity() ) / 2
 
@@ -771,36 +778,74 @@ class Evaluator():
             # tokenize captions
             # cifar_tokenized_classes = clip_model.tokenize_captions(cifar_classes)
 
+            text_embeddings = []
+
+            templates = dataset_processor.templates
+
+            for c in cifar_classes:
+                text = [template(c) for template in templates]
+
+
+                text_embedding = clip_model.encode_text(text)
+                text_embedding /= text_embedding.norm(dim = -1, keepdim = True)
+                text_embedding = text_embedding.mean(dim = 0)
+                text_embedding /= text_embedding.norm()
+                text_embeddings.append(text_embedding)
+            text_embeddings = torch.stack(text_embeddings, dim = 1).to(clip_model.device)
+
+
+
 
 
             cifar10_val_image_classification_accuracy_runsum = 0
+
+            topk = [1, 3, 5, 10]
+            correct = {k: 0 for k in topk}
             for batch in tqdm(dataset_processor.val_dataloader):
+
+                
                 (cifar_val_imgs, cifar_val_indices) = batch
                 
-                
+                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)
+
+                cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
+
+
                 # get logits per image
                 # cifar_val_outputs = clip_model(cifar_val_imgs, cifar_tokenized_classes, output_loss=False, return_all=True)
-                cifar_val_outputs = clip_model(cifar_val_imgs, cifar_classes, output_loss=False, return_all=True)
+                # cifar_val_outputs = clip_model(cifar_val_imgs, cifar_classes, output_loss=False, return_all=True)
 
-                cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
+                cifar_val_logits_per_image = cifar_image_embeddings @ text_embeddings # shape of both: ([64, 64])
+
+                # cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
+
+                ranks = cifar_val_logits_per_image.topk(max(topk), 1)[1].T
+                predictions = ranks == cifar_val_indices
+
+                for k in topk:
+                    correct[k] += torch.sum(torch.any(predictions[:k], dim = 0)).item() 
 
                 # softmax on logits_per_image
-                cifar_val_image_class_probs = F.softmax(cifar_val_logits_per_image, dim=-1) # shape: ([batch_size, 10]). 10 is num_classes in cifar10
+                # cifar_val_image_class_probs = F.softmax(cifar_val_logits_per_image, dim=-1) # shape: ([batch_size, 10]). 10 is num_classes in cifar10
 
                 # calculate accuracy
                 # get indices of max values
-                cifar_val_image_class_preds = cifar_val_image_class_probs.argmax(dim=-1) # shape: ([batch_size])
+                # cifar_val_image_class_preds = cifar_val_image_class_probs.argmax(dim=-1) # shape: ([batch_size])
 
-                cifar_val_indices = cifar_val_indices.to(clip_model.device)
+                # cifar_val_indices = cifar_val_indices.to(clip_model.device)
 
-                cifar10_val_image_classification_accuracy_runsum += (cifar_val_image_class_preds == cifar_val_indices).float().sum()
+                # cifar10_val_image_classification_accuracy_runsum += (cifar_val_image_class_preds == cifar_val_indices).float().sum()
                 # print('cifar10_val_image_classification_accuracy_runsum ', cifar10_val_image_classification_accuracy_runsum)
 
-            cifar10_val_image_classification_accuracy = cifar10_val_image_classification_accuracy_runsum / len(dataset_processor.val_dataset)
-            print(f'{dataset_processor.name} zero shot accuracy ', cifar10_val_image_classification_accuracy.item())
+            # cifar10_val_image_classification_accuracy = cifar10_val_image_classification_accuracy_runsum / len(dataset_processor.val_dataset)
+            # print(f'{dataset_processor.name} zero shot accuracy ', cifar10_val_image_classification_accuracy.item())
+
+            print(f'{dataset_processor.name} zero shot accuracy ', {k: correct[k] / len(dataset_processor.val_dataset) for k in topk})
 
         
-            return cifar10_val_image_classification_accuracy
+            # return cifar10_val_image_classification_accuracy
+            # return top1 acc as string
+            return correct[1] / len(dataset_processor.val_dataset)
 
 
     def get_cifar10_zero_shot_acc(self, clip_model: HFClip):
