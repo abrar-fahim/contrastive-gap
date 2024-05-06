@@ -66,14 +66,14 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, VIT, uniformity loss 1024D, 256b, full ConCaps, val as val scheduler on",
+        "name": "CYCLIP run, VIT, uniformity loss 512D, 256b, full ConCaps, val as val scheduler on",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
 
             # CUDA: 1
-            'clip_projection_dim': {'values': [1024]}, # 512
+            'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
 

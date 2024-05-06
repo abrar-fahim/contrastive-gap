@@ -271,7 +271,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
             '''
             Prepare subset of training dataset
             '''
-            subset_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['small_train_loader_dataset_size'],)) 
+            # subset_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['small_train_loader_dataset_size'],))
+
+            # prepare subset_indices WITHOUT replacement
+            subset_indices = torch.randperm(len(self.train_dataset))[:wandb.config['small_train_loader_dataset_size']] 
             train_data_subset = Subset(self.train_dataset, subset_indices)
             dataset_to_use = train_data_subset
 
@@ -294,7 +297,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         )
 
         # generate random indices
-        val_indices = torch.randint(0, len(val_dataset) , (wandb.config['validation_dataset_size'],))
+        # val_indices = torch.randint(0, len(val_dataset) , (wandb.config['validation_dataset_sizes '],))
+        val_indices = torch.randperm(len(val_dataset))[:wandb.config['validation_dataset_size']]
 
         val_data_subset = Subset(val_dataset, val_indices)
 

@@ -72,7 +72,7 @@ if __name__ == "__main__":
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
 
-            # CUDA: 3
+            # CUDA: 2
 
             'clip_projection_dim': {'values': [1024]}, # 512
             'batch_size': {'values': [128]},
