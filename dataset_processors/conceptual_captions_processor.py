@@ -289,7 +289,7 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
     def get_num_batches(self) -> int:
 
-        return 3318333 / wandb.config['batch_size']
+        return 3318333 // wandb.config['batch_size']
         return len(self.train_dataloader)
     
     @staticmethod

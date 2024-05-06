@@ -65,13 +65,14 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap closes faster when batch size >> CLIP dimensionality",
+        "name": "Gap closes faster when batch size >> CLIP dimensionality. And that uniformity term helps close gap faster",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this i s the starting temp
 
             
-            # CUDA: 0
+            # CUDA: 2,3
+            # NO CIFAR10 VAL IN EVALUATOR
 
 
             # TRAINING STUFF
@@ -81,21 +82,21 @@ if __name__ == "__main__":
 
 
 
-            'clip_projection_dim': {'values': [512]}, # 512
-            'batch_size': {'values': [128]},
+            'clip_projection_dim': {'values': [8, 32]}, # 512
+            'batch_size': {'values': [8, 32, 128, 256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [True]}, # because its just small dataset
             'n_warmup_steps': {'values': [100]}, # 10000
-            'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
+            'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            "n_warmup_steps": {'values': [100]},
+            'n_epochs': {'values': [500]}, 
 
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [False]},
+            'uniformity_loss': {'values': [False, True]},
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
 

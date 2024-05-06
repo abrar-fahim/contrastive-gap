@@ -33,8 +33,6 @@ torch.manual_seed(wandb.config['seed'])
 
 
 from tqdm import tqdm
-
-from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 
 # processor = ConceptualCaptionsProcessor()
