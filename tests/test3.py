@@ -46,6 +46,11 @@ for image, caption in tqdm(processor.train_dataloader):
         continue
     # print(f"Caption: {caption}")
     # print(f"Image size: {image.shape}")
+    # # display first image
+    # plt.imshow(image[0].permute(1, 2, 0))
+    # plt.show()
+
+    
     # Don't do anything here.  We just want to test the loading speed.
     pass
 
