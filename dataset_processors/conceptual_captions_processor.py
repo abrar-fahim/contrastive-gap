@@ -382,6 +382,8 @@ def _datapipe_from_tsv_url(
     # # use pipe to read from local file
     # pipe = LineReader(pipe, return_path=True)
     # LineReader downloads raw bytes.  Decode them to strings, then split.
+
+    pipe = pipe.sharding_filter()
     pipe = pipe.map(lambda line: line.split("\t"))
 
     return ParallelSampleLoader(pipe, buffer_size=buffer_size)
