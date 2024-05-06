@@ -786,7 +786,7 @@ class Evaluator():
                 text = [template(c) for template in templates]
 
 
-                text_embedding = clip_model.encode_text(text)
+                text_embedding = clip_model.encode_text(text)['embeds']
                 text_embedding /= text_embedding.norm(dim = -1, keepdim = True)
                 text_embedding = text_embedding.mean(dim = 0)
                 text_embedding /= text_embedding.norm()
@@ -806,7 +806,7 @@ class Evaluator():
                 
                 (cifar_val_imgs, cifar_val_indices) = batch
                 
-                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)
+                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)['embeds']
 
                 cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
 
@@ -820,6 +820,8 @@ class Evaluator():
                 # cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
 
                 ranks = cifar_val_logits_per_image.topk(max(topk), 1)[1].T
+
+                cifar_val_indices = cifar_val_indices.to(clip_model.device)
                 predictions = ranks == cifar_val_indices
 
                 for k in topk:

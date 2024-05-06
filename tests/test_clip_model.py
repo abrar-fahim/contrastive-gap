@@ -62,7 +62,7 @@ checkpoint = torch.load(checkpoint_path)
 
 model_state_dict = checkpoint['model_state_dict']
 
-clip_model.load_state_dict(torch.load(checkpoint_path))
+clip_model.load_state_dict(model_state_dict)
 
 
 evaluator.evaluate_model(clip_model, 0, 0)
