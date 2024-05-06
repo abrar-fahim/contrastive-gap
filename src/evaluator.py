@@ -173,7 +173,7 @@ class Evaluator():
 
             val_loss = self.get_val_loss()
 
-            rsa_correlations = self.get_rsa_correlations(clip_model.temperature)
+            rsa_correlations = self.get_rsa_correlations(clip_model.get_temperature())
 
             # rsa_correlations_between_diff_layers = self.get_rsa_correlations_between_diff_layers()
             # intra_modality_similarities_within_diff_layers = self.get_intra_modality_similarities_within_diff_layers()
@@ -228,7 +228,7 @@ class Evaluator():
                         'uniformity': val_loss['uniformity'],
                         'train_total_loss':val_loss['total'],
                         'mean_pairwise_euclidean_distance':  self.get_mean_pairwise_euclidean_distance(),
-                        'mean_cosine_similarity': self.get_mean_cosine_similarity(clip_model.temperature),
+                        'mean_cosine_similarity': self.get_mean_cosine_similarity(clip_model.get_temperature()),
                         'linear_seperability_accuracy': self.get_linear_seperability(),
                         'centroid_cosine_similarity': self.get_centroid_cosine_similarity(),
                         'centroid_euclidean_distance': self.get_centroid_euclidean_distance(),
@@ -309,7 +309,7 @@ class Evaluator():
                         # 'e2_cosine_similarities': intra_modality_similarities_within_diff_layers['e2_cosine_similarities'],
 
                         # back to other stuff
-                        'non_similar_mean_cosine_similarity': self.non_similar_mean_cosine_similarity(clip_model.temperature),
+                        'non_similar_mean_cosine_similarity': self.non_similar_mean_cosine_similarity(clip_model.get_temperature()),
                         'mean_text_text_cosine_similarity': self.get_text_text_similarity(),
                         'mean_image_image_cosine_similarity': self.get_image_image_similarity(),
                         'average_intra_modality_cosine_similarity': average_intra_modality_cosine_sim,

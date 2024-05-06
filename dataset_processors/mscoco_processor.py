@@ -279,7 +279,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
             dataset_to_use = self.train_dataset 
 
         self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
-                                           batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=wandb.config['batch_size'], drop_last=False)))
+        batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=wandb.config['batch_size'], drop_last=False)))
         
 
 

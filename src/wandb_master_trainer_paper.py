@@ -65,35 +65,35 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        # "method": "bayes",
-        # "method": "random",
-        # "name": "Checking AGAIN whether same inputs cause modality gap or no",
         "name": "Gap persists even after accounting for all factors",
-        # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
 
             
-
             # CUDA: 0
 
+
             # TRAINING STUFF
+            'encoder1_modality': {'values': ['image']},
+            'encoder2_modality': {'values': ['image']},
+            'same_inputs': {'values': [True]},
+
+
+
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [128]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [False]}, # because its just small dataset
-            # "lr": {"max": 2e-4, "min": 4e-5},and
-            # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
+            'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
+            
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
 
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False]},
-            # 'weight_decay': {'min': 0.2, 'max': 0.6,},
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
 
@@ -103,13 +103,9 @@ if __name__ == "__main__":
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [2048]},
             'validation_batch_size': {'values': [2048]},
-            ''
+            'use_small_trainloader': {'values': [True]}, 
+            'small_train_loader_dataset_size': {'values': [2048]},
             
-
-            
-
-            
-            # 'seed': {'values': [42, 10, 100]},
             'seed': {'values': [2]},
         },
     }

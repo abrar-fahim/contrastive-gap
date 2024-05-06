@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import src.config as config
-
+p
 config.config_cuda_device = 'cuda:1' # SET the cuda device to be used in host4
 
 

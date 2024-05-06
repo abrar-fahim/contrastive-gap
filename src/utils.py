@@ -786,8 +786,8 @@ def generate_csv_file_name(clip_model=None):
             
             # new_part = part.replace('captionencoder', acronym)
 
-        elif 'd' in part:
-            new_part = part.replace('d', str(wandb.config['clip_projection_dim']))
+        elif 'dim' in part:
+            new_part = part.replace('dim', str(wandb.config['clip_projection_dim']))
 
         elif 'val' in part:
 
@@ -800,6 +800,9 @@ def generate_csv_file_name(clip_model=None):
 
         elif 'bsize' in part:
             new_part = part.replace('bsize', str(wandb.config['validation_batch_size']))
+
+        elif 'dataset' in part:
+            new_part = part.replace('dataset', wandb.config['dataset'])
         
 
         else:

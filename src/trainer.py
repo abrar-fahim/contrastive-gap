@@ -82,10 +82,12 @@ class TrainerParent(ABC):
         '''
         
 
-        n = 1024
+        # if wandb.config['use_small_trainloader'] and wandb.config['small_train_loader_dataset_size'] <= 2048:
+        #     n = 2048
+        n = 2048
 
-        e1_embeds = torch.empty((0, 512), device=self.device) # hardcoding this for now FIX LATER MAYBE
-        e2_embeds = torch.empty((0, 512), device=self.device)
+        e1_embeds = torch.empty((0, wandb.config['clip_projection_dim']), device=self.device) # hardcoding this for now FIX LATER MAYBE
+        e2_embeds = torch.empty((0, wandb.config['clip_projection_dim']), device=self.device)
 
         with torch.no_grad():
             clip_model.eval()
