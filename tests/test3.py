@@ -35,8 +35,10 @@ torch.manual_seed(wandb.config['seed'])
 from tqdm import tqdm
 
 from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
+from dataset_processors.mscoco_processor import MSCOCOProcessor
 
-processor = ConceptualCaptionsProcessor()
+# processor = ConceptualCaptionsProcessor()
+processor = MSCOCOProcessor()
 
 # for image, caption in tqdm(data_pipe):
 for image, caption in tqdm(processor.train_dataloader):
