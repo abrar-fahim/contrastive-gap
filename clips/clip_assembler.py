@@ -64,7 +64,8 @@ class ClipAssembler():
 
         if wandb.config['vision_model'] == 'VIT':
             # using base patch 16 now
-            self.clip_vision_config.patch_size = 16
+            # self.clip_vision_config.patch_size = 16
+            pass # sticking to 32
 
 
         if wandb.config['shared_transformer_layers']:

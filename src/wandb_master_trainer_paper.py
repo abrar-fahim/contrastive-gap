@@ -89,6 +89,7 @@ if __name__ == "__main__":
             'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "n_warmup_steps": {'values': [100]},
 
 
 
