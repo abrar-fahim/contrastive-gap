@@ -32,17 +32,14 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:0'
+config_cuda_device = 'cuda:5'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:0', # SET index of GPU
-    # 'cuda_device': 'cpu       ', # SET index of GPU
+    'cuda_device': 'cuda:5', # SET index of GPU
+    # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
-
-
-
     'seed': 2,
     'selected_clip_model': selected_clip_model.value,
     # 'dataset': ClipDatasets.MSCOCO.value,
@@ -77,7 +74,7 @@ training_hyperparameters = {
     # 'small_train_loader_dataset_size': 35000, # 30000
     # 'small_train_loader_dataset_size': 80000, # when using training set
     # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
-    'num_workers': 8,
+    'num_workers': 12,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
