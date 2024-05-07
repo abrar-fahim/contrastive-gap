@@ -42,8 +42,8 @@ training_hyperparameters = {
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 2,
     'selected_clip_model': selected_clip_model.value,
-    # 'dataset': ClipDatasets.MSCOCO.value,
-    'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
+    'dataset': ClipDatasets.MSCOCO.value,
+    # 'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
     'batch_size': 256, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
@@ -110,7 +110,7 @@ training_hyperparameters = {
 
     # validation batch stuff
     'train_only_one_batch': False,
-    'use_train_as_val': False, # SET
+    'use_train_as_val': True, # SET
     'use_cached_val_batch': True, 
     'cifar10_acc': True,
 

@@ -274,13 +274,13 @@ class MSCOCOProcessor(DatasetProcessorParent):
             # subset_indices = torch.randint(0, len(self.train_dataset) , (wandb.config['small_train_loader_dataset_size'],))
 
             # prepare subset_indices WITHOUT replacement
-            subset_indices = torch.randperm(len(self.train_dataset))[:wandb.config['small_train_loader_dataset_size']] 
-            train_data_subset = Subset(self.train_dataset, subset_indices)
+            subset_indices = torch.randperm(len(self.full_train_dataset))[:wandb.config['small_train_loader_dataset_size']] 
+            train_data_subset = Subset(self.full_train_dataset, subset_indices)
             dataset_to_use = train_data_subset
 
         else:
                 
-            dataset_to_use = self.train_dataset 
+            dataset_to_use = self.full_train_dataset 
 
         self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
         batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=wandb.config['batch_size'], drop_last=False)))
