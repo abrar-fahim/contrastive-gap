@@ -112,33 +112,8 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
             return (None, None)
 
-
-
-
-
-        # keep only first caption for each image
-        # captions = [caption[0] for caption in og_captions]
-
         captions = og_captions
-        # remove repeats in captions and imgs
 
-        org_len = len(captions)
-        # get indices of unique captions
-        
-        # unique_captions = list(set(captions))
-        unique_captions = list(OrderedDict.fromkeys(captions))
-        unique_captions_indices = [captions.index(caption) for caption in unique_captions]
-
-        # get unique imgs
-        imgs = [imgs[i] for i in unique_captions_indices]
-
-        # count repeats
-        n_repeats = org_len - len(unique_captions)
-        # print('n_repeats: ', n_repeats)
-
-        captions = unique_captions
-
-        og_captions = [og_captions[i] for i in unique_captions_indices]
 
         if self.encoder1_modality == 'text':
             outputs1 = captions

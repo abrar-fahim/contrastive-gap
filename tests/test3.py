@@ -46,7 +46,7 @@ for image, caption in tqdm(processor.train_dataloader):
     if image == None:
         print('Image is None')
         continue
-    # print(f"Caption: {caption}")
+    print(f"{caption[0]}")
     # print(f"Image size: {image.shape}")
     # # display first image
     # plt.imshow(image[0].permute(1, 2, 0))
