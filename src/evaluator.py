@@ -331,7 +331,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
+                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]) if wandb.config['cifar10_acc'] else 0,
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later

@@ -20,7 +20,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
         self.train_dataset = None
-        self.train_dataset = None
+        self.full_train_dataset = None
         self.train_dataloader = None
         self.train_subset_indices = None
         self.val_dataset = None
@@ -256,7 +256,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
     
     def load_train_dataset(self):
 
-        self.train_dataset = dset.CocoCaptions(
+        self.full_train_dataset = dset.CocoCaptions(
             root = './datasets/mscoco_new/train2014',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco_train/train2014',
             annFile = 'datasets/mscoco/annotations/captions_train2014.json',
@@ -284,6 +284,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
 
         self.train_dataloader = DataLoader(dataset_to_use, shuffle=False, collate_fn=self.collate_fn, num_workers=wandb.config['num_workers'], worker_init_fn=self.seed_dataloader_worker, generator=torch.Generator().manual_seed(wandb.config['seed']), persistent_workers=True, prefetch_factor=4,
         batch_sampler=RepeatSampler(torch.utils.data.BatchSampler(torch.utils.data.RandomSampler(dataset_to_use), batch_size=wandb.config['batch_size'], drop_last=False)))
+
+        self.train_dataset = dataset_to_use
         
 
 

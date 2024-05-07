@@ -112,6 +112,7 @@ training_hyperparameters = {
     'train_only_one_batch': False,
     'use_train_as_val': False, # SET
     'use_cached_val_batch': True, 
+    'cifar10_acc': True,
 
 
     # Saving embeds and encoder hidden states

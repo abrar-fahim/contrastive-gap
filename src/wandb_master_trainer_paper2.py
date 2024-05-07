@@ -82,16 +82,16 @@ if __name__ == "__main__":
 
 
 
-            'clip_projection_dim': {'values': [8, 32]}, # 512
-            'batch_size': {'values': [8, 32, 128, 256]},
+            'clip_projection_dim': {'values': [32]}, # 512
+            'batch_size': {'values': [16, 32, 128, 256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [False]}, # because its just small dataset
             'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
-            "lr": {'values': [1e-3]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [10]}, 
-            'n_workers': {'values': [4]}, # SET
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [30]}, 
+            'num_workers': {'values': [4]}, # SET
 
 
 
@@ -105,10 +105,11 @@ if __name__ == "__main__":
 
             # DATASET STUFF
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
-            'validation_dataset_size': {'values': [2048]},
-            'validation_batch_size': {'values': [2048]},
+            'validation_dataset_size': {'values': [1024]},
+            'validation_batch_size': {'values': [1024]},
             'use_small_trainloader': {'values': [True]}, 
-            'small_train_loader_dataset_size': {'values': [2048]},
+            'small_train_loader_dataset_size': {'values': [1024]},
+            'cifar10_acc': {'values': [False]}, # Don't measure cifar10 val acc for these toy runs
             
             'seed': {'values': [2]},
         },
