@@ -65,38 +65,39 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap persists even after accounting for all factors, scheduling",
+        "name": "Gap closes with uniformity loss",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this i s the starting temp
 
             
-            # CUDA: 0
+            # CUDA: 2,3
+            # NO CIFAR10 VAL IN EVALUATOR
 
 
             # TRAINING STUFF
             'encoder1_modality': {'values': ['image']},
-            'encoder2_modality': {'values': ['image']},
-            'same_inputs': {'values': [True]},
+            'encoder2_modality': {'values': ['text']},
+            'same_inputs': {'values': [False]},
 
 
 
             'clip_projection_dim': {'values': [512]}, # 512
-            'batch_size': {'values': [128]},
+            'batch_size': {'values': [32]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [True]}, # because its just small dataset
             'n_warmup_steps': {'values': [100]}, # 10000
-            'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
+            'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
             "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [10000]}, 
+            'n_epochs': {'values': [500]}, 
             'num_workers': {'values': [4]}, # SET
 
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [False]},
+            'uniformity_loss': {'values': [False, True]},
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
 

@@ -93,6 +93,13 @@ class Evaluator():
         '''
         setting dataloaders
         '''
+
+
+        if os.path.exists(self.mscoco_batch_file_path) and wandb.config['delete_val_batch_first']:
+            print('deleting batch from cache')
+            os.remove(self.mscoco_batch_file_path)
+
+
         if not (os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']):
 
             if wandb.config['use_train_as_val']:
@@ -125,6 +132,8 @@ class Evaluator():
         '''
         Loading cached batch from file
         '''
+
+
 
         if os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']:
             print('loading batch from cache')
