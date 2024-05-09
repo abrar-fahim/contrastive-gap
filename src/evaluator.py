@@ -218,14 +218,25 @@ class Evaluator():
             image_S_buckets = torch.chunk(ranks['image_S'], n_s_buckets) 
             text_S_buckets = torch.chunk(ranks['text_S'], n_s_buckets)
 
+            image_pca_variance_ratio_buckets = torch.chunk(ranks['image_pca_variance_ratios'], n_s_buckets)
+            text_pca_variance_ratio_buckets = torch.chunk(ranks['text_pca_variance_ratios'], n_s_buckets)
+
             if len(image_S_buckets) < n_s_buckets:
                 image_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_S_buckets))])
+
+                image_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_pca_variance_ratio_buckets))])
             
             if len(text_S_buckets) < n_s_buckets:
                 text_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_S_buckets))])
 
+                text_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_pca_variance_ratio_buckets))])
+
             image_S_bucket_means = [torch.mean(bucket) for bucket in image_S_buckets]
             text_S_bucket_means = [torch.mean(bucket) for bucket in text_S_buckets]
+
+            image_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in image_pca_variance_ratio_buckets]
+
+            text_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in text_pca_variance_ratio_buckets]
 
             print('temp ', clip_model.get_temperature())
 
@@ -279,6 +290,28 @@ class Evaluator():
                         'text_S5': text_S_bucket_means[5],
                         'text_S6': text_S_bucket_means[6],
                         'text_S7': text_S_bucket_means[7],
+
+                        # bucketed explained variance ratio values
+
+                        'image_variance0': image_pca_variance_ratio_bucket_sums[0],
+                        'image_variance1': image_pca_variance_ratio_bucket_sums[1],
+                        'image_variance2': image_pca_variance_ratio_bucket_sums[2],
+                        'image_variance3': image_pca_variance_ratio_bucket_sums[3],
+                        'image_variance4': image_pca_variance_ratio_bucket_sums[4],
+                        'image_variance5': image_pca_variance_ratio_bucket_sums[5],
+                        'image_variance6': image_pca_variance_ratio_bucket_sums[6],
+                        'image_variance7': image_pca_variance_ratio_bucket_sums[7],
+
+                        'text_variance0': text_pca_variance_ratio_bucket_sums[0],
+                        'text_variance1': text_pca_variance_ratio_bucket_sums[1],
+                        'text_variance2': text_pca_variance_ratio_bucket_sums[2],
+                        'text_variance3': text_pca_variance_ratio_bucket_sums[3],
+                        'text_variance4': text_pca_variance_ratio_bucket_sums[4],
+                        'text_variance5': text_pca_variance_ratio_bucket_sums[5],
+                        'text_variance6': text_pca_variance_ratio_bucket_sums[6],
+                        'text_variance7': text_pca_variance_ratio_bucket_sums[7],
+                        
+
 
 
 
@@ -610,27 +643,24 @@ class Evaluator():
     def get_rank(self) ->  dict:
         '''
         Get rank (threshold = 1) using SVD, of image and text embeds
-        Rank of only first config['batch_size'] embeds
+        Rank of only first config['validation_batch_size'] embeds
         '''
 
-        # sklearn import pca
-        # from sklearn.decomposition import PCA
-
-
-        # data matrix needs to be in (d, n) format, where d is the number of features and n is the number of samples
+        # data needs to be in (n, d) format for PCA
 
 
 
-        image_embeds = self.val_outputs.image_embeds[:wandb.config['validation_batch_size']].T
-        text_embeds = self.val_outputs.text_embeds[:wandb.config['validation_batch_size']].T
+
+        image_embeds = self.val_outputs.image_embeds[:wandb.config['validation_batch_size']]
+        text_embeds = self.val_outputs.text_embeds[:wandb.config['validation_batch_size']]
         # image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']].T
         # text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']].T
 
-        # embeds shape: ([dimensionality, batch_size])
+        # embeds shape: ([batch_size, dimensionality])
 
         # normalize
-        image_embeds = image_embeds / torch.norm(image_embeds, dim=0, keepdim=True)
-        text_embeds = text_embeds / torch.norm(text_embeds, dim=0, keepdim=True)
+        image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
+        text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
 
         # get pytorch rank
         full_image_rank = torch.linalg.matrix_rank(image_embeds)
@@ -671,6 +701,14 @@ class Evaluator():
         print('image_rank ', image_rank)
         print('text_rank ', text_rank)  
 
+        image_pca = PCA(n_components=min(image_embeds.shape[0], image_embeds.shape[1]))
+        image_pca.fit(image_embeds.cpu().numpy())
+        image_explained_variance_ratios = image_pca.explained_variance_ratio_
+
+        text_pca = PCA(n_components=min(text_embeds.shape[0], text_embeds.shape[1]))
+        text_pca.fit(text_embeds.cpu().numpy())
+        text_explained_variance_ratios = text_pca.explained_variance_ratio_
+
 
 
         return {
@@ -681,7 +719,9 @@ class Evaluator():
             'first_lt1_value': first_lt1_value,
             'avg_S': avg_S,
             'image_S': image_S,
-            'text_S': text_S
+            'text_S': text_S,
+            'image_explained_variance_ratios': torch.tensor(image_explained_variance_ratios),
+            'text_explained_variance_ratios': torch.tensor(text_explained_variance_ratios),
 
         }
         

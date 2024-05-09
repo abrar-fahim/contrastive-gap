@@ -71,7 +71,7 @@ if __name__ == "__main__":
             "temperature": {"values": [0.07]}, # learnable temperature now, so this i s the starting temp
 
             
-            # CUDA: 2,3
+            # CUDA: 0
             # NO CIFAR10 VAL IN EVALUATOR
 
 
@@ -85,12 +85,12 @@ if __name__ == "__main__":
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [32]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]}, # because its just small dataset
+            'use_scheduler': {'values': [True]}, 
             'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
             "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [500]}, 
+            'n_epochs': {'values': [5000]}, 
             'num_workers': {'values': [4]}, # SET
 
 
