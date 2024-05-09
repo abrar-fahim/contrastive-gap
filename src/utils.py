@@ -723,6 +723,8 @@ def generate_csv_file_name(clip_model=None):
 
             elif wandb.config['uniformity_loss']:
                 new_part = part.replace('loss', 'uniform')
+            elif wandb.config['alignment_loss']:
+                new_part = part.replace('loss', 'align_uniform')
             else:
                 new_part = part.replace('loss', 'Lit')
         elif 'seed' in part:

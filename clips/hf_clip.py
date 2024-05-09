@@ -365,7 +365,7 @@ class HFClip(ClipParent):
         encoder1_weight = wandb.config['loss_weights']['image_to_text_weight']
         encoder2_weight = wandb.config['loss_weights']['text_to_image_weight']
 
-        loss = 0
+        loss = 0 
 
         if output_loss == True:
 
@@ -378,6 +378,12 @@ class HFClip(ClipParent):
                 encoder2_uniformity_loss = encoder2_sq_pdist.mul(-2).exp().mean().log()
 
                 uniformity_loss = 0.5 * encoder1_uniformity_loss + 0.5 * encoder2_uniformity_loss
+
+                cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(normalized_encoder1_embeds.unsqueeze(0), normalized_encoder2_embeds.unsqueeze(0))[0], torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1) == 1).square().mul(-2).exp().mean().log()
+
+            
+
+
 
 
             if wandb.config['svd_loss']:
@@ -450,6 +456,10 @@ class HFClip(ClipParent):
 
             inter_modality_loss = self.loss(logits_per_encoder1_embeds, labels) * encoder1_weight + self.loss(logits_per_encoder2_embeds, labels) * encoder2_weight 
 
+            
+
+
+
             if wandb.config['scaled_denominator']:
                 inter_modality_loss = inter_modality_loss - torch.log(torch.tensor(logits_per_encoder1_embeds.shape[0]).to(self.device))
 
@@ -465,9 +475,16 @@ class HFClip(ClipParent):
                 loss = inter_modality_loss + svd_loss
             elif wandb.config['uniformity_loss']:
                 loss = inter_modality_loss + uniformity_loss
+
+                if wandb.config['alignment_loss']:
+                    alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
+
+                    loss = alignment_loss + 0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss + 0.33 * cross_encoder_uniform_loss
                 
             else:
                 loss = inter_modality_loss
+
+                
 
             if output_intra_modality_loss:
                 loss = {

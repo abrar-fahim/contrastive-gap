@@ -27,15 +27,18 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# def 
 
 from src.config import training_hyperparameters
-from dataset_processors.food101_processor import Food101Processor
+# from dataset_processors.food101_processor import Food101Processor
 
-wandb.init(config=training_hyperparameters)
+# wandb.init(config=training_hyperparameters)
 
 from tqdm import tqdm
 
-food101processor = Food101Processor()
 
-# testing to see if I can stream dataset from zip file directly
 
-for (imgs, lbls) in food101processor.train_dataset:
-    print(lbls)
+image_embeds = torch.randint(0, 10, (10, 3), dtype=torch.float32)
+
+text_embeds = torch.randint(0, 10, (10, 3), dtype=torch.float32)
+
+uniform_loss = torch.masked_select(torch.cdist(image_embeds.unsqueeze(0), text_embeds.unsqueeze(0))[0], torch.ones((len(image_embeds), len(text_embeds))).to('cpu').tril(diagonal = -1) == 1).square().mul(-2).exp().mean().log()
+
+print('uniform loss ', uniform_loss)

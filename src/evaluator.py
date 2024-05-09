@@ -218,8 +218,8 @@ class Evaluator():
             image_S_buckets = torch.chunk(ranks['image_S'], n_s_buckets) 
             text_S_buckets = torch.chunk(ranks['text_S'], n_s_buckets)
 
-            image_pca_variance_ratio_buckets = torch.chunk(ranks['image_pca_variance_ratios'], n_s_buckets)
-            text_pca_variance_ratio_buckets = torch.chunk(ranks['text_pca_variance_ratios'], n_s_buckets)
+            image_pca_variance_ratio_buckets = torch.chunk(ranks['image_explained_variance_ratios'], n_s_buckets)
+            text_pca_variance_ratio_buckets = torch.chunk(ranks['text_explained_variance_ratios'], n_s_buckets)
 
             if len(image_S_buckets) < n_s_buckets:
                 image_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_S_buckets))])
@@ -310,7 +310,7 @@ class Evaluator():
                         'text_variance5': text_pca_variance_ratio_bucket_sums[5],
                         'text_variance6': text_pca_variance_ratio_bucket_sums[6],
                         'text_variance7': text_pca_variance_ratio_bucket_sums[7],
-                        
+
 
 
 

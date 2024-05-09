@@ -32,12 +32,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:0'
+config_cuda_device = 'cuda:2'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:0', # SET index of GPU
+    'cuda_device': 'cuda:2', # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 2,
@@ -106,7 +106,7 @@ training_hyperparameters = {
     'scaled_denominator': False, # SET
     'svd_loss': False,
     'uniformity_loss': False,
-
+    'alignment_loss': False,
 
     # validation batch stuff
     'train_only_one_batch': False,
