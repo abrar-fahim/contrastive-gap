@@ -104,6 +104,8 @@ class HFClip(ClipParent):
 
         print('check point path for CLIP model ', checkpoint_path)
 
+        loaded_checkpoint = None
+
         # check if checkpoint path exists
         if os.path.exists(checkpoint_path):
             loaded_checkpoint = torch.load(checkpoint_path, map_location=self.device)
@@ -135,8 +137,10 @@ class HFClip(ClipParent):
 
         print('selected clip model ', selected_clip_model.name)
 
-    
-        assert np.isclose(self.temperature, 1 / self.logit_scale.exp().item())
+
+        if loaded_checkpoint == None:
+            # temperature will NOT be close to logit scale temp if we're loading from checkpoint
+            assert np.isclose(self.temperature, 1 / self.logit_scale.exp().item())
 
         # print('logit scale: ', self.model.logit_scale)
         print('temperature (T): ', self.temperature)

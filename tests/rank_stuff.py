@@ -32,8 +32,8 @@ def main():
 
     training_hyperparameters['temperature'] = 0.07
     training_hyperparameters['encoder1_modality'] = 'image'
-    training_hyperparameters['encoder2_modality'] = 'image'
-    training_hyperparameters['same_inputs'] = True
+    training_hyperparameters['encoder2_modality'] = 'text'
+    training_hyperparameters['same_inputs'] = False
     training_hyperparameters['clip_projection_dim'] = 512
     training_hyperparameters['vision_model'] = 'VIT'
     training_hyperparameters['use_train_as_val'] = True
@@ -43,6 +43,7 @@ def main():
     training_hyperparameters['use_small_trainloader'] = True
     training_hyperparameters['small_train_loader_dataset_size'] = 2048
     training_hyperparameters['seed'] = 2
+    training_hyperparameters['num_workers'] = 4
 
 
     if wandb.run == None: # so that wandb doesnt reset config in case this run is part of a sweep
@@ -79,22 +80,32 @@ def main():
             image_embeds = clip_outputs.image_embeds
             text_embeds = clip_outputs.text_embeds
 
+            # image_embeds = image_embeds.T
+            # text_embeds = text_embeds.T
+
             print('image embeds ', image_embeds.shape)
             print('text embeds ', text_embeds.shape)
 
             # compute rank of image_embeds
             U, S, Vh = torch.linalg.svd(image_embeds)
 
-            print('image embeds rank ', torch.linalg.matrix_rank(image_embeds, ))
+            print('image embeds torch rank ', torch.linalg.matrix_rank(image_embeds, ))
 
             print('image embeds S ', S)
             print('image my rank ', torch.count_nonzero(S > 1))
             print( ' --- ' )
 
-            # compute rank of text_embeds
-            U, S, Vh = torch.linalg.svd(text_embeds)
-            print('text embeds rank ', torch.linalg.matrix_rank(text_embeds, ))
-            print('text embeds S ', S)
+            # # compute rank of text_embeds
+            # U, S, Vh = torch.linalg.svd(text_embeds)
+            # print('text embeds rank ', torch.linalg.matrix_rank(text_embeds, ))
+            # print('text embeds S ', S)
+
+            # pca rank
+            pca = PCA(n_components=min(image_embeds.shape[0], image_embeds.shape[1]))
+            pca.fit(image_embeds.cpu().numpy())
+
+            print('pca singular values IMAGES: ', pca.singular_values_)
+            print('image explained variances: ', pca.explained_variance_ratio_)
 
 
 
