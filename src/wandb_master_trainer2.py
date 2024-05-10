@@ -12,7 +12,7 @@ import wandb
 import train_clip
 from src.utils import generate_csv_file_name, cleanup_after_training
 
-from src.config import training_hyperparameters
+from src.config import training_hyperparameters, ClipDatasets
 
     
 
@@ -66,39 +66,44 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, VIT/32, align+uniform loss 512D, 256b, full ConCaps, val as val",
+        "name": "CYCLIP run, VIT/32, uniformity loss 512D, 256b, full ConCaps, val as val",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
 
-            # CUDA: 0
+            # CUDA: 1
+
+            # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
+            'use_scheduler': {'values': [True]},
+            'n_warmup_steps': {'values': [10000]},
+            'weight_decay': {'values': [0.1]},
 
+
+            # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
-            'use_scheduler': {'values': [True]},
-            'n_warmup_steps': {'values': [10000]},
-            'weight_decay': {'values': [0.1]},
-            'use_train_as_val': {'values': [False]}, # SET
 
-            'validation_dataset_size': {'values': [2048]},
-            'validation_batch_size': {'values': [2048]},
-            'cifar10_acc': True,
-            
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
-            'num_workers': {'values': [24]},
+            'num_workers': {'values': [12]},
 
-            # "lr": {'values': [1e-6, 1e-5, 5e-5, 1e-4 ]}, # 1.5e-5, optimized for 0.01 temp
-            # 'seed': {'values': [42, 10, 100]},
+            # DATASET STUFF
+            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            'validation_dataset_size': {'values': [2048]},
+            'validation_batch_size': {'values': [2048]},
+            'use_small_trainloader': {'values': [False]}, 
+            'cifar10_acc': {'values': [True]}, 
+            'use_train_as_val': {'values': [False]}, # SET
+
             'seed': {'values': [2]},
         },
     }

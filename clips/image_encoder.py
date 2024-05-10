@@ -8,6 +8,7 @@ from src.config import *
 from clips.encoder import Encoder
 
 from clips.rn50 import Rn50ModelWithProjection
+from clips.projection_layer import MultiLayerProjection
 
 
 
@@ -29,12 +30,14 @@ class ImageEncoder(Encoder):
         self.CLIPVisionConfig = CLIPVisionConfig
         self.hidden_size = CLIPVisionConfig.hidden_size
 
+        self.added_projection_layer = None
+
         self.pooler_layer_norm = torch.nn.LayerNorm(CLIPVisionConfig.hidden_size, eps=CLIPVisionConfig.layer_norm_eps, elementwise_affine=False) # no trainable params
 
         self.vision_model = wandb.config['vision_model']
 
-        # if from_pretrained:
-        if False:
+        if from_pretrained:
+        # if False:
             print()
             print(f" --- Initializing {name} from pretrained model ---")
             print()
@@ -56,6 +59,25 @@ class ImageEncoder(Encoder):
             param.requires_grad = True
 
 
+        if wandb.config['finetune_multi_layer_projection']:
+
+            print()
+            print(f" --- Adding multi layer projection layer to {name}: {self.vision_model}  --- ")
+            print()
+            self.added_projection_layer = MultiLayerProjection()
+
+            
+            # freeze CLIP model
+            for param in self.image_model.parameters():
+                param.requires_grad = False
+
+            # unfreeze projection layer
+            for param in self.added_projection_layer.parameters():
+                param.requires_grad = True
+
+            # requires grad stuff LATER
+
+
     def forward(self, images, output_hidden_states=False):
 
         # preprocessed_images = self.preprocess_images(images)
@@ -68,6 +90,9 @@ class ImageEncoder(Encoder):
 
         if self.W is not None and self.W_set:
             image_features.image_embeds = self.align_embeddings(image_features.image_embeds)
+
+        if self.added_projection_layer is not None:
+            image_features.image_embeds = self.added_projection_layer(image_features.image_embeds)
 
         return {
             'embeds': image_features.image_embeds,

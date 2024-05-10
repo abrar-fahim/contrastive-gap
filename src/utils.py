@@ -722,9 +722,12 @@ def generate_csv_file_name(clip_model=None):
                 new_part = part.replace('loss', 'Lit_ii_tt')
 
             elif wandb.config['uniformity_loss']:
-                new_part = part.replace('loss', 'uniform')
-            elif wandb.config['alignment_loss']:
-                new_part = part.replace('loss', 'align_uniform')
+
+                if wandb.config['alignment_loss']:
+                    new_part = part.replace('loss', 'align_uniform')
+                else:
+                    new_part = part.replace('loss', 'uniform')
+                
             else:
                 new_part = part.replace('loss', 'Lit')
         elif 'seed' in part:

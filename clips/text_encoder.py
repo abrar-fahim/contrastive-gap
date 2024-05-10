@@ -7,6 +7,8 @@ from src.config import *
 
 from clips.encoder import Encoder
 
+from clips.projection_layer import MultiLayerProjection
+
 
  
 class TextEncoder(Encoder):
@@ -24,6 +26,8 @@ class TextEncoder(Encoder):
         self.name = name
 
         self.pooler_layer_norm = torch.nn.LayerNorm(CLIPTextConfig.hidden_size, eps=CLIPTextConfig.layer_norm_eps, elementwise_affine=False) # no trainable params
+
+        self.added_projection_layer = None
         
 
         self.CLIPTextConfig = CLIPTextConfig
@@ -32,8 +36,8 @@ class TextEncoder(Encoder):
 
         self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
-        # if from_pretrained:
-        if False:
+        if from_pretrained:
+        # if False:
             print()
             print(f" --- Initializing {name} from pretrained model ---")
             print()
@@ -51,6 +55,24 @@ class TextEncoder(Encoder):
             param.requires_grad = True
 
 
+        if wandb.config['finetune_multi_layer_projection']:
+
+            print()
+            print(f" --- Adding multi layer projection layer to {name}: {self.vision_model}  --- ")
+            print()
+            self.added_projection_layer = MultiLayerProjection()
+
+            # freeze CLIP model
+            for param in self.text_model.parameters():
+                param.requires_grad = False
+
+            # unfreeze projection layer
+            for param in self.added_projection_layer.parameters():
+                param.requires_grad = True
+
+            # requires grad stuff LATER
+
+
 
 
     def forward(self, captions: list, output_hidden_states=False):
@@ -61,6 +83,10 @@ class TextEncoder(Encoder):
 
         if self.W is not None and self.W_set:
             outputs.text_embeds = self.align_embeddings(outputs.text_embeds)
+
+        if self.added_projection_layer is not None:
+            outputs.text_embeds = self.added_projection_layer(outputs.text_embeds)
+
             
 
         return {

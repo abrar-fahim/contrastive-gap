@@ -85,13 +85,14 @@ class ClipAssembler():
             print()
             print("--- ENCODER 1 = TEXT--- ")
             print()
-            self.encoder1 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not wandb.config['train_from_scratch']), name='CLIP Text Encoder')
+            # self.encoder1 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=(not wandb.config['train_from_scratch']), name='CLIP Text Encoder')
+            self.encoder1 = TextEncoder(self.clip_tokenizer, self.clip_text_config, from_pretrained=wandb.config['train_from_pretrained'], name='CLIP Text Encoder')
 
         elif wandb.config['encoder1_modality'] == 'image':
             print()
             print("--- ENCODER 1 = IMAGE --- ")
             print()
-            self.encoder1 = ImageEncoder(self.image_preprocessor, self.clip_vision_config,from_pretrained=(not wandb.config['train_from_scratch']), name='CLIP Image Encoder')
+            self.encoder1 = ImageEncoder(self.image_preprocessor, self.clip_vision_config,from_pretrained=wandb.config['train_from_pretrained'], name='CLIP Image Encoder')
 
         else:
             raise ValueError("Encoder 1 modality not set properly")

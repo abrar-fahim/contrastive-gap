@@ -32,18 +32,18 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:2'
+config_cuda_device = 'cuda:3'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:2', # SET index of GPU
-    # 'cuda_device': 'cpu', # SET index of GPU
-    'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
-    'seed': 2,
-    'selected_clip_model': selected_clip_model.value,
-    'dataset': ClipDatasets.MSCOCO.value,
-    # 'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
+    'cuda_device': 'cuda:3', # SET index of GPU
+        # 'cuda_device': 'cpu', # SET index of GPU
+        'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
+        'seed': 2,
+        'selected_clip_model': selected_clip_model.value,
+        'dataset': ClipDatasets.MSCOCO.value,
+        # 'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
     'batch_size': 256, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
@@ -68,6 +68,7 @@ training_hyperparameters = {
     'do_checkpointing': True,
     'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
     'train_from_scratch': True, # this randomly initializes weights
+    'train_from_pretrained': False,
     
     'use_small_trainloader': False, # this is ignored when using WIT400
     # 'small_train_loader_batch_size': 6, # SET
@@ -92,6 +93,7 @@ training_hyperparameters = {
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
     'clip_projection_dim': 512, # SET # this is the size of the projection layer
+    'finetune_multi_layer_projection': False, # SET
 
     # encoder configs
    

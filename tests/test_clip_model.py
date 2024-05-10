@@ -35,6 +35,21 @@ from dataset_processors.mscoco_processor import MSCOCOProcessor
 from clips.clip_assembler import ClipAssembler
 
 
+training_hyperparameters['temperature'] = 0.07
+training_hyperparameters['encoder1_modality'] = 'image'
+training_hyperparameters['encoder2_modality'] = 'text'
+training_hyperparameters['same_inputs'] = False
+training_hyperparameters['clip_projection_dim'] = 512
+training_hyperparameters['vision_model'] = 'VIT'
+training_hyperparameters['use_train_as_val'] = False
+training_hyperparameters['dataset'] = ClipDatasets.MSCOCO.value
+training_hyperparameters['validation_dataset_size'] = 2048
+training_hyperparameters['validation_batch_size'] = 2048
+training_hyperparameters['use_small_trainloader'] = True
+training_hyperparameters['small_train_loader_dataset_size'] = 2048
+training_hyperparameters['seed'] = 2
+
+
 wandb.init(config=training_hyperparameters)
 
 
