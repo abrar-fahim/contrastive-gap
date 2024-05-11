@@ -79,6 +79,7 @@ class Evaluator():
             self.zero_shot_datasets: list[DatasetProcessorParent] = [None]
         else:
 
+            # self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
             self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
 
 
@@ -89,6 +90,8 @@ class Evaluator():
         # self.layers_to_use = [0, 3, 6, 9, 12] # these are the layers to use for computing mean cosine similarity
         self.layers_to_use = [-1] # these are the layers to use for computing mean cosine similarity
 
+
+        # return    
 
         '''
         setting dataloaders

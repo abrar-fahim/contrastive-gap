@@ -58,7 +58,7 @@ class TextEncoder(Encoder):
         if wandb.config['finetune_multi_layer_projection']:
 
             print()
-            print(f" --- Adding multi layer projection layer to {name}: {self.vision_model}  --- ")
+            print(f" --- Adding multi layer projection layer to {name}: {self.text_model}  --- ")
             print()
             self.added_projection_layer = MultiLayerProjection()
 

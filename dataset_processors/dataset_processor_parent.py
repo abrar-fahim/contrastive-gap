@@ -48,7 +48,7 @@ class DatasetProcessorParent(ABC):
 
     def load_val_dataloader(self) -> None:
         self.load_val_dataset()
-        self.val_dataloader = torch.utils.data.DataLoader(self.val_dataset, batch_size=wandb.config['batch_size'], shuffle=True, num_workers=wandb.config['num_workers'], persistent_workers=True)
+        self.val_dataloader = torch.utils.data.DataLoader(self.val_dataset, batch_size=wandb.config['batch_size'], shuffle=True, num_workers=wandb.config['zero_shot_acc_num_workers'], persistent_workers=True)
 
         pass
 

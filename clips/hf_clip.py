@@ -107,7 +107,7 @@ class HFClip(ClipParent):
         loaded_checkpoint = None
 
         # check if checkpoint path exists
-        if os.path.exists(checkpoint_path):
+        if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint']:
             loaded_checkpoint = torch.load(checkpoint_path, map_location=self.device)
 
         
@@ -162,7 +162,11 @@ class HFClip(ClipParent):
         
     
         self.logit_scale = torch.nn.Parameter(torch.tensor(np.log(1 / self.temperature), requires_grad=True, device=self.device))
-        self.logit_scale.requires_grad = True
+
+        if wandb.config['learnable_temperature']:
+            self.logit_scale.requires_grad = True
+        else:
+            self.logit_scale.requires_grad = False
       
         
         self.to(self.device)
@@ -479,8 +483,7 @@ class HFClip(ClipParent):
                 if wandb.config['alignment_loss']:
                     alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
 
-                    loss = alignment_loss + 0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss + 0.33 * cross_encoder_uniform_loss
-                
+                    loss = inter_modality_loss + 0.5 * alignment_loss + 0.5 * (0.5 * encoder1_uniformity_loss + 0.5 * encoder2_uniformity_loss)               
             else:
                 loss = inter_modality_loss
 

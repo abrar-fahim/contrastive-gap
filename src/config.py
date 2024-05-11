@@ -32,18 +32,18 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:3'
+config_cuda_device = 'cuda:0'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:3', # SET index of GPU
-        # 'cuda_device': 'cpu', # SET index of GPU
-        'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
-        'seed': 2,
-        'selected_clip_model': selected_clip_model.value,
-        'dataset': ClipDatasets.MSCOCO.value,
-        # 'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
+    'cuda_device': 'cuda:0', # SET index of GPU
+    # 'cuda_device': 'cpu', # SET index of GPU
+    'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
+    'seed': 2,
+    'selected_clip_model': selected_clip_model.value,
+    # 'dataset': ClipDatasets.MSCOCO.value,
+    'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
     'batch_size': 256, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
@@ -51,14 +51,15 @@ training_hyperparameters = {
     # 'n_epochs': 10000, # SET 12 for scratch, (6 for finetune?)
     'max_steps': None, # SET or None, in which case each epoch goes through all the data
     'lr': 5e-4,
-    'use_scheduler': True,
+    'use_scheduler': False,
     'n_warmup_steps': 10000,
     'vision_model': 'VIT', # RN50 or VIT
     # 'vision_model': 'RN50', # RN50 or VIT
 
 
 
-    'temperature': 0.07,
+    'temperature': 0.01,
+    'learnable_temperature': False,
     'intra_modality_temperature': 0.01,
     'weight_decay': 0.1, # LARGER weight decay means MORE regularization
     'validation_dataset_size': 2048, # SET
@@ -66,9 +67,9 @@ training_hyperparameters = {
     'cifar_batch_size': 128,
     
     'do_checkpointing': True,
-    'continue_from_checkpoint': False, # False means don't loads weights from previous checkpoint
-    'train_from_scratch': True, # this randomly initializes weights
-    'train_from_pretrained': False,
+    'continue_from_checkpoint': True, # False means don't loads weights from previous checkpoint
+    'train_from_scratch': False, # this randomly initializes weights
+    'train_from_pretrained': True,
     
     'use_small_trainloader': False, # this is ignored when using WIT400
     # 'small_train_loader_batch_size': 6, # SET
@@ -76,6 +77,7 @@ training_hyperparameters = {
     # 'small_train_loader_dataset_size': 80000, # when using training set
     # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
     'num_workers': 24,
+    'zero_shot_acc_num_workers': 4,
     'loss_weights': {
         'image_to_text_weight': 0.5,
         'text_to_image_weight': 0.5,
@@ -93,7 +95,7 @@ training_hyperparameters = {
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
     'clip_projection_dim': 512, # SET # this is the size of the projection layer
-    'finetune_multi_layer_projection': False, # SET
+    'finetune_multi_layer_projection': True, # SET
 
     # encoder configs
    
@@ -107,12 +109,12 @@ training_hyperparameters = {
     'pearson_loss': False,
     'scaled_denominator': False, # SET
     'svd_loss': False,
-    'uniformity_loss': False,
+    'uniformity_loss': True,
     'alignment_loss': False,
 
     # validation batch stuff
     'train_only_one_batch': False,
-    'use_train_as_val': True, # SET
+    'use_train_as_val': False, # SET
     'use_cached_val_batch': True, 
     'cifar10_acc': True,
     'delete_val_batch_first': False,
@@ -132,6 +134,6 @@ training_hyperparameters = {
     
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

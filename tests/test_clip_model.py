@@ -32,6 +32,7 @@ from src.evaluator import Evaluator
 from src.config import *
 from tqdm import tqdm
 from dataset_processors.mscoco_processor import MSCOCOProcessor
+from dataset_processors.cifar100_processor import CIFAR100Processor
 from clips.clip_assembler import ClipAssembler
 
 
@@ -71,7 +72,8 @@ evaluator = Evaluator(MSCOCOProcessor())
 
 clip_model = ClipAssembler().clip_model.to(device)
 
-checkpoint_path = 'checkpoints/T0.07_Lit_2_scratch_I1C2E1E2_1024_val_as_val_2048.pt'
+checkpoint_path = 'checkpoints/T0.01_uniform_2_finetune_MLP_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT_pretrained.pt'
+# checkpoint_path = 'checkpoints/T0.01_Lit_2_finetune_MLP_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT_pretrained.pt'
 
 checkpoint = torch.load(checkpoint_path)
 
@@ -79,5 +81,8 @@ model_state_dict = checkpoint['model_state_dict']
 
 clip_model.load_state_dict(model_state_dict)
 
+# evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor())
+evaluator.get_dataset_linear_probe_accuracy(clip_model, CIFAR100Processor())
 
-evaluator.evaluate_model(clip_model, 0, 0)
+
+# evaluator.evaluate_model(clip_model, 0, 0)

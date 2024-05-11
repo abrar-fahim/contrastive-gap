@@ -735,6 +735,8 @@ def generate_csv_file_name(clip_model=None):
         elif 'trainmode' in part:
             if wandb.config['train_from_scratch']:
                 trainmode = 'scratch'
+            elif wandb.config['finetune_multi_layer_projection']:
+                trainmode='finetune_MLP'
             else:
                 trainmode = 'finetune'
             new_part = part.replace('trainmode', trainmode)
@@ -811,8 +813,6 @@ def generate_csv_file_name(clip_model=None):
 
         elif 'vmodel' in part:
             new_part = part.replace('vmodel', wandb.config['vision_model'])
-        
-
         else:
             new_part = part
 

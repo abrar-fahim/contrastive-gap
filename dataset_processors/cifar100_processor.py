@@ -22,6 +22,9 @@ class CIFAR100Processor(DatasetProcessorParent):
         self.name = 'CIFAR 100'
         print('cifar 100 name ', self.name)
         self.keyname = self.name.replace(' ', '').lower()
+        dataset_config = eval(open(f"{self.root}/classes.py", "r").read())
+        classes, templates = dataset_config["classes"], dataset_config["templates"]
+        self.templates = templates
 
         
         self.print_dataset_stats()
@@ -33,7 +36,7 @@ class CIFAR100Processor(DatasetProcessorParent):
         self.classes = self.val_dataset.classes
 
         # add 'photo of ' to the beginning of each class name
-        self.classes = ['photo of ' + class_name for class_name in self.classes]
+        # self.classes = ['photo of ' + class_name for class_name in self.classes]
 
     def load_train_dataset(self):
         self.train_dataset = CIFAR100(root=self.root, train=True, download=True, transform=self.preprocess)
