@@ -58,7 +58,7 @@ class TextEncoder(Encoder):
         if wandb.config['finetune_multi_layer_projection']:
 
             print()
-            print(f" --- Adding multi layer projection layer to {name}: {self.text_model}  --- ")
+            print(f" --- Adding multi layer projection layer to {name}  --- ")
             print()
             self.added_projection_layer = MultiLayerProjection()
 
@@ -75,6 +75,13 @@ class TextEncoder(Encoder):
                 param.requires_grad = True
 
             # requires grad stuff LATER
+                
+        elif wandb.config['finetune_clip_backbone']:
+            print()
+            print(f" --- Unfreezing backbone weights of {name} --- ")
+            print()
+            for param in self.text_model.parameters():
+                param.requires_grad = True
 
 
 

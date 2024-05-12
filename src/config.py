@@ -96,6 +96,7 @@ training_hyperparameters = {
     'shared_transformer_layers': False , # SET\
     'clip_projection_dim': 512, # SET # this is the size of the projection layer
     'finetune_multi_layer_projection': True, # SET
+    'finetune_clip_backbone': False,
 
     # encoder configs
    

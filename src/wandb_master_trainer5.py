@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP, VIT/32, uniformity loss 512D, 256b, full ConCaps, val as val, 0.01T",
+        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/32, default loss 512D, 256b, full ConCaps, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -89,14 +89,14 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
             'alignment_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
             'num_workers': {'values': [24]},
             'zero_shot_acc_num_workers': {'values': [4]},
