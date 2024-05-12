@@ -53,13 +53,10 @@ class MultiLayerProjection(nn.Module):
         self.name = 'projection layer'
 
         self.network = nn.Sequential(
+            nn.ReLU(), # needs to start with ReLU because last layer just before this is nn.Linear
             nn.Linear(self.input_dim, self.input_dim),
             nn.ReLU(),
             nn.Linear(self.input_dim, self.input_dim),
-            nn.ReLU(),
-            nn.Linear(self.input_dim, self.input_dim),
-            nn.ReLU(),
-            nn.Linear(self.input_dim, self.output_dim),
         )
 
         self.init_weights()
@@ -67,7 +64,11 @@ class MultiLayerProjection(nn.Module):
 
 
     def forward(self, x):
-        return self.network(x)
+
+        residual = x
+        y = self.network(x)
+        out = y + residual
+        return out
 
     def init_weights(self):
         for layer in self.network:

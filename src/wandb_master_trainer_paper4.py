@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap closes with uniformity loss",
+        "name": "Gap closes with uniformity loss, this time starting from pretrained CLIP",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.01]}, # learnable temperature now, so this i s the starting temp
@@ -86,26 +86,28 @@ if __name__ == "__main__":
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]}, 
+            'use_scheduler': {'values': [False]}, 
             'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
-            'train_from_scratch': {'values': [True]},
+            'train_from_scratch': {'values': [False]},
             'continue_from_checkpoint': {'values': [False]},
-            'train_from_pretrained': {'values': [False]},
-            'finetune_multi_layer_projection': {'values': [False]},
-            
-            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [200]}, 
-            'num_workers': {'values': [4]}, # SET
+            'train_from_pretrained': {'values': [True]},
+            'finetune_multi_layer_projection': {'values': [True]},
 
-
-
-            # LOSS STUFF
+             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False, True]},
             'alignment_loss': {'values': [False]},
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
+            
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [150]}, 
+            'num_workers': {'values': [4]}, # SET
+
+
+
+           
 
            
 

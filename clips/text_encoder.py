@@ -66,6 +66,10 @@ class TextEncoder(Encoder):
             for param in self.text_model.parameters():
                 param.requires_grad = False
 
+            # unfreeze CLIP's linear projection layer
+            for param in self.text_model.text_projection.parameters():
+                param.requires_grad = True
+
             # unfreeze projection layer
             for param in self.added_projection_layer.parameters():
                 param.requires_grad = True

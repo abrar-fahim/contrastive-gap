@@ -71,9 +71,14 @@ class ImageEncoder(Encoder):
             for param in self.image_model.parameters():
                 param.requires_grad = False
 
+            # unfreese CLIP's projection layer
+            for param in self.image_model.visual_projection.parameters():
+                param.requires_grad = True
+
             # unfreeze projection layer
             for param in self.added_projection_layer.parameters():
                 param.requires_grad = True
+
 
             # requires grad stuff LATER
 
