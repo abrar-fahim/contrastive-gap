@@ -65,26 +65,26 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/32, default loss 512D, 256b, full ConCaps, val as val, 0.01T",
+        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), Rn50, default loss 512D, 64b, full ConCaps, val as val, 0.07T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
-            'learnable_temperature': {'values': [False]},
+            "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
+            'learnable_temperature': {'values': [True]},
 
             # CUDA: 0
 
             # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
-            'batch_size': {'values': [256]},
-            'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [False]},
+            'batch_size': {'values': [64]},
+            'vision_model': {'values': ['RN50']}, # RN50 or VIT
+            'use_scheduler': {'values': [True]},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
-            'train_from_scratch': {'values': [False]},
+            'train_from_scratch': {'values': [True]},
             'continue_from_checkpoint': {'values': [False]},
-            'train_from_pretrained': {'values': [True]},
-            'finetune_clip_backbone': {'values': [True]},
+            'train_from_pretrained': {'values': [False]},
+            'finetune_clip_backbone': {'values': [False]},
             'finetune_multi_layer_projection': {'values': [False]},
 
 
@@ -97,15 +97,15 @@ if __name__ == "__main__":
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [64]},
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [10]},
             'num_workers': {'values': [24]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
             'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
-            'validation_dataset_size': {'values': [2048]},
-            'validation_batch_size': {'values': [2048]},
+            'validation_dataset_size': {'values': [512]},
+            'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
             'use_train_as_val': {'values': [False]}, # SET

@@ -38,15 +38,22 @@ from dataset_processors.conceptual_captions_processor import ConceptualCaptionsP
 
 processor = ConceptualCaptionsProcessor()
 # processor = MSCOCOProcessor()
+batch_size = wandb.config['validation_batch_size']
+
+collate_fn = processor.collate_fn
+val_dataloader = torch.utils.data.DataLoader(processor.val_data_pipe, batch_size=batch_size, collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
+
 
 # for image, caption in tqdm(data_pipe):
 for image, caption in tqdm(processor.train_dataloader):
+# for image, caption in tqdm(processor.val_data_pipe):
+# for image, caption in tqdm(val_dataloader):
 
 
     if image == None:
         print('Image is None')
         continue
-    print(f"{caption[0]}")
+    print(f"{caption}")
     # print(f"Image size: {image.shape}")
     # # display first image
     # plt.imshow(image[0].permute(1, 2, 0))

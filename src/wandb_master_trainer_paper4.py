@@ -65,10 +65,10 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap closes with uniformity loss, this time starting from pretrained CLIP",
+        "name": "Gap closes with uniformity loss, this time starting from pretrained CLIP, finetuning CLIP backbone",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.01]}, # learnable temperature now, so this i s the starting temp
+            "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
             'learnable_temperature': {'values': [False]},
 
             
@@ -92,7 +92,9 @@ if __name__ == "__main__":
             'train_from_scratch': {'values': [False]},
             'continue_from_checkpoint': {'values': [False]},
             'train_from_pretrained': {'values': [True]},
-            'finetune_multi_layer_projection': {'values': [True]},
+            'finetune_clip_backbone': {'values': [True]},
+            'finetune_multi_layer_projection': {'values': [False]},
+
 
              # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
@@ -101,7 +103,7 @@ if __name__ == "__main__":
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
             
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [150]}, 
             'num_workers': {'values': [4]}, # SET
 

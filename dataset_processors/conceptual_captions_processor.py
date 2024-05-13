@@ -269,7 +269,7 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
     
     @staticmethod
     def seed_dataloader_worker(worker_id):
-        worker_seed = torch.initial_seed() % 2**32
+        worker_seed = torch.initial_seed() % 2**32 + worker_id
         np.random.seed(worker_seed)
         random.seed(worker_seed)
 
@@ -291,8 +291,11 @@ class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
         # val_indices = torch.randint(0, 15840 , (wandb.config['validation_dataset_size'],))
 
+
+        # subsetting probably doesnt work with data pipes, CHECK LATER IF NEEDED
         val_indices = torch.arange(0, wandb.config['validation_dataset_size'])
         val_data_subset = Subset(self.val_data_pipe, val_indices)
+        
 
 
 

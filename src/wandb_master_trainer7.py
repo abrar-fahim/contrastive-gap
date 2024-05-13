@@ -66,14 +66,14 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP, VIT/32, default loss 512D, 256b, full ConCaps, val as val, 0.01T",
+        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/32, uniformity loss 512D, 256b, full ConCaps, train as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
             'learnable_temperature': {'values': [False]},
 
-            # CUDA: 2
+            # CUDA: 1
 
             # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
@@ -85,19 +85,20 @@ if __name__ == "__main__":
             'train_from_scratch': {'values': [False]},
             'continue_from_checkpoint': {'values': [False]},
             'train_from_pretrained': {'values': [True]},
-            'finetune_multi_layer_projection': {'values': [True]},
+            'finetune_clip_backbone': {'values': [True]},
+            'finetune_multi_layer_projection': {'values': [False]},
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
-            'alignment_loss': {'values': [True]},
+            'alignment_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
             'num_workers': {'values': [24]},
             'zero_shot_acc_num_workers': {'values': [4]},
@@ -108,7 +109,7 @@ if __name__ == "__main__":
             'validation_batch_size': {'values': [2048]},
             'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
-            'use_train_as_val': {'values': [False]}, # SET
+            'use_train_as_val': {'values': [True]}, # SET
 
             'seed': {'values': [2]},
         },
