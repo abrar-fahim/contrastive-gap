@@ -554,12 +554,13 @@ class Evaluator():
             for batch in tqdm(dataset_processor.val_dataloader):
 
                 (cifar_val_imgs, cifar_val_labels) = batch
+                cifar_val_labels = cifar_val_labels.to(clip_model.device) # shape: ([64])
 
                 cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)['embeds']
 
                 cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
 
-                cifar_val_logits_per_image = cifar_image_embeddings @ text_embeddings # shape of both: ([64, 10])
+                cifar_val_logits_per_image = cifar_image_embeddings @ text_embeddings # shape: ([64, 10])
 
                 # get mean cosine similarity
                 mean_cosine_similarity = cifar_val_logits_per_image[:, cifar_val_labels].mean()

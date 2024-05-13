@@ -718,15 +718,24 @@ def generate_csv_file_name(clip_model=None):
             new_part = part.replace('tweight', str(wandb.config['loss_weights']['text_to_image_weight']))
         elif 'loss' in part:
 
+            loss_name = ''
+
             if wandb.config['intra_modality_loss']:
                 new_part = part.replace('loss', 'Lit_ii_tt')
 
             elif wandb.config['uniformity_loss']:
 
+                loss_name += 'uniform'
+
                 if wandb.config['alignment_loss']:
-                    new_part = part.replace('loss', 'align_uniform')
-                else:
-                    new_part = part.replace('loss', 'uniform')
+                    loss_name += '_align'
+
+                if wandb.config['cross_uniformity_loss']:
+                    loss_name += '_xuniform'
+                
+                new_part = part.replace('loss', loss_name)
+
+                
                 
             else:
                 new_part = part.replace('loss', 'Lit')

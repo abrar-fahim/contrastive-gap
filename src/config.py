@@ -111,6 +111,7 @@ training_hyperparameters = {
     'scaled_denominator': False, # SET
     'svd_loss': False,
     'uniformity_loss': False,
+    'cross_uniformity_loss': False, # ONLY IMPLEMENTED AS PART OF UNIFORM+ALIGN+XUNIFORM    
     'alignment_loss': False,
 
     # validation batch stuff

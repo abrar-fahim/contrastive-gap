@@ -65,26 +65,26 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), Rn50, default loss 512D, 64b, full ConCaps, val as val, 0.07T",
+        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, default loss 512D, 64b, full ConCaps, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
-            'learnable_temperature': {'values': [True]},
+            "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
+            'learnable_temperature': {'values': [False]},
 
-            # CUDA: 0
+            # CUDA: 2
 
             # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [64]},
-            'vision_model': {'values': ['RN50']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]},
+            'vision_model': {'values': ['VIT16']}, # RN50 or VIT or VIT16
+            'use_scheduler': {'values': [False]},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
-            'train_from_scratch': {'values': [True]},
+            'train_from_scratch': {'values': [False]},
             'continue_from_checkpoint': {'values': [False]},
-            'train_from_pretrained': {'values': [False]},
-            'finetune_clip_backbone': {'values': [False]},
+            'train_from_pretrained': {'values': [True]},
+            'finetune_clip_backbone': {'values': [True]},
             'finetune_multi_layer_projection': {'values': [False]},
 
 
@@ -97,8 +97,8 @@ if __name__ == "__main__":
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [10]},
+            "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [64]},
             'num_workers': {'values': [24]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
