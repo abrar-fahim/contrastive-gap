@@ -100,7 +100,7 @@ if __name__ == "__main__":
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
-            'num_workers': {'values': [24]},
+            'num_workers': {'values': [8]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF

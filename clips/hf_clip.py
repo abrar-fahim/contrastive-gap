@@ -383,7 +383,13 @@ class HFClip(ClipParent):
 
                 uniformity_loss = 0.5 * encoder1_uniformity_loss + 0.5 * encoder2_uniformity_loss
 
-                cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(normalized_encoder1_embeds.unsqueeze(0), normalized_encoder2_embeds.unsqueeze(0))[0], torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1) == 1).square().mul(-2).exp().mean().log()
+                off_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1) 
+
+                off_diagonal_ones += torch.ones((len(normalized_encoder2_embeds), len(normalized_encoder1_embeds))).to(self.device).triu(diagonal = 1)
+
+                off_diagonal_ones = off_diagonal_ones.to(self.device)
+
+                cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(normalized_encoder1_embeds.unsqueeze(0), normalized_encoder2_embeds.unsqueeze(0))[0], off_diagonal_ones == 1).square().mul(-2).exp().mean().log()
 
             
 
@@ -480,8 +486,6 @@ class HFClip(ClipParent):
             elif wandb.config['uniformity_loss']:
                 loss = inter_modality_loss + uniformity_loss
 
-                uniform_factor = uniformity_loss
-
                 if wandb.config['alignment_loss']:
                     alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
 
@@ -489,7 +493,7 @@ class HFClip(ClipParent):
 
                 if wandb.config['cross_uniformity_loss']:
 
-                    loss = inter_modality_loss + 0.5 * alignment_loss + 0.5 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
+                    loss = 0.33 * inter_modality_loss + 0.33 * alignment_loss + 0.33 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
 
             else:
                 loss = inter_modality_loss
