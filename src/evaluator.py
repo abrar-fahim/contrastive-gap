@@ -29,6 +29,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))# de
 
 from src.utils import generate_csv_file_name, get_embeddings_path
 from src.config import *
+from src.my_ce_loss import MyCrossEntropyLoss, MyCEAlignmentLoss
 from clips.hf_clip import HFClipOutput, HFClip
 from dataset_processors.mscoco_processor import MSCOCOProcessor  # change this to dataset_processor_parent later, after you write the abstract functions there.
 
@@ -42,6 +43,7 @@ from dataset_processors.caltech101_processor import Caltech101Processor
 from dataset_processors.fgvc_aircraft_processor import FGVCAircraftProcessor
 from dataset_processors.stanford_cars_processor import StanfordCarsProcessor
 from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
+
 
 
 class Evaluator():
@@ -386,6 +388,7 @@ class Evaluator():
                         'cifar10_image_uniformity_loss': zero_shot_dataset_modality_gap_metrics['image_uniformity_loss'],
                         'cifar10_mean_cosine_similarity': zero_shot_dataset_modality_gap_metrics['mean_cosine_similarity'],
                         'cifar10_centroid_euclidean_distance': zero_shot_dataset_modality_gap_metrics['centroid_euclidean_distance'],
+                        'cifar10_inter_modality_loss': zero_shot_dataset_modality_gap_metrics['inter_modality_loss'],
 
 
                         
@@ -486,7 +489,6 @@ class Evaluator():
         '''
         get modality gap related metrics for a custom dataset
         useful to see if train and test distributions are too different
-        returning only uniformity for image embeddings for now
         '''
 
         # get image features and labels
@@ -495,9 +497,13 @@ class Evaluator():
 
         with torch.no_grad():
 
+            contrastive_loss = MyCrossEntropyLoss()
+
             image_uniformity_loss_runsum = 0
 
             mean_cosine_similarity_runsum = 0
+            
+            inter_modality_loss_runsum = 0
 
             cifar_classes = dataset_processor.classes
 
@@ -556,6 +562,11 @@ class Evaluator():
 
                 centroid_euclidean_distance = torch.norm(image_centroid - classes_centroid)
 
+                # get contrastive loss
+                inter_modality_loss = contrastive_loss(cifar_val_logits_per_image, cifar_val_labels)
+                inter_modality_loss_runsum += inter_modality_loss
+
+
                 
 
 
@@ -570,6 +581,7 @@ class Evaluator():
 
             mean_cosine_similarity = mean_cosine_similarity_runsum / len(dataset_processor.val_dataloader)
 
+            inter_modality_loss = inter_modality_loss_runsum / len(dataset_processor.val_dataloader)
 
 
 
@@ -578,15 +590,19 @@ class Evaluator():
 
 
 
-        print('image_uniformity_loss ', image_uniformity_loss)
-        print('mean_cosine_similarity ', mean_cosine_similarity)
-        print('centroid_euclidean_distance ', centroid_euclidean_distance)
+
+        print('CIFAR10 image_uniformity_loss ', image_uniformity_loss)
+        print('CIFAR10 mean_cosine_similarity ', mean_cosine_similarity)
+        print('CIFAR10 centroid_euclidean_distance ', centroid_euclidean_distance)
+        print('CIFAR10 inter_modality_loss ', inter_modality_loss)
 
 
         return {
             'image_uniformity_loss': image_uniformity_loss,
             'mean_cosine_similarity': mean_cosine_similarity,
-            'centroid_euclidean_distance': centroid_euclidean_distance
+            'centroid_euclidean_distance': centroid_euclidean_distance,
+            'inter_modality_loss': inter_modality_loss
+
         }
 
     def get_dataset_linear_probe_accuracy(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
