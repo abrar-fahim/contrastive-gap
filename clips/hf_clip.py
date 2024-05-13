@@ -373,7 +373,7 @@ class HFClip(ClipParent):
 
         if output_loss == True:
 
-            if wandb.config['uniformity_loss']:
+            if wandb.config['uniformity_loss'] or output_intra_modality_loss: # always output uniformity loss, when evaluating
                 # uniformity loss
                 encoder1_sq_pdist = torch.pdist(normalized_encoder1_embeds, p=2).pow(2)
                 encoder2_sq_pdist = torch.pdist(normalized_encoder2_embeds, p=2).pow(2)

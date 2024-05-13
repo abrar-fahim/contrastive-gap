@@ -469,6 +469,51 @@ class Evaluator():
             'labels': all_labels
         }
 
+
+
+    def get_dataset_metrics(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
+        '''
+        get modality gap related metrics for a custom dataset
+        useful to see if train and test distributions are too different
+        returning only uniformity for image embeddings for now
+        '''
+
+        # get image features and labels
+
+        
+
+        with torch.no_grad():
+            image_uniformity_loss_runsum = 0
+            for batch in tqdm(dataset_processor.val_dataloader):
+
+                (cifar_val_imgs, cifar_val_labels) = batch
+
+                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)['embeds']
+
+                cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
+
+                # get uniformity
+
+                image_sq_pdist = torch.pdist(cifar_image_embeddings, p=2).pow(2)
+                image_uniformity_loss = image_sq_pdist.mul(-2).exp().mean().log()
+
+                image_uniformity_loss_runsum += image_uniformity_loss
+            
+            image_uniformity_loss = image_uniformity_loss_runsum / len(dataset_processor.val_dataloader)
+
+
+
+
+
+
+
+        print('image_uniformity_loss ', image_uniformity_loss)
+
+
+        return {
+            'image_uniformity_loss': image_uniformity_loss
+        }
+
     def get_dataset_linear_probe_accuracy(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
         '''
         train a linear classifier on the image embeddings to predict the class labels
