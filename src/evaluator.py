@@ -213,6 +213,8 @@ class Evaluator():
 
             ranks = self.get_rank()
 
+
+
             n_s_buckets = 8
 
             # group S values into buckets, and get mean of each bucket
@@ -242,6 +244,9 @@ class Evaluator():
             text_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in text_pca_variance_ratio_buckets]
 
             print('temp ', clip_model.get_temperature())
+
+
+            zero_shot_dataset_modality_gap_metrics = self.get_dataset_metrics(clip_model, self.zero_shot_datasets[0])
 
 
 
@@ -376,7 +381,13 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]) if wandb.config['cifar10_acc'] else 0,
+                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
+
+                        'cifar10_image_uniformity_loss': zero_shot_dataset_modality_gap_metrics['image_uniformity_loss'],
+                        'cifar10_mean_cosine_similarity': zero_shot_dataset_modality_gap_metrics['mean_cosine_similarity'],
+                        'cifar10_centroid_euclidean_distance': zero_shot_dataset_modality_gap_metrics['centroid_euclidean_distance'],
+
+
                         
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
@@ -483,7 +494,47 @@ class Evaluator():
         
 
         with torch.no_grad():
+
             image_uniformity_loss_runsum = 0
+
+            mean_cosine_similarity_runsum = 0
+
+            cifar_classes = dataset_processor.classes
+
+            # tokenize captions
+            # cifar_tokenized_classes = clip_model.tokenize_captions(cifar_classes)
+
+
+            '''
+            Get text embeddings
+            '''
+
+            text_embeddings = []
+
+            templates = dataset_processor.templates
+
+            for c in cifar_classes:
+                text = [template(c) for template in templates]
+
+
+                text_embedding = clip_model.encode_text(text)['embeds']
+                text_embedding /= text_embedding.norm(dim = -1, keepdim = True)
+                text_embedding = text_embedding.mean(dim = 0)
+                text_embedding /= text_embedding.norm()
+                text_embeddings.append(text_embedding)
+
+
+
+            text_embeddings = torch.stack(text_embeddings, dim = 1).to(clip_model.device) # shape: ([dim, n_classes] == [512, 10])
+
+            classes_centroid = text_embeddings.mean(dim = 1) # shape: ([512])
+            
+
+
+            '''
+            Get image embeddings
+            '''
+  
             for batch in tqdm(dataset_processor.val_dataloader):
 
                 (cifar_val_imgs, cifar_val_labels) = batch
@@ -491,6 +542,22 @@ class Evaluator():
                 cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)['embeds']
 
                 cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
+
+                cifar_val_logits_per_image = cifar_image_embeddings @ text_embeddings # shape of both: ([64, 10])
+
+                # get mean cosine similarity
+                mean_cosine_similarity = cifar_val_logits_per_image[:, cifar_val_labels].mean()
+
+                mean_cosine_similarity_runsum += mean_cosine_similarity
+
+                # centroid euclidean distance
+                # get centroid of images
+                image_centroid = cifar_image_embeddings.mean(dim = 0) # shape: ([512])
+
+                centroid_euclidean_distance = torch.norm(image_centroid - classes_centroid)
+
+                
+
 
                 # get uniformity
 
@@ -501,6 +568,10 @@ class Evaluator():
             
             image_uniformity_loss = image_uniformity_loss_runsum / len(dataset_processor.val_dataloader)
 
+            mean_cosine_similarity = mean_cosine_similarity_runsum / len(dataset_processor.val_dataloader)
+
+
+
 
 
 
@@ -508,10 +579,14 @@ class Evaluator():
 
 
         print('image_uniformity_loss ', image_uniformity_loss)
+        print('mean_cosine_similarity ', mean_cosine_similarity)
+        print('centroid_euclidean_distance ', centroid_euclidean_distance)
 
 
         return {
-            'image_uniformity_loss': image_uniformity_loss
+            'image_uniformity_loss': image_uniformity_loss,
+            'mean_cosine_similarity': mean_cosine_similarity,
+            'centroid_euclidean_distance': centroid_euclidean_distance
         }
 
     def get_dataset_linear_probe_accuracy(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent):
@@ -888,7 +963,7 @@ class Evaluator():
                 text_embedding = text_embedding.mean(dim = 0)
                 text_embedding /= text_embedding.norm()
                 text_embeddings.append(text_embedding)
-            text_embeddings = torch.stack(text_embeddings, dim = 1).to(clip_model.device)
+            text_embeddings = torch.stack(text_embeddings, dim = 1).to(clip_model.device) # shape: ([dim, num_classes] == (512, 10))
 
 
 
@@ -912,9 +987,9 @@ class Evaluator():
                 # cifar_val_outputs = clip_model(cifar_val_imgs, cifar_tokenized_classes, output_loss=False, return_all=True)
                 # cifar_val_outputs = clip_model(cifar_val_imgs, cifar_classes, output_loss=False, return_all=True)
 
-                cifar_val_logits_per_image = cifar_image_embeddings @ text_embeddings # shape of both: ([64, 64])
+                cifar_val_logits_per_image = cifar_image_embeddings @ text_embeddings # (64, 512) * (512, 10) = (64, 10)
 
-                # cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 64])
+                # cifar_val_logits_per_image = cifar_val_outputs.logits_per_image # shape of both: ([64, 10])
 
                 ranks = cifar_val_logits_per_image.topk(max(topk), 1)[1].T
 

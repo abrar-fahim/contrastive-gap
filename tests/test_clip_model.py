@@ -79,9 +79,10 @@ clip_model = ClipAssembler().clip_model.to(device)
 
 default_checkpoint_path = 'checkpoints/T0.07_Lit_2_scratch_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT.pt'
 
-# uniform_checkpoint_path = 'checkpoints/T0.07_uniform_2_scratch_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT.pt'
+uniform_checkpoint_path = 'checkpoints/T0.07_uniform_2_scratch_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT.pt'
 
-checkpoint = torch.load(default_checkpoint_path)
+# checkpoint = torch.load(default_checkpoint_path)
+checkpoint = torch.load(uniform_checkpoint_path, map_location=device)
 
 model_state_dict = checkpoint['model_state_dict']
 
