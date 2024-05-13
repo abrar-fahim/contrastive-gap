@@ -248,7 +248,17 @@ class Evaluator():
             print('temp ', clip_model.get_temperature())
 
 
-            zero_shot_dataset_modality_gap_metrics = self.get_dataset_metrics(clip_model, self.zero_shot_datasets[0])
+
+            if wandb.config['cifar10_acc']:
+
+                zero_shot_dataset_modality_gap_metrics = self.get_dataset_metrics(clip_model, self.zero_shot_datasets[0])
+            else:
+                zero_shot_dataset_modality_gap_metrics = {
+                    'image_uniformity_loss': 100,
+                    'mean_cosine_similarity': 100,
+                    'centroid_euclidean_distance': 100,
+                    'inter_modality_loss': 100
+                }
 
 
 
@@ -383,7 +393,7 @@ class Evaluator():
                         'pearson_image_intermodality_rsa': rsa_correlations['pearson_image_intermodality_rsa'],
 
 
-                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]),
+                        'cifar10_val_image_classification_accuracy': self.get_dataset_zero_shot_acc(clip_model, self.zero_shot_datasets[0]) if wandb.config['cifar10_acc'] else 100,
 
                         'cifar10_image_uniformity_loss': zero_shot_dataset_modality_gap_metrics['image_uniformity_loss'],
                         'cifar10_mean_cosine_similarity': zero_shot_dataset_modality_gap_metrics['mean_cosine_similarity'],

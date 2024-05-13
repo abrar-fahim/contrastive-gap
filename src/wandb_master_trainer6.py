@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), Rn50, uniform loss 512D, 64b, full ConCaps, val as val, 0.07T",
+        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, uniform loss 512D, 64b, full ConCaps, val as val, 0.07T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -77,14 +77,14 @@ if __name__ == "__main__":
             # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [64]},
-            'vision_model': {'values': ['RN50']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]},
+            'vision_model': {'values': ['VIT16']}, # RN50 or VIT or VIT16
+            'use_scheduler': {'values': [False]},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
-            'train_from_scratch': {'values': [True]},
+            'train_from_scratch': {'values': [False]},
             'continue_from_checkpoint': {'values': [False]},
-            'train_from_pretrained': {'values': [False]},
-            'finetune_clip_backbone': {'values': [False]},
+            'train_from_pretrained': {'values': [True]},
+            'finetune_clip_backbone': {'values': [True]},
             'finetune_multi_layer_projection': {'values': [False]},
 
 

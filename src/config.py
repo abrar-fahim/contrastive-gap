@@ -53,7 +53,7 @@ training_hyperparameters = {
     'lr': 5e-4,
     'use_scheduler': True,
     'n_warmup_steps': 10000,
-    # 'vision_model': 'VIT', # RN50 or VIT
+    # 'vision_model': 'VIT', # RN50 or VIT or VIT16
     'vision_model': 'RN50', # RN50 or VIT
 
 
