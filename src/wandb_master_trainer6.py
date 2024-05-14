@@ -65,14 +65,14 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, default loss 512D, 64b, full ConCaps, val as val, 0.01T",
+        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, uniformity loss 512D, 64b, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
             'learnable_temperature': {'values': [False]},
 
-        # CUDA: 2
+            # CUDA: 2
 
             # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
@@ -85,13 +85,17 @@ if __name__ == "__main__":
             'continue_from_checkpoint': {'values': [False]},
             'train_from_pretrained': {'values': [True]},
             'finetune_clip_backbone': {'values': [True]},
-            'finetune_multi_layer_projection': {'valuesn': [False]},
+            'finetune_multi_layer_projection': {'values': [False]},
+
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [False]},
+            'cross_uniformity_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [False]},
+            'cyclip_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -99,11 +103,11 @@ if __name__ == "__main__":
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
-            'num_workers': {'values': [24]},
+            'num_workers': {'values': [8]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 

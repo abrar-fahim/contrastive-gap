@@ -491,35 +491,57 @@ class HFClip(ClipParent):
 
             del labels
 
+            loss = inter_modality_loss
+
             if wandb.config['intra_modality_loss']:
-                loss = (intra_modality_loss + inter_modality_loss) / 2
-            elif wandb.config['rsa_loss']:
-                loss = inter_modality_loss + rsa_loss
-            elif wandb.config['pearson_loss']:
-                loss = inter_modality_loss + pearson_rsa_loss
-            elif wandb.config['svd_loss']:
-                loss = inter_modality_loss + svd_loss
 
-            elif wandb.config['cyclip_loss']:
-                loss = inter_modality_loss + cyclic_loss
-            elif wandb.config['uniformity_loss']:
-                loss = inter_modality_loss + uniformity_loss
+                loss += intra_modality_loss
+                loss = loss / 2
+                # loss = (intra_modality_loss + inter_modality_loss) / 2
+            if wandb.config['rsa_loss']:
 
-                if wandb.config['alignment_loss']:
-                    alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
+                loss += rsa_loss
+                # loss = inter_modality_loss + rsa_loss
+            if wandb.config['pearson_loss']:
+                loss += pearson_rsa_loss
+                # loss = inter_modality_loss + pearson_rsa_loss
+            if wandb.config['svd_loss']:
+                loss += svd_loss
+                # loss = inter_modality_loss + svd_loss
 
-                    loss = inter_modality_loss + 0.5 * alignment_loss + 0.5 * (uniformity_loss) 
+            if wandb.config['cyclip_loss']:
+                loss += cyclic_loss
+                # loss = inter_modality_loss + cyclic_loss
+            if wandb.config['uniformity_loss']:
+                loss += uniformity_loss
+                # loss = inter_modality_loss + uniformity_loss
 
-                if wandb.config['cross_uniformity_loss']:
+            if wandb.config['alignment_loss']:
 
-                    if wandb.config['remove_contrastive_loss']:
-                        loss = 0.5 * alignment_loss + 0.5 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
-                    else:
+                alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
 
-                        loss = 0.33 * inter_modality_loss + 0.33 * alignment_loss + 0.33 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
+                loss += alignment_loss
 
-            else:
-                loss = inter_modality_loss
+                # if wandb.config['alignment_loss']:
+                #     alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
+
+                #     loss = inter_modality_loss + 0.5 * alignment_loss + 0.5 * (uniformity_loss) 
+
+            if wandb.config['cross_uniformity_loss']:
+
+                loss += cross_encoder_uniform_loss
+
+                # if wandb.config['remove_contrastive_loss']:
+                #     loss = 0.5 * alignment_loss + 0.5 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
+                # else:
+
+                #     loss = 0.33 * inter_modality_loss + 0.33 * alignment_loss + 0.33 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
+
+            if wandb.config['remove_contrastive_loss']:
+                loss -= inter_modality_loss
+
+            # else:
+            #     loss = inter_modality_loss
 
                 
 

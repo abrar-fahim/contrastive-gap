@@ -14,7 +14,6 @@ from src.utils import generate_csv_file_name, cleanup_after_training
 
 from src.config import training_hyperparameters, ClipDatasets
 
-    
 
 
 def set_sweep_config(training_hyperparameters: dict, sweep_config: dict) -> dict:
@@ -64,41 +63,53 @@ if __name__ == "__main__":
     sweep_configuration = {
         "method": "grid",
         # "method": "bayes",
-        # "method": "random",
+        # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run, VIT/32, uniformity loss 512D, 256b, full ConCaps, val as val",
+        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, intramodality loss 512D, 64b, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.07]}, # learnable temperature now, so this is the starting temp
+            "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
+            'learnable_temperature': {'values': [False]},
 
-            # CUDA: 1
+            # CUDA: 2
 
             # TRAINING STUFF
             'clip_projection_dim': {'values': [512]}, # 512
-            'batch_size': {'values': [256]},
-            'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]},
+            'batch_size': {'values': [64]},
+            'vision_model': {'values': ['VIT16']}, # RN50 or VIT or VIT16
+            'use_scheduler': {'values': [False]},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
+            'train_from_scratch': {'values': [False]},
+            'continue_from_checkpoint': {'values': [False]},
+            'train_from_pretrained': {'values': [True]},
+            'finetune_clip_backbone': {'values': [True]},
+            'finetune_multi_layer_projection': {'values': [False]},
+
 
 
             # LOSS STUFF
-            'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
+            'intra_modality_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
+            'alignment_loss': {'values': [False]},
+            'cross_uniformity_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [False]},
+            'cyclip_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
-            'num_workers': {'values': [24]},
+            'num_workers': {'values': [8]},
+            'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
-            'validation_dataset_size': {'values': [2048]},
-            'validation_batch_size': {'values': [2048]},
+            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
+            'validation_dataset_size': {'values': [512]},
+            'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
             'use_train_as_val': {'values': [False]}, # SET
