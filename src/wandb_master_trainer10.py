@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, 0.75align+0.5uniform+CLIP loss 512D, 64b, full MSCOCO, val as val, 0.01T",
+        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, default loss 512D, 64b, full MSCOCO, train as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -91,13 +91,11 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
-            'alignment_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
+            'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
-            'cyclip_loss': {'values': [False]},
-            'uniform_cyclic_loss': {'values': [False]},
-            
+            'cyclip_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -114,7 +112,7 @@ if __name__ == "__main__":
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
-            'use_train_as_val': {'values': [False]}, # SET
+            'use_train_as_val': {'values': [True]}, # SET
 
             'seed': {'values': [2]},
         },

@@ -77,11 +77,22 @@ class TextEncoder(Encoder):
             # requires grad stuff LATER
                 
         elif wandb.config['finetune_clip_backbone']:
+            
+            if wandb.config['clip_projection_dim'] != self.CLIPTextConfig.hidden_size:
+                print()
+                print(f" --- Changing projection layer size of {name}  --- ")
+                print()
+
+                self.text_model.text_projection = torch.nn.Linear(self.CLIPTextConfig.hidden_size, wandb.config['clip_projection_dim'], bias=False).to(self.device)                
+
+
             print()
             print(f" --- Unfreezing backbone weights of {name} --- ")
             print()
             for param in self.text_model.parameters():
                 param.requires_grad = True
+
+            
 
 
 

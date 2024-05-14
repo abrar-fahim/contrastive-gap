@@ -46,6 +46,10 @@ image_embeds = torch.randn(10, 512, dtype=torch.float32)
 
 text_embeds = torch.randn(10, 512, dtype=torch.float32)
 
+print('image embeds shape ', image_embeds.shape)
+
+print("image embeds unsqueeze shape ", image_embeds.unsqueeze(0).shape)
+
 dists = torch.cdist(image_embeds.unsqueeze(0), text_embeds.unsqueeze(0))[0]
 
 print('dists ', dists.shape)

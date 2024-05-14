@@ -5,7 +5,7 @@ class MyCrossEntropyLoss(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, logits, labels):
+    def forward(self, logits, labels) -> torch.Tensor:
         scaled_logits = logits - logits.max(dim=1).values.view(-1, 1)
 
         # scaled_logits = logits

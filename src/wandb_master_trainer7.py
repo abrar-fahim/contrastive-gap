@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, align+uniform loss 512D, 64b, full ConCaps, val as val, 0.01T",
+        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, uniform+align+contrastive loss 512D, 64b, full MSCOCO, train as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -88,10 +88,14 @@ if __name__ == "__main__":
             'finetune_multi_layer_projection': {'values': [False]},
 
 
+
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [True]},
+            'cross_uniformity_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [False]},
+            'cyclip_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -99,16 +103,16 @@ if __name__ == "__main__":
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [64]},
-            'num_workers': {'values': [24]},
+            'num_workers': {'values': [8]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
-            'use_train_as_val': {'values': [False]}, # SET
+            'use_train_as_val': {'values': [True]}, # SET
 
             'seed': {'values': [2]},
         },

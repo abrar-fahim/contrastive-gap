@@ -270,6 +270,11 @@ class Evaluator():
                         'val_image_retrieval_accuracy': self.get_val_image_retrieval_acc(),
                         'train_intramodality_loss': val_loss['intra_modality'],
                         'train_intermodality_loss': val_loss['inter_modality'],
+                        'train_alignment_loss': val_loss['alignment'],
+                        'train_uniformity_loss': val_loss['uniformity'],
+                        'train_cyclic_loss': val_loss['cyclic'],
+                        'train_cross_uniformity_loss': val_loss['cross_uniformity'],
+                        'train_uniform_cyclic_loss': val_loss['uniform_cyclic'],
                         'train_rsa_loss': val_loss['rsa'],
                         'train_pearson_loss': val_loss['pearson_rsa'],
                         'svd': val_loss['svd'],
@@ -1142,7 +1147,7 @@ class Evaluator():
 
     
 
-    def non_similar_mean_cosine_similarity(self, temperature: int):
+    def non_similar_mean_cosine_similarity(self, temperature: int) -> float:
 
         # get mean of elements that are not on the diagonal
         non_similar_mean_cosine_similarity = self.val_outputs.logits_per_image[~torch.eye(self.val_outputs.logits_per_image.shape[0], dtype=bool)].mean()
@@ -1153,6 +1158,8 @@ class Evaluator():
 
 
         print('non_similar_mean_cosine_similarity ', non_similar_mean_cosine_similarity * temperature)
+
+        return non_similar_mean_cosine_similarity.item()
 
 
 

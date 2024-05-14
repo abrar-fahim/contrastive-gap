@@ -80,12 +80,24 @@ class ImageEncoder(Encoder):
                 param.requires_grad = True
 
         elif wandb.config['finetune_clip_backbone']:
+
+
+            if wandb.config['clip_projection_dim'] != self.CLIPVisionConfig.hidden_size:
+                print()
+                print(f" --- Changing projection layer size of {name}: {self.vision_model}  --- ")
+                print()
+                self.image_model.visual_projection = torch.nn.Linear(self.CLIPVisionConfig.hidden_size, wandb.config['clip_projection_dim'], bias=False).to(self.device)
+
+
+            
             print()
             print(f" --- Unfreezing backbone weights of {name}: {self.vision_model}  --- ")
             print()
 
             for param in self.image_model.parameters():
                 param.requires_grad = True
+
+            
 
 
 

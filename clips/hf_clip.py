@@ -373,7 +373,7 @@ class HFClip(ClipParent):
 
         if output_loss == True:
 
-            if wandb.config['uniformity_loss'] or output_intra_modality_loss: # always output uniformity loss, when evaluating
+            if wandb.config['uniformity_loss'] or output_intra_modality_loss or wandb.config['cross_uniformity_loss']: # always output uniformity loss, when evaluating
                 # uniformity loss
                 encoder1_sq_pdist = torch.pdist(normalized_encoder1_embeds, p=2).pow(2)
                 encoder2_sq_pdist = torch.pdist(normalized_encoder2_embeds, p=2).pow(2)
@@ -387,9 +387,13 @@ class HFClip(ClipParent):
 
                 off_diagonal_ones += torch.ones((len(normalized_encoder2_embeds), len(normalized_encoder1_embeds))).to(self.device).triu(diagonal = 1)
 
+                lower_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1)
+
                 off_diagonal_ones = off_diagonal_ones.to(self.device)
 
                 cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(normalized_encoder1_embeds.unsqueeze(0), normalized_encoder2_embeds.unsqueeze(0))[0], off_diagonal_ones == 1).square().mul(-2).exp().mean().log()
+
+                uniform_cyclic_loss = (encoder1_sq_pdist - encoder2_sq_pdist).square().mean()
 
             
 
@@ -480,7 +484,7 @@ class HFClip(ClipParent):
                 pearson_rsa_loss = -(text_corr[0, 1] + image_corr[0, 1]) / 2
 
 
-            inter_modality_loss = self.loss(logits_per_encoder1_embeds, labels) * encoder1_weight + self.loss(logits_per_encoder2_embeds, labels) * encoder2_weight 
+            inter_modality_loss: torch.Tensor = self.loss(logits_per_encoder1_embeds, labels) * encoder1_weight + self.loss(logits_per_encoder2_embeds, labels) * encoder2_weight 
 
             
 
@@ -491,7 +495,11 @@ class HFClip(ClipParent):
 
             del labels
 
-            loss = inter_modality_loss
+            if wandb.config['remove_contrastive_loss']:
+                loss = 0
+            else:
+
+                loss = inter_modality_loss.clone() # so that I can track inter_modality_loss separately and return it
 
             if wandb.config['intra_modality_loss']:
 
@@ -513,19 +521,22 @@ class HFClip(ClipParent):
                 loss += cyclic_loss
                 # loss = inter_modality_loss + cyclic_loss
             if wandb.config['uniformity_loss']:
-                loss += uniformity_loss
+                loss += 1 * uniformity_loss
                 # loss = inter_modality_loss + uniformity_loss
 
             if wandb.config['alignment_loss']:
 
                 alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
 
-                loss += alignment_loss
+                loss += 1 * alignment_loss
 
                 # if wandb.config['alignment_loss']:
                 #     alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
 
                 #     loss = inter_modality_loss + 0.5 * alignment_loss + 0.5 * (uniformity_loss) 
+
+            if wandb.config['uniform_cyclic_loss']:
+                loss += uniform_cyclic_loss
 
             if wandb.config['cross_uniformity_loss']:
 
@@ -537,8 +548,8 @@ class HFClip(ClipParent):
 
                 #     loss = 0.33 * inter_modality_loss + 0.33 * alignment_loss + 0.33 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
 
-            if wandb.config['remove_contrastive_loss']:
-                loss -= inter_modality_loss
+            # if wandb.config['remove_contrastive_loss']:
+            #     loss = loss - inter_modality_loss
 
             # else:
             #     loss = inter_modality_loss
@@ -551,8 +562,14 @@ class HFClip(ClipParent):
                     'rsa': rsa_loss.item() if wandb.config['rsa_loss'] else -100,
                     'intra_modality': intra_modality_loss.item() if wandb.config['intra_modality_loss'] else -100,
                     'pearson_rsa': pearson_rsa_loss.item() if wandb.config['pearson_loss'] else -100,
+                    
                     'svd': svd_loss.item() if wandb.config['svd_loss'] else -100,
                     'uniformity': uniformity_loss.item(),
+                    'alignment': alignment_loss.item() if wandb.config['alignment_loss'] else -100,
+                    'cyclic': cyclic_loss.item() if wandb.config['cyclip_loss'] else -100,
+                    'uniform_cyclic': uniform_cyclic_loss.item() if wandb.config['uniform_cyclic_loss'] else -100,
+                    'cross_uniformity': cross_encoder_uniform_loss.item() if wandb.config['cross_uniformity_loss'] else -100,
+                    
                     'total': loss.item(),
                 }
 
