@@ -393,7 +393,23 @@ class HFClip(ClipParent):
 
             
 
+            if wandb.config['cyclip_loss']:
 
+                batch_size = normalized_encoder1_embeds.shape[0]
+
+
+                logits_encoder1_per_encoder1_embeds = normalized_encoder1_embeds @ normalized_encoder1_embeds.t() * self.logit_scale.exp()
+                logits_encoder2_per_encoder2_embeds = normalized_encoder2_embeds @ normalized_encoder2_embeds.t() * self.logit_scale.exp()
+
+
+                inmodal_cyclic_loss = (logits_encoder1_per_encoder1_embeds - logits_encoder2_per_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
+                
+
+                crossmodal_cyclic_loss = (logits_per_encoder1_embeds - logits_per_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
+                
+                # crossmodal_cyclic_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
+
+                cyclic_loss = 0.25 * inmodal_cyclic_loss + 0.25 * crossmodal_cyclic_loss
 
 
             if wandb.config['svd_loss']:
@@ -483,6 +499,9 @@ class HFClip(ClipParent):
                 loss = inter_modality_loss + pearson_rsa_loss
             elif wandb.config['svd_loss']:
                 loss = inter_modality_loss + svd_loss
+
+            elif wandb.config['cyclip_loss']:
+                loss = inter_modality_loss + cyclic_loss
             elif wandb.config['uniformity_loss']:
                 loss = inter_modality_loss + uniformity_loss
 
