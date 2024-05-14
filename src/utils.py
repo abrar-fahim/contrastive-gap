@@ -732,6 +732,9 @@ def generate_csv_file_name(clip_model=None):
 
                 if wandb.config['cross_uniformity_loss']:
                     loss_name += '_xuniform'
+
+                if wandb.config['remove_contrastive_loss']:
+                    loss_name += '_NOcontrastive'
                 
                 new_part = part.replace('loss', loss_name)
 

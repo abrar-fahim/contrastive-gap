@@ -493,7 +493,11 @@ class HFClip(ClipParent):
 
                 if wandb.config['cross_uniformity_loss']:
 
-                    loss = 0.33 * inter_modality_loss + 0.33 * alignment_loss + 0.33 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
+                    if wandb.config['remove_contrastive_loss']:
+                        loss = 0.5 * alignment_loss + 0.5 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
+                    else:
+
+                        loss = 0.33 * inter_modality_loss + 0.33 * alignment_loss + 0.33 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
 
             else:
                 loss = inter_modality_loss

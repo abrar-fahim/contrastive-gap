@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "CYCLIP run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, align+uniform+cross_uniformity loss 512D, 64b, full ConCaps, val as val, 0.01T",
+        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, align+uniform+cross_uniformity loss BALANCED 512D, 64b, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -93,6 +93,7 @@ if __name__ == "__main__":
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [True]},
             'cross_uniformity_loss': {'values': [True]},
+            'remove_contrastive_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -104,7 +105,7 @@ if __name__ == "__main__":
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 

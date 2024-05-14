@@ -85,7 +85,7 @@ if __name__ == "__main__":
             'continue_from_checkpoint': {'values': [False]},
             'train_from_pretrained': {'values': [True]},
             'finetune_clip_backbone': {'values': [True]},
-            'finetune_multi_layer_projection': {'values': [False]},
+            'finetune_multi_layer_projection': {'valuesn': [False]},
 
 
             # LOSS STUFF

@@ -257,7 +257,8 @@ class Evaluator():
                     'image_uniformity_loss': 100,
                     'mean_cosine_similarity': 100,
                     'centroid_euclidean_distance': 100,
-                    'inter_modality_loss': 100
+                    'inter_modality_loss': 100,
+                    'temp_scaled_inter_modality_loss': 100,
                 }
 
 
@@ -399,9 +400,7 @@ class Evaluator():
                         'cifar10_mean_cosine_similarity': zero_shot_dataset_modality_gap_metrics['mean_cosine_similarity'],
                         'cifar10_centroid_euclidean_distance': zero_shot_dataset_modality_gap_metrics['centroid_euclidean_distance'],
                         'cifar10_inter_modality_loss': zero_shot_dataset_modality_gap_metrics['inter_modality_loss'],
-
-
-                        
+                        'cifar10_temp_scaled_inter_modality_loss': zero_shot_dataset_modality_gap_metrics['temp_scaled_inter_modality_loss'],
                     },
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
                     # step= int(epoch * 470 + index), # by 100 to maintain fair comparison with existing runs data
@@ -515,6 +514,8 @@ class Evaluator():
             
             inter_modality_loss_runsum = 0
 
+            temp_scaled_inter_modality_loss_runsum = 0
+
             cifar_classes = dataset_processor.classes
 
             # tokenize captions
@@ -577,8 +578,10 @@ class Evaluator():
                 inter_modality_loss = contrastive_loss(cifar_val_logits_per_image, cifar_val_labels)
                 inter_modality_loss_runsum += inter_modality_loss
 
+                # get temperature scaled uniformity loss
+                temp_scaled_inter_modality_loss = contrastive_loss(cifar_val_logits_per_image * clip_model.logit_scale.exp(), cifar_val_labels)
+                temp_scaled_inter_modality_loss_runsum += temp_scaled_inter_modality_loss
 
-                
 
 
                 # get uniformity
@@ -594,6 +597,8 @@ class Evaluator():
 
             inter_modality_loss = inter_modality_loss_runsum / len(dataset_processor.val_dataloader)
 
+            temp_scaled_inter_modality_loss = temp_scaled_inter_modality_loss_runsum / len(dataset_processor.val_dataloader)
+
 
 
 
@@ -606,13 +611,15 @@ class Evaluator():
         print('CIFAR10 mean_cosine_similarity ', mean_cosine_similarity)
         print('CIFAR10 centroid_euclidean_distance ', centroid_euclidean_distance)
         print('CIFAR10 inter_modality_loss ', inter_modality_loss)
+        print('CIFAR10 temp scaled inter_modality_loss ', temp_scaled_inter_modality_loss)
 
 
         return {
             'image_uniformity_loss': image_uniformity_loss,
             'mean_cosine_similarity': mean_cosine_similarity,
             'centroid_euclidean_distance': centroid_euclidean_distance,
-            'inter_modality_loss': inter_modality_loss
+            'inter_modality_loss': inter_modality_loss,
+            'temp_scaled_inter_modality_loss': temp_scaled_inter_modality_loss
 
         }
 
