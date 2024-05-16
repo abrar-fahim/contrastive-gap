@@ -31,6 +31,10 @@ TSV_URLS = {
     # 'train': 'https://storage.cloud.google.com/gcc-data/Train/GCC-training.tsv?_ga=2.191230122.-1896153081.1529438250'
 }
 
+FORBIDDEN_URLS = [
+    'sciencephoto'
+]
+
 class ConceptualCaptionsProcessor(DatasetProcessorParent):
 
     
@@ -329,6 +333,12 @@ async def async_get_image(
     session: aiohttp.ClientSession, url: str
 ) -> Optional[Image.Image]:
     try:
+
+        for forbidden_url in FORBIDDEN_URLS:
+            if forbidden_url in url:
+                print(f'FORBIDDEN URL FOUND: {url}')
+                print(' -- SKIPPING THIS -- ')
+                return None
         resp = await session.get(url)
         image_bytes = await resp.read()
         return Image.open(io.BytesIO(image_bytes))
@@ -351,6 +361,8 @@ def package_images_captions(batch):
     # print('batch: ', batch)
     captions = [x[0] for x in batch]
     image_urls = [x[1] for x in batch]
+
+
     images = asyncio.run(async_batch_get_images(image_urls))
 
     for image, caption in zip(images, captions):

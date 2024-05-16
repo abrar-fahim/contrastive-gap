@@ -32,12 +32,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:3'
+config_cuda_device = 'cuda:2'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:3', # SET index of GPU
+    'cuda_device': 'cuda:2', # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 2,
@@ -76,7 +76,7 @@ training_hyperparameters = {
     # 'small_train_loader_dataset_size': 35000, # 30000
     # 'small_train_loader_dataset_size': 80000, # when using training set
     # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
-    'num_workers': 4,
+    'num_workers': 24,
     'zero_shot_acc_num_workers': 4,
     'loss_weights': {
         'image_to_text_weight': 0.5,
@@ -94,7 +94,7 @@ training_hyperparameters = {
     'common_projection_layer': False, # SET
     'W_layer_gap': -1, # SET. This controls modality gap at start. 0 means no gap, 1 means full gap. -1 means no W layer
     'shared_transformer_layers': False , # SET\
-    'clip_projection_dim': 512, # SET # this is the size of the projection layer
+    'clip_projection_dim': 64, # SET # this is the size of the projection layer
     'finetune_multi_layer_projection': False, # SET
     'finetune_clip_backbone': False,
 
@@ -116,6 +116,7 @@ training_hyperparameters = {
     'remove_contrastive_loss': False, # ONLY IMPLEMENTED AS PART OF UNIFORM+ALIGN+XUNIFORM-CONTRASTIVE
     'cyclip_loss': False,
     'uniform_cyclic_loss': False,
+    'cyclic_direction_loss': False,
 
     # validation batch stuff
     'train_only_one_batch': False,
@@ -136,7 +137,7 @@ training_hyperparameters = {
     # Evaluator settings
     'visualize_embeddings': False, # CHANGE IN LOCAL
     'save_every': 200, # CHANGE IN LOCAL
-    
+
     'save_losses': False,
     'csv_path': 'stats/',
     'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained', # can have name, temp, iweight, tweight, loss as of now,

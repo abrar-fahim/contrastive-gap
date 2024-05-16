@@ -42,9 +42,28 @@ from tqdm import tqdm
 
 
 
-image_embeds = torch.randn(10, 512, dtype=torch.float32)
+image_embeds = torch.randn(5, 3, dtype=torch.float32)
 
-text_embeds = torch.randn(10, 512, dtype=torch.float32)
+text_embeds = torch.randn(5, 3, dtype=torch.float32)
+
+text_embeds = torch.zeros(5, 3, dtype=torch.float32)
+
+text_embeds = image_embeds + 1
+print('image embeds ', image_embeds)
+
+print('text embeds ', text_embeds)
+
+
+
+pairwise_image_dirs = image_embeds.unsqueeze(1) - image_embeds
+
+pairwise_text_dirs = text_embeds.unsqueeze(1) - text_embeds
+
+loss = (pairwise_image_dirs - pairwise_text_dirs).square().mean()
+
+print('loss ', loss)
+exit()
+
 
 print('image embeds shape ', image_embeds.shape)
 
