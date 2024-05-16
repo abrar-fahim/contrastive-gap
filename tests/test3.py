@@ -18,6 +18,21 @@ import sys
 import os
 import wandb
 
+
+def trytry():
+    try:
+        for a in [1,2,3,4]:
+            if a == 1:
+                return None
+            return a
+    except Exception as e:
+        print('Exception ', e)
+
+print(trytry())
+
+exit()
+    
+
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # add sibling directory to path 
@@ -42,6 +57,9 @@ batch_size = wandb.config['validation_batch_size']
 
 collate_fn = processor.collate_fn
 val_dataloader = torch.utils.data.DataLoader(processor.val_data_pipe, batch_size=batch_size, collate_fn=collate_fn, generator=torch.Generator().manual_seed(wandb.config['seed']))
+
+
+
 
 
 # for image, caption in tqdm(data_pipe):

@@ -339,16 +339,20 @@ async def async_get_image(
                 print(f'FORBIDDEN URL FOUND: {url}')
                 print(' -- SKIPPING THIS -- ')
                 return None
+            
+        
         resp = await session.get(url)
         image_bytes = await resp.read()
         return Image.open(io.BytesIO(image_bytes))
-    except Exception:
+    except Exception as e:
+        # print(f"Error downloading {url}: {e}")
         # If an exception occurs, such as a timeout, invalid URL, etc, just
         # return None, and the caller can handle skipping this
         return None
     
 async def async_batch_get_images(
-    urls: Sequence[str], timeout: float = 1.0
+    urls: Sequence[str], 
+    timeout: float = 1.0
 ) -> List[Optional[Image.Image]]:
     client_timeout = aiohttp.ClientTimeout(total=timeout)
     async with aiohttp.ClientSession(timeout=client_timeout) as session:
