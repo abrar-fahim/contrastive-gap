@@ -78,9 +78,9 @@ class TextEncoder(Encoder):
                 
         elif wandb.config['finetune_clip_backbone']:
             
-            if wandb.config['clip_projection_dim'] != self.CLIPTextConfig.hidden_size:
+            if wandb.config['clip_projection_dim'] != self.CLIPTextConfig.projection_dim:
                 print()
-                print(f" --- Changing projection layer size of {name}  --- ")
+                print(f" --- Changing projection layer size of {name} to {wandb.config['clip_projection_dim']}  --- ")
                 print()
 
                 self.text_model.text_projection = torch.nn.Linear(self.CLIPTextConfig.hidden_size, wandb.config['clip_projection_dim'], bias=False).to(self.device)                

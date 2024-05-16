@@ -48,6 +48,9 @@ from torch.cuda.amp import GradScaler
 
 from src.scheduler import cosine_scheduler
 
+# import torch exponential scheduler
+from torch.optim.lr_scheduler import ExponentialLR
+
 
 
 
@@ -147,7 +150,11 @@ def main():
 
     n_steps = dataset_processor.get_num_batches() * n_epochs
 
-    scheduler = cosine_scheduler(optimizer, wandb.config['lr'], wandb.config['n_warmup_steps'], n_steps)
+    # scheduler = cosine_scheduler(optimizer, wandb.config['lr'], wandb.config['n_warmup_steps'], n_steps)
+
+    scheduler = ExponentialLR(optimizer, gamma=0.9)
+
+
     
     
 
@@ -277,6 +284,10 @@ def main():
 
         i_loaded_from_checkpoint = False
         epoch += 1
+
+        if wandb.config['use_scheduler']:
+            scheduler.step()
+
 
     clip_model.train()
 

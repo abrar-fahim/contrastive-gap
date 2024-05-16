@@ -34,6 +34,7 @@ from tqdm import tqdm
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.cifar100_processor import CIFAR100Processor
 from dataset_processors.cifar10_processor import CIFAR10Processor
+from dataset_processors.imagenet_processor import ImageNet1k
 from clips.clip_assembler import ClipAssembler
 
 
@@ -87,14 +88,15 @@ uniform_finetune_checkpoint_path = 'checkpoints/T0.01_uniform_align_2_finetune_I
 default_finetune_checkpoint_path = 'checkpoints/T0.01_Lit_2_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT16_pretrained.pt'
 
 # checkpoint = torch.load(default_checkpoint_path)
-checkpoint = torch.load(uniform_finetune_checkpoint_path, map_location=device)
+checkpoint = torch.load(default_finetune_checkpoint_path, map_location=device)
 
 model_state_dict = checkpoint['model_state_dict']
 
 clip_model.load_state_dict(model_state_dict)
 
-evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor())
-evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor())
+# evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor())
+# evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor())
+evaluator.get_dataset_zero_shot_acc(clip_model, ImageNet1k())
 # evaluator.get_dataset_linear_probe_accuracy(clip_model, CIFAR100Processor())
 
 # evaluator.get_dataset_metrics(clip_model, CIFAR10Processor())

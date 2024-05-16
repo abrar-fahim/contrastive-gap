@@ -79,26 +79,36 @@ if __name__ == "__main__":
             'encoder1_modality': {'values': ['image']},
             'encoder2_modality': {'values': ['image']},
             'same_inputs': {'values': [True]},
+            
 
 
 
             'clip_projection_dim': {'values': [512]}, # 512
+            'weight_decay': {'values': [0.1]},
             'batch_size': {'values': [128]},
+            
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [True]}, # because its just small dataset
             'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [500]}, 
-            'num_workers': {'values': [4]}, # SET
+            'n_epochs': {'values': [2000]}, 
+            'num_workers': {'values': [12]}, # SET
 
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [False]},
-            'weight_decay': {'values': [0.1]},
+            'alignment_loss': {'values': [False]},
+            'cross_uniformity_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [False]},
+            'cyclip_loss': {'values': [False]},
+
+
+
+           
             'use_train_as_val': {'values': [True]}, # SET
 
             'train_from_scratch': {'values': [True]},
@@ -115,6 +125,8 @@ if __name__ == "__main__":
             'use_small_trainloader': {'values': [True]}, 
             'small_train_loader_dataset_size': {'values': [2048]},
             'cifar10_acc': {'values': [False]}, # Don't measure cifar10 val acc for these toy runs
+            'save_encoder_hidden_states': {'values': [True]},
+            'n_embeds_to_save': {'values': [1000]},
             
             'seed': {'values': [2]},
         },

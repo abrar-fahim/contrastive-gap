@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, default loss batch_size=64 128D, n=512, MSCOCO, val as val, 0.01T",
+        "name": "PAPER RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+uniform+align+x_uniform loss batch_size=64 64D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [False]},
+            'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
@@ -102,12 +102,12 @@ if __name__ == "__main__":
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [200]},
-            'num_workers': {'values': [16]},
+            'n_epochs': {'values': [25]},
+            'num_workers': {'values': [12]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
             'save_encoder_hidden_states': {'values': [False]},
             'n_embeds_to_save': {'values': [512]},
 
-            'seed': {'values': [2]},
+            'seed': {'values': [42]},
         },
     }
 

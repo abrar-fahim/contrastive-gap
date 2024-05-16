@@ -315,9 +315,7 @@ class Trainer(TrainerParent):
             step = self.dataset_processor.get_num_batches() * epoch + i
 
 
-            if wandb.config['use_scheduler']:
-
-                scheduler(step)
+            
 
 
 
@@ -359,6 +357,10 @@ class Trainer(TrainerParent):
             if type(self.dataset_processor.train_dataloader.batch_sampler) == RepeatSampler and i >= self.dataset_processor.get_num_batches():
                 i = 0
                 epoch += 1
+
+                if wandb.config['use_scheduler']:
+
+                    scheduler.step()
                 
                 if epoch >= wandb.config['n_epochs']:
                     break

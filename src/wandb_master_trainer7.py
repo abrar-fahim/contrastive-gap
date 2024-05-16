@@ -65,20 +65,20 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "Pretrain CLIP FROM SCRATCH, VIT/B-16, uniform+align+cyclic_dir loss batch_size=64 64D, n=512, MSCOCO, val as val, 0.01T",
+        "name": "PAPER RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP uniform+align+cylic_dir loss batch_size=64 512D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
+            "temperature": {"values": [0.1]}, # learnable temperature now, so this is the starting temp
             'learnable_temperature': {'values': [False]},
 
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [64]}, # 512
+            'clip_projection_dim': {'values': [512]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': [False]},
+            'use_scheduler': {'values': [True]},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},
@@ -91,20 +91,20 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
-            'alignment_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
+            'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
-            'remove_contrastive_loss': {'values': [True]},
+            'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
-            'cyclic_direction_loss': {'values': [True]},
+            'cyclic_direction_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [500]},
-            'num_workers': {'values': [8]},
+            'n_epochs': {'values': [100]},
+            'num_workers': {'values': [12]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             'save_encoder_hidden_states': {'values': [False]},
             'n_embeds_to_save': {'values': [512]},
 
-            'seed': {'values': [2]},
+            'seed': {'values': [42]},
         },
     }
 
