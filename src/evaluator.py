@@ -772,9 +772,14 @@ class Evaluator():
         normalized_encoder1_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
         normalized_encoder2_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
 
+        step = int(epoch * self.dataset_processor.get_num_batches() + index)
+
+        print()
+        print(f'--- Saving encoder hidden states for step {step} ---')
+
 
         step_data = {
-                'step': int(epoch * (len(self.dataset_processor.train_dataloader) // wandb.config['batch_size']) + index),
+                'step': step,
                 'epoch': epoch,
                 'index': index,
                 'encoder1_pooled_hidden_states': encoder1_pooled_hidden_states_to_save, # normalized. 

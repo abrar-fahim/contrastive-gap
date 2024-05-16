@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, uniform+align+contrastive loss 512D, 64b, full MSCOCO, train as val, 0.01T",
+        "name": "Pretrain CLIP FROM SCRATCH, VIT/B-16, uniform+align+cyclic_dir loss batch_size=64 64D, n=512, MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -75,9 +75,9 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [512]}, # 512
+            'clip_projection_dim': {'values': [64]}, # 512
             'batch_size': {'values': [64]},
-            'vision_model': {'values': ['VIT16']}, # RN50 or VIT or VIT16
+            'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': [False]},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
@@ -94,15 +94,16 @@ if __name__ == "__main__":
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [True]},
             'cross_uniformity_loss': {'values': [False]},
-            'remove_contrastive_loss': {'values': [False]},
-            'cyclip_loss': {'values': [True]},
+            'remove_contrastive_loss': {'values': [True]},
+            'cyclip_loss': {'values': [False]},
+            'cyclic_direction_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [64]},
+            'n_epochs': {'values': [500]},
             'num_workers': {'values': [8]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
@@ -112,7 +113,10 @@ if __name__ == "__main__":
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
-            'use_train_as_val': {'values': [True]}, # SET
+            'use_train_as_val': {'values': [False]}, # SET
+
+            'save_encoder_hidden_states': {'values': [False]},
+            'n_embeds_to_save': {'values': [512]},
 
             'seed': {'values': [2]},
         },

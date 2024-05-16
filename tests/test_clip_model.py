@@ -37,11 +37,11 @@ from dataset_processors.cifar10_processor import CIFAR10Processor
 from clips.clip_assembler import ClipAssembler
 
 
-training_hyperparameters['temperature'] = 0.07
+training_hyperparameters['temperature'] = 0.01
 training_hyperparameters['encoder1_modality'] = 'image'
 training_hyperparameters['encoder2_modality'] = 'text'
 training_hyperparameters['same_inputs'] = False
-training_hyperparameters['clip_projection_dim'] = 512
+training_hyperparameters['clip_projection_dim'] = 64
 training_hyperparameters['vision_model'] = 'VIT'
 training_hyperparameters['use_train_as_val'] = False
 training_hyperparameters['dataset'] = ClipDatasets.MSCOCO.value
@@ -50,6 +50,7 @@ training_hyperparameters['validation_batch_size'] = 32
 training_hyperparameters['use_small_trainloader'] = True
 training_hyperparameters['small_train_loader_dataset_size'] = 32
 training_hyperparameters['seed'] = 2
+training_hyperparameters['train_from_scratch'] = True
 
 
 wandb.init(config=training_hyperparameters)
@@ -81,17 +82,22 @@ default_checkpoint_path = 'checkpoints/T0.07_Lit_2_scratch_I1C2E1E2_512_val_as_v
 
 uniform_checkpoint_path = 'checkpoints/T0.07_uniform_2_scratch_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT.pt'
 
+uniform_finetune_checkpoint_path = 'checkpoints/T0.01_uniform_align_2_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT16_pretrained.pt'
+
+default_finetune_checkpoint_path = 'checkpoints/T0.01_Lit_2_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT16_pretrained.pt'
+
 # checkpoint = torch.load(default_checkpoint_path)
-checkpoint = torch.load(uniform_checkpoint_path, map_location=device)
+checkpoint = torch.load(uniform_finetune_checkpoint_path, map_location=device)
 
 model_state_dict = checkpoint['model_state_dict']
 
 clip_model.load_state_dict(model_state_dict)
 
 evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor())
+evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor())
 # evaluator.get_dataset_linear_probe_accuracy(clip_model, CIFAR100Processor())
 
-evaluator.get_dataset_metrics(clip_model, CIFAR10Processor())
+# evaluator.get_dataset_metrics(clip_model, CIFAR10Processor())
 
 
 

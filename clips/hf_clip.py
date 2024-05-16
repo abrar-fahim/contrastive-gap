@@ -431,6 +431,17 @@ class HFClip(ClipParent):
                 # encoder2_svd_avg = torch.mean(encoder2_svd_vals)
 
                 # svd_loss = 
+            if wandb.config['cyclic_direction_loss']:
+                intra_image_directions = normalized_encoder1_embeds.unsqueeze(1) - normalized_encoder1_embeds
+
+                intra_text_directions = normalized_encoder2_embeds.unsqueeze(1) - normalized_encoder2_embeds
+
+                # TAKE ONLY lower triangular part LATER
+
+                cyclic_direction_loss = (intra_image_directions - intra_text_directions).square().mean()
+                
+
+                pass
 
             if wandb.config['intra_modality_loss']:
                 # find cosine similarities between image embeddings themselves
@@ -523,6 +534,9 @@ class HFClip(ClipParent):
             if wandb.config['uniformity_loss']:
                 loss += 1 * uniformity_loss
                 # loss = inter_modality_loss + uniformity_loss
+
+            if wandb.config['cyclic_direction_loss']:
+                loss += cyclic_direction_loss
 
             if wandb.config['alignment_loss']:
 

@@ -50,7 +50,7 @@ class ImageEncoder(Encoder):
 
             if self.vision_model == 'RN50':
                 self.image_model = Rn50ModelWithProjection(CLIPVisionConfig).to(self.device)
-            elif self.vision_model == 'VIT':
+            elif self.vision_model == 'VIT' or self.vision_model == 'VIT16':
                 self.image_model = CLIPVisionModelWithProjection(CLIPVisionConfig).to(self.device)
 
             self.image_model.init_weights()

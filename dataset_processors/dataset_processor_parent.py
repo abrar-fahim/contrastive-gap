@@ -65,6 +65,9 @@ class DatasetProcessorParent(ABC):
         print('num val samples ', len(self.val_dataset))
         # print('num train samples ', len(self.train_dataset)) # SKIPPING this for now to speed up validation
 
+    def get_num_batches(self) -> int:
+        pass
+
     def get_accuracy(self, linear_classifier: LogisticRegression, all_val_features: torch.FloatTensor, all_val_labels: list) -> float: 
         '''
         Default Accuracy metric is top 1, so its implemented in dataset parent

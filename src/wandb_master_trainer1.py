@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, default loss batch_size=16 3D, n=512, MSCOCO, train as val, 0.01T",
+        "name": "run from pretrained CLIP (finetuning CLIP backbone), VIT/B-16, default loss batch_size=64 3D, n=512, MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -91,18 +91,18 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
-            'alignment_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
+            'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
-            'cyclip_loss': {'values': [True]},
+            'cyclip_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [32]},
+            'n_epochs': {'values': [500]},
             'num_workers': {'values': [8]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
@@ -110,9 +110,12 @@ if __name__ == "__main__":
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
-            'use_small_trainloader': {'values': [True]}, 
+            'use_small_trainloader': {'values': [False]}, 
             'cifar10_acc': {'values': [True]}, 
-            'use_train_as_val': {'values': [True]}, # SET
+            'use_train_as_val': {'values': [False]}, # SET
+
+            'save_encoder_hidden_states': {'values': [True]},
+            'n_embeds_to_save': {'values': [512]},
 
             'seed': {'values': [2]},
         },
