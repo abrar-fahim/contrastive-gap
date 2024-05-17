@@ -273,6 +273,8 @@ class Evaluator():
                         'train_alignment_loss': val_loss['alignment'],
                         'train_uniformity_loss': val_loss['uniformity'],
                         'train_cyclic_loss': val_loss['cyclic'],
+                        'train_cyclic_dir_loss': val_loss['cyclic_direction'],
+                        'train_uniform_cyclic_loss': val_loss['uniform_cyclic'],
                         'train_cross_uniformity_loss': val_loss['cross_uniformity'],
                         'train_uniform_cyclic_loss': val_loss['uniform_cyclic'],
                         'train_rsa_loss': val_loss['rsa'],

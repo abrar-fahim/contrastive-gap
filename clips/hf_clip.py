@@ -375,45 +375,83 @@ class HFClip(ClipParent):
 
             if wandb.config['uniformity_loss'] or output_intra_modality_loss or wandb.config['cross_uniformity_loss']: # always output uniformity loss, when evaluating
                 # uniformity loss
-                encoder1_sq_pdist = torch.pdist(normalized_encoder1_embeds, p=2).pow(2)
-                encoder2_sq_pdist = torch.pdist(normalized_encoder2_embeds, p=2).pow(2)
 
-                encoder1_uniformity_loss = encoder1_sq_pdist.mul(-2).exp().mean().log()
-                encoder2_uniformity_loss = encoder2_sq_pdist.mul(-2).exp().mean().log()
+                if not wandb.config['use_train_as_val']:
+                    encoder1_sq_pdist = torch.pdist(normalized_encoder1_embeds, p=2).pow(2)
+                    encoder2_sq_pdist = torch.pdist(normalized_encoder2_embeds, p=2).pow(2)
 
-                uniformity_loss = 0.5 * encoder1_uniformity_loss + 0.5 * encoder2_uniformity_loss
+                    encoder1_uniformity_loss = encoder1_sq_pdist.mul(-2).exp().mean().log()
+                    encoder2_uniformity_loss = encoder2_sq_pdist.mul(-2).exp().mean().log()
 
-                off_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1) 
+                    uniformity_loss = 0.5 * encoder1_uniformity_loss + 0.5 * encoder2_uniformity_loss
 
-                off_diagonal_ones += torch.ones((len(normalized_encoder2_embeds), len(normalized_encoder1_embeds))).to(self.device).triu(diagonal = 1)
+                    off_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1) 
 
-                lower_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1)
+                    off_diagonal_ones += torch.ones((len(normalized_encoder2_embeds), len(normalized_encoder1_embeds))).to(self.device).triu(diagonal = 1)
 
-                off_diagonal_ones = off_diagonal_ones.to(self.device)
+                    lower_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1)
 
-                cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(normalized_encoder1_embeds.unsqueeze(0), normalized_encoder2_embeds.unsqueeze(0))[0], off_diagonal_ones == 1).square().mul(-2).exp().mean().log()
+                    off_diagonal_ones = off_diagonal_ones.to(self.device)
 
-                uniform_cyclic_loss = (encoder1_sq_pdist - encoder2_sq_pdist).square().mean()
+                    cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(normalized_encoder1_embeds.unsqueeze(0), normalized_encoder2_embeds.unsqueeze(0))[0], off_diagonal_ones == 1).square().mul(-2).exp().mean().log()
+
+                    uniform_cyclic_loss = (encoder1_sq_pdist - encoder2_sq_pdist).square().mean()
+
+
+
+                    intra_image_directions = normalized_encoder1_embeds.unsqueeze(1) - normalized_encoder1_embeds
+
+                    intra_text_directions = normalized_encoder2_embeds.unsqueeze(1) - normalized_encoder2_embeds
+
+                    # TAKE ONLY lower triangular part LATER
+
+                    cyclic_direction_loss = (intra_image_directions - intra_text_directions).square().mean()
+
+                    alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
+
+
+
+
+                    batch_size = normalized_encoder1_embeds.shape[0]
+
+
+                    logits_encoder1_per_encoder1_embeds = normalized_encoder1_embeds @ normalized_encoder1_embeds.t() * self.logit_scale.exp()
+                    logits_encoder2_per_encoder2_embeds = normalized_encoder2_embeds @ normalized_encoder2_embeds.t() * self.logit_scale.exp()
+
+
+                    inmodal_cyclic_loss = (logits_encoder1_per_encoder1_embeds - logits_encoder2_per_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
+                    
+
+                    crossmodal_cyclic_loss = (logits_per_encoder1_embeds - logits_per_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
+
+                    cyclic_loss = 0.25 * inmodal_cyclic_loss + 0.25 * crossmodal_cyclic_loss
+                    
+                    # crossmodal_cyclic_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
+
+                else:
+                    # uniformity_loss = 0
+                    # cross_encoder_uniform_loss = 0
+                    # uniform_cyclic_loss = 0
+                    # cyclic_direction_loss = 0
+                    # alignment_loss = 0
+                    # cyclic_loss = 0
+
+                    uniformity_loss = torch.tensor(0)
+                    cross_encoder_uniform_loss = torch.tensor(0)
+                    uniform_cyclic_loss = torch.tensor(0)
+                    cyclic_direction_loss = torch.tensor(0)
+                    alignment_loss = torch.tensor(0)
+                    cyclic_loss = torch.tensor(0)
 
             
 
             if wandb.config['cyclip_loss']:
 
-                batch_size = normalized_encoder1_embeds.shape[0]
+                pass
 
-
-                logits_encoder1_per_encoder1_embeds = normalized_encoder1_embeds @ normalized_encoder1_embeds.t() * self.logit_scale.exp()
-                logits_encoder2_per_encoder2_embeds = normalized_encoder2_embeds @ normalized_encoder2_embeds.t() * self.logit_scale.exp()
-
-
-                inmodal_cyclic_loss = (logits_encoder1_per_encoder1_embeds - logits_encoder2_per_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
                 
 
-                crossmodal_cyclic_loss = (logits_per_encoder1_embeds - logits_per_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
                 
-                # crossmodal_cyclic_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).square().mean() / (self.logit_scale.exp() * self.logit_scale.exp()) * batch_size
-
-                cyclic_loss = 0.25 * inmodal_cyclic_loss + 0.25 * crossmodal_cyclic_loss
 
 
             if wandb.config['svd_loss']:
@@ -431,17 +469,6 @@ class HFClip(ClipParent):
                 # encoder2_svd_avg = torch.mean(encoder2_svd_vals)
 
                 # svd_loss = 
-            if wandb.config['cyclic_direction_loss']:
-                intra_image_directions = normalized_encoder1_embeds.unsqueeze(1) - normalized_encoder1_embeds
-
-                intra_text_directions = normalized_encoder2_embeds.unsqueeze(1) - normalized_encoder2_embeds
-
-                # TAKE ONLY lower triangular part LATER
-
-                cyclic_direction_loss = (intra_image_directions - intra_text_directions).square().mean()
-                
-
-                pass
 
             if wandb.config['intra_modality_loss']:
                 # find cosine similarities between image embeddings themselves
@@ -517,6 +544,58 @@ class HFClip(ClipParent):
                 loss += intra_modality_loss
                 loss = loss / 2
                 # loss = (intra_modality_loss + inter_modality_loss) / 2
+
+            if wandb.config['cosine_uniformity_loss']:
+                logits_images_per_images = normalized_encoder1_embeds @ normalized_encoder1_embeds.t()
+
+                logits_texts_per_texts = normalized_encoder2_embeds @ normalized_encoder2_embeds.t()
+
+                logits_images_per_texts = normalized_encoder1_embeds @ normalized_encoder2_embeds.t()
+
+                # image_text_uniformity = ((-logits_images_per_texts).exp().mean() - (-logits_images_per_texts.diag()).exp().mean()).log()
+
+                # image_uniformity = ((-logits_images_per_images).exp().mean() - (-logits_images_per_images.diag()).exp().mean()).log()
+
+                # text_uniformity = ((-logits_texts_per_texts).exp().mean() - (-logits_texts_per_texts.diag()).exp().mean()).log()
+
+                
+                lower_diagonal_ones = torch.ones((len(normalized_encoder1_embeds), len(normalized_encoder2_embeds))).to(self.device).tril(diagonal = -1) 
+
+                upper_diagonal_ones = torch.ones((len(normalized_encoder2_embeds), len(normalized_encoder1_embeds))).to(self.device).triu(diagonal = 1)
+
+                off_diagonal_ones = lower_diagonal_ones + upper_diagonal_ones
+
+                off_diagonal_ones = off_diagonal_ones.to(self.device)
+
+                image_text_uniformity = torch.masked_select(logits_images_per_texts, off_diagonal_ones == 1).exp().mean().log()
+
+                
+                # image_text_uniformity = ((-logits_images_per_texts).exp().mean()).log()
+
+                image_uniformity = torch.masked_select(logits_images_per_images, lower_diagonal_ones == 1).exp().mean().log()
+
+                # image_uniformity = ((-logits_images_per_images).exp().mean()).log()
+
+                text_uniformity = torch.masked_select(logits_texts_per_texts, lower_diagonal_ones == 1).exp().mean().log()
+
+                # text_uniformity = ((-logits_texts_per_texts).exp().mean()).log()
+
+
+
+                cosine_uniformity = 0.5 * image_text_uniformity + 0.25 * image_uniformity + 0.
+                25 * text_uniformity
+
+                loss += cosine_uniformity
+
+            if wandb.config['cosine_align_loss']:
+
+                logits_images_per_texts = normalized_encoder1_embeds @ normalized_encoder2_embeds.t()
+
+                cosine_align_loss = (-logits_images_per_texts).diag().mean()
+
+                loss += cosine_align_loss
+
+
             if wandb.config['rsa_loss']:
 
                 loss += rsa_loss
@@ -540,7 +619,7 @@ class HFClip(ClipParent):
 
             if wandb.config['alignment_loss']:
 
-                alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
+                
 
                 loss += 0.3 * alignment_loss
 
@@ -567,6 +646,9 @@ class HFClip(ClipParent):
 
             # else:
             #     loss = inter_modality_loss
+                
+
+            
 
                 
 
@@ -576,13 +658,13 @@ class HFClip(ClipParent):
                     'rsa': rsa_loss.item() if wandb.config['rsa_loss'] else -100,
                     'intra_modality': intra_modality_loss.item() if wandb.config['intra_modality_loss'] else -100,
                     'pearson_rsa': pearson_rsa_loss.item() if wandb.config['pearson_loss'] else -100,
-                    
+                    'cyclic_direction': cyclic_direction_loss.item(),
                     'svd': svd_loss.item() if wandb.config['svd_loss'] else -100,
                     'uniformity': uniformity_loss.item(),
-                    'alignment': alignment_loss.item() if wandb.config['alignment_loss'] else -100,
-                    'cyclic': cyclic_loss.item() if wandb.config['cyclip_loss'] else -100,
-                    'uniform_cyclic': uniform_cyclic_loss.item() if wandb.config['uniform_cyclic_loss'] else -100,
-                    'cross_uniformity': cross_encoder_uniform_loss.item() if wandb.config['cross_uniformity_loss'] else -100,
+                    'alignment': alignment_loss.item(),
+                    'cyclic': cyclic_loss.item(),
+                    'uniform_cyclic': uniform_cyclic_loss.item(),
+                    'cross_uniformity': cross_encoder_uniform_loss.item(),
                     
                     'total': loss.item(),
                 }

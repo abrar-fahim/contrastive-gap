@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
             'clip_projection_dim': {'values': [512]}, # 512
             'weight_decay': {'values': [0.1]},
-            'batch_size': {'values': [128]},
+            'batch_size': {'values': [64]},
             
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [True]}, # because its just small dataset
@@ -93,7 +93,7 @@ if __name__ == "__main__":
             'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
             "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [2000]}, 
+            'n_epochs': {'values': [1000]}, 
             'num_workers': {'values': [12]}, # SET
 
 
@@ -120,12 +120,12 @@ if __name__ == "__main__":
 
             # DATASET STUFF
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
-            'validation_dataset_size': {'values': [2048]},
-            'validation_batch_size': {'values': [2048]},
+            'validation_dataset_size': {'values': [1024]},
+            'validation_batch_size': {'values': [1024]},
             'use_small_trainloader': {'values': [True]}, 
-            'small_train_loader_dataset_size': {'values': [2048]},
+            'small_train_loader_dataset_size': {'values': [1024]},
             'cifar10_acc': {'values': [False]}, # Don't measure cifar10 val acc for these toy runs
-            'save_encoder_hidden_states': {'values': [True]},
+            'save_encoder_hidden_states': {'values': [False]},
             'n_embeds_to_save': {'values': [1000]},
             
             'seed': {'values': [2]},

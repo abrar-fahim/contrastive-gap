@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "PAPER RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, default loss batch_size=64 64D, full MSCOCO, val as val, 0.01T",
+        "name": "trial run from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+cosine_align_uniform loss batch_size=64 64D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -96,6 +96,9 @@ if __name__ == "__main__":
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
+            'cosine_align_loss': {'values': [True]},
+            'cosine_uniformity_loss': {'values': [True]},
+
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 

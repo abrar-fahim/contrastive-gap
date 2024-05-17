@@ -65,10 +65,11 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap closes faster when batch size >> CLIP dimensionality. And that uniformity term helps close gap faster",
+        "name": "Gap closes in 3D",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.07]}, # learnable temperature now, so this i s the starting temp
+            "temperature": {"values": [0.01]}, # learnable temperature now, so this i s the starting temp
+            'learnable_temperature': {'values': [False]},
 
             
             # CUDA: 2,3
@@ -79,38 +80,48 @@ if __name__ == "__main__":
             'encoder1_modality': {'values': ['image']},
             'encoder2_modality': {'values': ['text']},
             'same_inputs': {'values': [False]},
+            'train_from_scratch': {'values': [True]},
+            'continue_from_checkpoint': {'values': [False]},
+            'train_from_pretrained': {'values': [False]},
+            'finetune_multi_layer_projection': {'values': [False]},
 
 
 
-            'clip_projection_dim': {'values': [512]}, # 512
-            'batch_size': {'values': [32]},
+            'clip_projection_dim': {'values': [3]}, # 512
+            'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [True]}, # because its just small dataset
-            'n_warmup_steps': {'values': [100]}, # 10000
+            'n_warmup_steps': {'values': [50]}, # 10000
             'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
-            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [100]}, 
+            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [200]}, 
             'num_workers': {'values': [4]}, # SET
 
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [False, True]},
+            'uniformity_loss': {'values': [False]},
             'weight_decay': {'values': [0.1]},
             'use_train_as_val': {'values': [True]}, # SET
+            'alignment_loss': {'values': [False]},
+            'cross_uniformity_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [False]},
+            'cyclip_loss': {'values': [False]},
 
            
 
             # DATASET STUFF
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
-            'validation_dataset_size': {'values': [2048]},
-            'validation_batch_size': {'values': [2048]},
+            'validation_dataset_size': {'values': [1024]},
+            'validation_batch_size': {'values': [1024]},
             'use_small_trainloader': {'values': [True]}, 
-            'small_train_loader_dataset_size': {'values': [2048]},
+            'small_train_loader_dataset_size': {'values': [1024]},
             'cifar10_acc': {'values': [False]}, # Don't measure cifar10 val acc for these toy runs
-            
+
+            'n_embeds_to_save': {'values': [1000]},
+            'save_encoder_hidden_states': {'values': [True]}, 
             'seed': {'values': [2]},
         },
     }

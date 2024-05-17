@@ -360,7 +360,9 @@ class Trainer(TrainerParent):
 
                 if wandb.config['use_scheduler']:
 
-                    scheduler.step()
+                    # scheduler.step()
+
+                    scheduler(step)
                 
                 if epoch >= wandb.config['n_epochs']:
                     break
