@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "trial run from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+cosine_align_uniform loss batch_size=64 64D, full MSCOCO, val as val, 0.01T",
+        "name": "PAPER run from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP default loss batch_size=64 different Ds, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -75,7 +75,7 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [64]}, # 512
+            'clip_projection_dim': {'values': [3, 16, 32, 64]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': [False]},
@@ -96,8 +96,8 @@ if __name__ == "__main__":
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
-            'cosine_align_loss': {'values': [True]},
-            'cosine_uniformity_loss': {'values': [True]},
+            'cosine_align_loss': {'values': [False]},
+            'cosine_uniformity_loss': {'values': [False]},
 
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 

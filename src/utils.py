@@ -718,30 +718,45 @@ def generate_csv_file_name(clip_model=None):
             new_part = part.replace('tweight', str(wandb.config['loss_weights']['text_to_image_weight']))
         elif 'loss' in part:
 
-            loss_name = ''
+            loss_name = 'Lit'
 
             if wandb.config['intra_modality_loss']:
-                new_part = part.replace('loss', 'Lit_ii_tt')
 
-            elif wandb.config['uniformity_loss']:
+                loss_name += '_intra'
+                # new_part = part.replace('loss', 'Lit_ii_tt')
+
+            if wandb.config['uniformity_loss']:
 
                 loss_name += 'uniform'
 
-                if wandb.config['alignment_loss']:
-                    loss_name += '_align'
+            if wandb.config['alignment_loss']:
+                loss_name += '_align'
 
-                if wandb.config['cross_uniformity_loss']:
-                    loss_name += '_xuniform'
+            if wandb.config['cross_uniformity_loss']:
+                loss_name += '_xuniform'
 
-                if wandb.config['remove_contrastive_loss']:
-                    loss_name += '_NOcontrastive'
-                
-                new_part = part.replace('loss', loss_name)
+            if wandb.config['remove_contrastive_loss']:
+                loss_name += '_NOcontrastive'
 
-                
-                
-            else:
-                new_part = part.replace('loss', 'Lit')
+            if wandb.config['cyclip_loss']:
+                loss_name += '_cyclip'
+            
+            if wandb.config['uniform_cyclic_loss']:
+                loss_name += '_uniform_cyclic'
+
+            if wandb.config['cyclic_direction_loss']:
+                loss_name += '_cyclic_direction'
+
+            if wandb.config['cosine_uniformity_loss']:
+                loss_name += '_cosine_uniformity'
+
+            if wandb.config['cosine_align_loss']:
+                loss_name += '_cosine_align'
+            
+            
+            new_part = part.replace('loss', loss_name)
+
+            
         elif 'seed' in part:
             new_part = part.replace('seed', str(seed))
         elif 'trainmode' in part:

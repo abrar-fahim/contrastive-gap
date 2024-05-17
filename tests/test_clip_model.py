@@ -85,7 +85,7 @@ uniform_checkpoint_path = 'checkpoints/T0.07_uniform_2_scratch_I1C2E1E2_512_val_
 
 uniform_finetune_checkpoint_path = 'checkpoints/T0.01_uniform_align_2_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT16_pretrained.pt'
 
-default_finetune_checkpoint_path = 'checkpoints/T0.01_Lit_2_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT16_pretrained.pt'
+default_finetune_checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained.pt'
 
 # checkpoint = torch.load(default_checkpoint_path)
 checkpoint = torch.load(default_finetune_checkpoint_path, map_location=device)

@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Batch size >> dimensionality closes the gap faster",
+        "name": "Batch size >> dimensionality closes the gap faster, 3D",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.01]}, # learnable temperature now, so this i s the starting temp
@@ -88,15 +88,15 @@ if __name__ == "__main__":
 
 
             'clip_projection_dim': {'values': [3]}, # 512
-            'batch_size': {'values': [64]},
+            'batch_size': {'values': [3, 8, 12]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
             'use_scheduler': {'values': [True]}, # because its just small dataset
             'n_warmup_steps': {'values': [50]}, # 10000
             'W_layer_gap': {'values': [-1]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [300]}, 
-            'num_workers': {'values': [4]}, # SET
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [100]}, 
+            'num_workers': {'values': [6]}, # SET
 
 
 
@@ -114,15 +114,15 @@ if __name__ == "__main__":
 
             # DATASET STUFF
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
-            'validation_dataset_size': {'values': [1024]},
-            'validation_batch_size': {'values': [1024]},
+            'validation_dataset_size': {'values': [256]},
+            'validation_batch_size': {'values': [256]},
             'use_small_trainloader': {'values': [True]}, 
-            'small_train_loader_dataset_size': {'values': [1024]},
+            'small_train_loader_dataset_size': {'values': [256]},
             'cifar10_acc': {'values': [False]}, # Don't measure cifar10 val acc for these toy runs
 
             'n_embeds_to_save': {'values': [1000]},
-            'save_encoder_hidden_states': {'values': [True]}, 
-            'seed': {'values': [2]},
+            'save_encoder_hidden_states': {'values': [False]}, 
+            'seed': {'values': [42]},
         },
     }
 
