@@ -9,11 +9,21 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import wandb
 
-import train_clip
 from src.utils import generate_csv_file_name, cleanup_after_training
 
-from src.config import training_hyperparameters, ClipDatasets
+import src.config as config
 
+
+
+
+config.config_cuda_device = 'cuda:5' 
+
+training_hyperparameters = config.training_hyperparameters
+training_hyperparameters['cuda_device'] = config.config_cuda_device
+ClipDatasets = config.ClipDatasets
+
+
+import train_clip
 
 
 def set_sweep_config(training_hyperparameters: dict, sweep_config: dict) -> dict:
@@ -30,15 +40,6 @@ def main():
     
     wandb.init() 
 
-    # print('wandb config ', wandb.config)
-
-    # set_hypers() # no need to set hypers anymore, wandb automatically does this
-
-
-
-    # in case train_clip.py throws error, we can still finish the run
-
-    
     try:
         # do training
         train_clip.main()
@@ -50,12 +51,6 @@ def main():
         # delete cache batches
         return 
 
-
-
-    # do training
-    # train_clip.main()
-    # wandb.finish() 
-
 # if main 
 if __name__ == "__main__":
 
@@ -65,20 +60,21 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "PAPER RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP uniform+align+cylic_dir loss batch_size=64 512D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+all(0.5u)  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
-            "temperature": {"values": [0.1]}, # learnable temperature now, so this is the starting temp
+            "temperature": {"values": [0.01]}, # learnable temperature now, so this is the starting temp
             'learnable_temperature': {'values': [False]},
 
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [512]}, # 512
+            'clip_projection_dim': {'values': [32]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': [True]},
+            'use_scheduler': {'values': ['EXP']},
+            'scheduler_every': {'values': [100]}, # num steps, NOT epochs
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},
@@ -93,17 +89,16 @@ if __name__ == "__main__":
             'intra_modality_loss': {'values': [False]},
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [True]},
-            'cross_uniformity_loss': {'values': [False]},
+            'cross_uniformity_loss': {'values': [True]},
             'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
-            'cyclic_direction_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [100]},
+            "lr": {'values': [1e-5]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [25]},
             'num_workers': {'values': [12]},
             'zero_shot_acc_num_workers': {'values': [4]},
 

@@ -12,8 +12,15 @@ import wandb
 import train_clip
 from src.utils import generate_csv_file_name, cleanup_after_training
 
-from src.config import training_hyperparameters, ClipDatasets
+import src.config as config
 
+
+
+
+config.config_cuda_device = 'cuda:0' 
+
+training_hyperparameters = config.training_hyperparameters
+ClipDatasets = config.ClipDatasets
 
 
 def set_sweep_config(training_hyperparameters: dict, sweep_config: dict) -> dict:
@@ -30,15 +37,6 @@ def main():
     
     wandb.init() 
 
-    # print('wandb config ', wandb.config)
-
-    # set_hypers() # no need to set hypers anymore, wandb automatically does this
-
-
-
-    # in case train_clip.py throws error, we can still finish the run
-
-    
     try:
         # do training
         train_clip.main()
@@ -50,12 +48,6 @@ def main():
         # delete cache batches
         return 
 
-
-
-    # do training
-    # train_clip.main()
-    # wandb.finish() 
-
 # if main 
 if __name__ == "__main__":
 
@@ -65,7 +57,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "PAPER RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+uniform+align+x_uniform loss batch_size=64 64D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+uniform+align+x_uniform loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -75,10 +67,10 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [64]}, # 512
+            'clip_projection_dim': {'values': [32]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': [False]},
+            'use_scheduler': {'values': ['NONE']},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},

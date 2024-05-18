@@ -150,18 +150,22 @@ def main():
 
     n_steps = dataset_processor.get_num_batches() * n_epochs
 
-    scheduler = cosine_scheduler(optimizer, wandb.config['lr'], wandb.config['n_warmup_steps'], n_steps)
+    if wandb.config['use_scheduler'] == 'COSINE':
 
-    # scheduler = ExponentialLR(optimizer, gamma=0.9)
+        scheduler = cosine_scheduler(optimizer, wandb.config['lr'], wandb.config['n_warmup_steps'], n_steps)
+
+    elif wandb.config['use_scheduler'] == 'EXP':
+
+        scheduler = ExponentialLR(optimizer, gamma=0.9)
+
+    else:
+        scheduler = None
 
 
     
     
 
     if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint'] and wandb.config['do_checkpointing']:
-
-        
-
         
 
         print()
@@ -208,19 +212,7 @@ def main():
         init_stats_csv_file(clip_model)
 
 
-
-
-
     # setup trainer
-        
-
-
-        
-
-    
-
-
-
 
     '''
     Setup evaluator
@@ -287,10 +279,12 @@ def main():
 
         step = epoch * dataset_processor.get_num_batches()
 
-        if wandb.config['use_scheduler']:
-            # scheduler.step()
-
+        if wandb.config['use_scheduler'] == 'COSINE':
             scheduler(step)
+        elif wandb.config['use_scheduler'] == 'EXP':
+            scheduler.step()
+
+            
 
 
     clip_model.train()

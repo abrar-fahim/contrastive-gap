@@ -611,17 +611,20 @@ class HFClip(ClipParent):
                 loss += cyclic_loss
                 # loss = inter_modality_loss + cyclic_loss
             if wandb.config['uniformity_loss']:
-                loss += 1 * 0.25 * uniformity_loss
+                loss += 0.3 * uniformity_loss
                 # loss = inter_modality_loss + uniformity_loss
 
-            if wandb.config['cyclic_direction_loss']:
-                loss += 0.25 * cyclic_direction_loss
+            if wandb.config['cross_uniformity_loss']:
+
+                loss += 0.3 * cross_encoder_uniform_loss
+
+            
 
             if wandb.config['alignment_loss']:
 
                 
 
-                loss += 0.3 * alignment_loss
+                loss += 1 * alignment_loss
 
                 # if wandb.config['alignment_loss']:
                 #     alignment_loss = (normalized_encoder1_embeds - normalized_encoder2_embeds).norm(dim=1).pow(2).mean()
@@ -631,9 +634,7 @@ class HFClip(ClipParent):
             if wandb.config['uniform_cyclic_loss']:
                 loss += uniform_cyclic_loss
 
-            if wandb.config['cross_uniformity_loss']:
-
-                loss += cross_encoder_uniform_loss
+           
 
                 # if wandb.config['remove_contrastive_loss']:
                 #     loss = 0.5 * alignment_loss + 0.5 * (0.33 * encoder1_uniformity_loss + 0.33 * encoder2_uniformity_loss+ 0.33 * cross_encoder_uniform_loss) 
@@ -650,7 +651,8 @@ class HFClip(ClipParent):
 
             
 
-                
+            if wandb.config['cyclic_direction_loss']:
+                loss += 1 * cyclic_direction_loss
 
             if output_intra_modality_loss:
                 loss = {

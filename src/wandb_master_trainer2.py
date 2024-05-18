@@ -78,7 +78,7 @@ if __name__ == "__main__":
             'clip_projection_dim': {'values': [3, 16, 32, 64]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': [False]},
+            'use_scheduler': {'values': ['EXP']},
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},

@@ -354,15 +354,24 @@ class Trainer(TrainerParent):
             if wandb.config['max_steps'] is not None and i >= wandb.config['max_steps']:
                 break
 
+            if step % wandb.config['schedule_every'] == 0:
+                if wandb.config['use_scheduler'] == 'COSINE':
+                    scheduler(step)
+                elif wandb.config['use_scheduler'] == 'EXP':
+                    scheduler.step()
+
             if type(self.dataset_processor.train_dataloader.batch_sampler) == RepeatSampler and i >= self.dataset_processor.get_num_batches():
                 i = 0
                 epoch += 1
 
-                if wandb.config['use_scheduler']:
+                # if wandb.config['use_scheduler'] == 'COSINE':
 
-                    # scheduler.step()
+                #     scheduler(step)
+                # elif wandb.config['use_scheduler'] == 'EXP':
 
-                    scheduler(step)
+                #     scheduler.step()
+
+                    
                 
                 if epoch >= wandb.config['n_epochs']:
                     break
