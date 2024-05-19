@@ -19,19 +19,6 @@ import os
 import wandb
 
 
-def trytry():
-    try:
-        for a in [1,2,3,4]:
-            if a == 1:
-                return None
-            return a
-    except Exception as e:
-        print('Exception ', e)
-
-print(trytry())
-
-exit()
-    
 
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -51,8 +38,8 @@ from tqdm import tqdm
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
 
-processor = ConceptualCaptionsProcessor()
-# processor = MSCOCOProcessor()
+# processor = ConceptualCaptionsProcessor()
+processor = MSCOCOProcessor()
 batch_size = wandb.config['validation_batch_size']
 
 collate_fn = processor.collate_fn
