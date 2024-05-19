@@ -257,9 +257,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
     def load_train_dataset(self):
 
         self.full_train_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco_new/train2014',
+            root = './datasets/mscoco2/train2017',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco_train/train2014',
-            annFile = 'datasets/mscoco/annotations/captions_train2014.json',
+            annFile = 'datasets/mscoco/annotations/captions_train2017.json',
             transform=self.image_preprocessor,
         )
 
@@ -292,9 +292,9 @@ class MSCOCOProcessor(DatasetProcessorParent):
    
     def load_val_dataset(self):
         val_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco/val2014',
+            root = './datasets/mscoco2/val2017',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
-            annFile= './datasets/mscoco/annotations/captions_val2014.json',
+            annFile= './datasets/mscoco2/annotations/captions_val2017.json',
             transform=self.image_preprocessor,
         )
 

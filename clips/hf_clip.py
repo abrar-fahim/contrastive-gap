@@ -373,7 +373,7 @@ class HFClip(ClipParent):
 
         if output_loss == True:
 
-            if wandb.config['uniformity_loss'] or output_intra_modality_loss or wandb.config['cross_uniformity_loss']: # always output uniformity loss, when evaluating
+            if wandb.config['uniformity_loss'] or output_intra_modality_loss or wandb.config['cross_uniformity_loss'] or wandb.config['alignment_loss']: # always output uniformity loss, when evaluating
                 # uniformity loss
 
                 if not wandb.config['use_train_as_val']:
@@ -611,12 +611,12 @@ class HFClip(ClipParent):
                 loss += cyclic_loss
                 # loss = inter_modality_loss + cyclic_loss
             if wandb.config['uniformity_loss']:
-                loss += 0.3 * uniformity_loss
+                loss += 1 * uniformity_loss
                 # loss = inter_modality_loss + uniformity_loss
 
             if wandb.config['cross_uniformity_loss']:
 
-                loss += 0.3 * cross_encoder_uniform_loss
+                loss += 1 * cross_encoder_uniform_loss
 
             
 
