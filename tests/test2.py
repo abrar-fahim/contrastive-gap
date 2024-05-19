@@ -13,6 +13,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.my_ce_loss import MyCrossEntropyLoss
 
+
+
 myloss = MyCrossEntropyLoss()
 
 # set random seed

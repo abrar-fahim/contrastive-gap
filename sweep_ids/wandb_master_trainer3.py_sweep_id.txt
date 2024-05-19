@@ -1,0 +1,2 @@
+oi739igy
+/home/afahim2/tmp/clip-project/clipverse/src/wandb_master_trainer3.py

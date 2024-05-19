@@ -12,6 +12,7 @@ import wandb
 from src.utils import generate_csv_file_name, cleanup_after_training
 
 import src.config as config
+import traceback
 
 
 
@@ -45,7 +46,10 @@ def main():
         train_clip.main()
         wandb.finish() 
     except Exception as e:
-        print('Exception in training ', e)
+        # print('Exception in training ', e.with_traceback())
+
+        print('Exception in master trainer ')
+        traceback.print_exc()
         cleanup_after_training()
         wandb.finish()
         # delete cache batches
@@ -60,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP default no weights  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP simclr (no CLIP) no weights  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -74,7 +78,7 @@ if __name__ == "__main__":
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': ['EXP']},
-            'schedule_every': {'values': [200]}, # num steps, NOT epochs
+            'schedule_every': {'values': [400]}, # num steps, NOT epochs
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},
@@ -90,8 +94,9 @@ if __name__ == "__main__":
             'uniformity_loss': {'values': [False]},
             'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
-            'remove_contrastive_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [True]},
             'cyclip_loss': {'values': [False]},
+            'simclr_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -127,6 +132,16 @@ if __name__ == "__main__":
     print('--- SWEEP ID ---')
     print(sweep_id)
     print()
+
+
+    # write sweep id and THIS FILE NAME to file
+
+    file_name =  __file__.split('/')[-1]
+    with open(f'./sweep_ids/{file_name}_sweep_id.txt', 'w') as f:
+        f.write(sweep_id)
+        f.write('\n')
+        f.write(__file__)
+        f.write('\n')
 
 
     # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")

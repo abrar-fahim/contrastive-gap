@@ -120,6 +120,7 @@ training_hyperparameters = {
     'cyclic_direction_loss': False,
     'cosine_uniformity_loss': False,
     'cosine_align_loss': False,
+    'simclr_loss': False,
     # validation batch stuff
     'train_only_one_batch': False,
     'use_train_as_val': False, # SET

@@ -16,7 +16,7 @@ import src.config as config
 
 
 
-config.config_cuda_device = 'cuda:4' 
+config.config_cuda_device = 'cuda:1' 
 
 training_hyperparameters = config.training_hyperparameters
 training_hyperparameters['cuda_device'] = config.config_cuda_device
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP+all(0.5u)  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP CAXU loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -74,7 +74,7 @@ if __name__ == "__main__":
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': ['EXP']},
-            'scheduler_every': {'values': [100]}, # num steps, NOT epochs
+            'schedule_every': {'values': [400, 800]}, # num steps, NOT epochs
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
             'alignment_loss': {'values': [True]},
             'cross_uniformity_loss': {'values': [True]},
             'remove_contrastive_loss': {'values': [False]},
@@ -127,6 +127,15 @@ if __name__ == "__main__":
     print('--- SWEEP ID ---')
     print(sweep_id)
     print()
+
+    # write sweep id and THIS FILE NAME to file
+
+    file_name =  __file__.split('/')[-1]
+    with open(f'./sweep_ids/{file_name}_sweep_id.txt', 'w') as f:
+        f.write(sweep_id)
+        f.write('\n')
+        f.write(__file__)
+        f.write('\n')
 
 
     # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")

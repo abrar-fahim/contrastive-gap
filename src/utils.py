@@ -740,6 +740,9 @@ def generate_csv_file_name(clip_model=None):
 
             if wandb.config['cyclip_loss']:
                 loss_name += '_cyclip'
+
+            if wandb.config['simclr_loss']:
+                loss_name += '_simclr'
             
             if wandb.config['uniform_cyclic_loss']:
                 loss_name += '_uniform_cyclic'

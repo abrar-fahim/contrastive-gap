@@ -449,6 +449,38 @@ class HFClip(ClipParent):
 
                 pass
 
+            if wandb.config['simclr_loss']:
+                # concat image and text embeddings
+                image_text_embeddings = torch.cat([normalized_encoder1_embeds, normalized_encoder2_embeds], dim=0) # shape: (2 * batch_size, embed_dim)
+
+
+                self_similarity = image_text_embeddings @ image_text_embeddings.t() * self.logit_scale.exp() # shape: (2 * batch_size, 2 * batch_size)
+
+                # print('self similarity ', self_similarity.shape) 
+
+
+
+                batch_size = normalized_encoder1_embeds.shape[0]
+
+                labels_image_to_text = torch.arange(start=batch_size, end=2 * batch_size).to(self.device)
+
+
+                labels_text_to_image = torch.arange(start=0, end=batch_size).to(self.device)
+
+                simclr_labels = torch.cat([labels_image_to_text, labels_text_to_image], dim=0) #shape: (2 * batch_size)
+
+                # print('labels ', labels.shape)
+
+                simclr_loss = self.loss(self_similarity, simclr_labels) # automatically divides by 2N
+
+                # print('simclr loss ', simclr_loss)
+
+            else:
+                simclr_loss = torch.tensor(0)
+
+
+
+
                 
 
                 
@@ -618,6 +650,12 @@ class HFClip(ClipParent):
 
                 loss += 1 * cross_encoder_uniform_loss
 
+            if wandb.config['simclr_loss']:
+                loss += simclr_loss
+
+            
+
+
             
 
             if wandb.config['alignment_loss']:
@@ -657,6 +695,7 @@ class HFClip(ClipParent):
             if output_intra_modality_loss:
                 loss = {
                     'inter_modality': inter_modality_loss.item(),
+                    'simclr': simclr_loss.item(),
                     'rsa': rsa_loss.item() if wandb.config['rsa_loss'] else -100,
                     'intra_modality': intra_modality_loss.item() if wandb.config['intra_modality_loss'] else -100,
                     'pearson_rsa': pearson_rsa_loss.item() if wandb.config['pearson_loss'] else -100,
