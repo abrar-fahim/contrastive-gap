@@ -74,10 +74,10 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [128, 256, 512]}, # 512
+            'clip_projection_dim': {'values': [3, 32, 64, 128, 512]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': ['EXP']},
+            'use_scheduler': {'values': ['no']},
             'schedule_every': {'values': [400]}, # num steps, NOT epochs
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
@@ -102,8 +102,8 @@ if __name__ == "__main__":
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [1e-5]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [6]},
+            "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
+            'n_epochs': {'values': [10]},
             'num_workers': {'values': [12]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
