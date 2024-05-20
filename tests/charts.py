@@ -1,7 +1,12 @@
 from matplotlib import pyplot as plt
 
 
+import numpy as np
+
+
 default_clip_summary = {
+  'name': 'L_{CLIP}',
+  'color': 'tab:blue',
   "dtd_linear_probe_accuracy": -1,
   "average_linear_probe_accuracy": -1,
   "pearson_text_intermodality_rsa": 0.8012633330669773,
@@ -91,6 +96,8 @@ default_clip_summary = {
 
 
 clip_a_u_x_summary = {
+  'name': 'L_{CLIP+Align+Uniform+XUniform}',
+  'color': 'tab:red',
   "val_image_retrieval_accuracy": 0.5831702351570129,
   "cifar10_linear_probe_accuracy": -1,
   "mean_pairwise_euclidean_distance": 0.726881206035614,
@@ -178,15 +185,55 @@ clip_a_u_x_summary = {
 }
 
 
+# plot bar chart of average of image and text variances
+
+summaries = [default_clip_summary, clip_a_u_x_summary]
 
 
-for i in range(8):
-    plt.plot([default_clip_summary[f'image_variance{i}'], clip_a_u_x_summary[f'image_variance{i}']], label=f'image_variance{i}')
+def plot_explained_vars(summaries):
+      
 
-plt.legend()
-
-plt.show()
+  width=0.35
 
 
+  all_average_variances = []
 
+
+  for i, summary in enumerate(summaries):
+        
+
+        
+        avg_vars = []
+
+        for j in range(8):
+            
+            average_variance = (summary[f'image_variance{j}'] + summary[f'text_variance{j}']) / 2
+            avg_vars.append(average_variance)
+
+        all_average_variances.append(avg_vars)
+
+  for i, summary in enumerate(summaries):
+      
+      name = summary['name']
+      plt.bar(np.arange(8) + i * width, all_average_variances[i], width, label=r'${}$'.format(name), color=f'{summary["color"]}')
+
+    
+      
+  plt.xticks(np.arange(8) + width / 2, ('0-7', '8-15', '16-23', '24-31', '32-39', '40-47', '48-55', '56-63'))
+
+  plt.legend()
+
+  plt.xlabel('Dimensions')
+
+  plt.ylabel('PCA Explained variance')
+
+
+
+  plt.show()
+
+
+
+
+def plot_dim_acc_graph():
+    pass
 
