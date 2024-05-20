@@ -180,6 +180,8 @@ clip_a_u_x_summary = {
 
 
 
+
+
 for i in range(8):
     plt.plot([default_clip_summary[f'image_variance{i}'], clip_a_u_x_summary[f'image_variance{i}']], label=f'image_variance{i}')
 

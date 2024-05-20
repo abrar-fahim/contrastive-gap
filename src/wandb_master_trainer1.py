@@ -74,7 +74,7 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [3, 16, 64]}, # 512
+            'clip_projection_dim': {'values': [128, 256, 512]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': ['EXP']},
