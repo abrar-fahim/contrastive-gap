@@ -12,6 +12,7 @@ import wandb
 from src.utils import generate_csv_file_name, cleanup_after_training
 
 import src.config as config
+import traceback
 
 
 
@@ -45,7 +46,10 @@ def main():
         train_clip.main()
         wandb.finish() 
     except Exception as e:
-        print('Exception in training ', e)
+        # print('Exception in training ', e.with_traceback())
+
+        print('Exception in master trainer ')
+        traceback.print_exc()
         cleanup_after_training()
         wandb.finish()
         # delete cache batches
@@ -60,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP CUA (NO XU) no weights  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, simCLR+AU no weights  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -90,8 +94,9 @@ if __name__ == "__main__":
             'uniformity_loss': {'values': [True]},
             'alignment_loss': {'values': [True]},
             'cross_uniformity_loss': {'values': [False]},
-            'remove_contrastive_loss': {'values': [False]},
+            'remove_contrastive_loss': {'values': [True]},
             'cyclip_loss': {'values': [False]},
+            'simclr_loss': {'values': [True]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -127,6 +132,7 @@ if __name__ == "__main__":
     print('--- SWEEP ID ---')
     print(sweep_id)
     print()
+
 
     # write sweep id and THIS FILE NAME to file
 

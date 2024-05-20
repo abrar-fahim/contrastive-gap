@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import src.config as config
 
-config.config_cuda_device = 'cuda:3' # SET the cuda device to be used in host4
+config.config_cuda_device = 'cuda:4' # SET the cuda device to be used in host4
 
 from src.wandb_master_trainer import main
 
@@ -18,7 +18,7 @@ import wandb
 
 
             
-sweep_id = '7d53hkdv'
+sweep_id = '7t3urbn0'
 
 # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
 wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")

@@ -12,6 +12,7 @@ import wandb
 from src.utils import generate_csv_file_name, cleanup_after_training
 
 import src.config as config
+import traceback
 
 
 
@@ -45,7 +46,10 @@ def main():
         train_clip.main()
         wandb.finish() 
     except Exception as e:
-        print('Exception in training ', e)
+        # print('Exception in training ', e.with_traceback())
+
+        print('Exception in master trainer ')
+        traceback.print_exc()
         cleanup_after_training()
         wandb.finish()
         # delete cache batches
@@ -60,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP CUA loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, default no weights  loss batch_size=64 256D, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -70,11 +74,11 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [32]}, # 512
+            'clip_projection_dim': {'values': [256]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': ['EXP']},
-            'schedule_every': {'values': [800]}, # num steps, NOT epochs
+            'schedule_every': {'values': [400]}, # num steps, NOT epochs
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
             'train_from_scratch': {'values': [False]},
@@ -87,11 +91,12 @@ if __name__ == "__main__":
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
-            'alignment_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
+            'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
+            'simclr_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
@@ -127,6 +132,7 @@ if __name__ == "__main__":
     print('--- SWEEP ID ---')
     print(sweep_id)
     print()
+
 
     # write sweep id and THIS FILE NAME to file
 

@@ -64,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP simclr (no CLIP) no weights  loss batch_size=64 32D, full MSCOCO, val as val, 0.01T",
+        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP   loss batch_size=64 SWEEPING Ds, full MSCOCO, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -74,7 +74,7 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [32]}, # 512
+            'clip_projection_dim': {'values': [3, 16, 64]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
             'use_scheduler': {'values': ['EXP']},
@@ -94,16 +94,16 @@ if __name__ == "__main__":
             'uniformity_loss': {'values': [False]},
             'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
-            'remove_contrastive_loss': {'values': [True]},
+            'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
-            'simclr_loss': {'values': [True]},
+            'simclr_loss': {'values': [False]},
             # 'weight_decay': {'min': 0.2, 'max': 0.6,},
 
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-5]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [25]},
+            'n_epochs': {'values': [6]},
             'num_workers': {'values': [12]},
             'zero_shot_acc_num_workers': {'values': [4]},
 

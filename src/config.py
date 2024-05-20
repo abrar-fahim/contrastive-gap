@@ -22,6 +22,7 @@ class ClipDatasets(str, Enum):
     MSCOCO = 'mscoco',
     WIT400 = 'wit400',
     CONCEPTUAL_CAPTIONS = 'conceptual_captions',
+    FLICKR30K = 'flickr30k'
 
 # selected_clip_model = ClipModels.WARM
 selected_clip_model = ClipModels.FINETUNED_TEMP
@@ -42,8 +43,9 @@ training_hyperparameters = {
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 2,
     'selected_clip_model': selected_clip_model.value,
-    # 'dataset': ClipDatasets.MSCOCO.value,
-    'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
+    'dataset': ClipDatasets.MSCOCO.value,
+    # 'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
+    'dataset': ClipDatasets.FLICKR30K.value,
     'batch_size': 64, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
@@ -143,6 +145,6 @@ training_hyperparameters = {
 
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_FINAL', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

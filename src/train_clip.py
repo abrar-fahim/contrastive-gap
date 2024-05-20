@@ -39,6 +39,7 @@ from src.config import *
 from dataset_processors.mscoco_processor import MSCOCOProcessor
 from dataset_processors.wit_processor import WITProcessor
 from dataset_processors.cifar10_processor import CIFAR10Processor
+from dataset_processors.flickr30k_processor import Flickr30kProcessor
 from dataset_processors.conceptual_captions_processor import ConceptualCaptionsProcessor
 from trainer import Trainer, GradCacheTrainer
 from clips.clip_assembler import ClipAssembler
@@ -97,6 +98,9 @@ def main():
 
     if wandb.config['dataset'] == ClipDatasets.MSCOCO.value:
         dataset_processor = MSCOCOProcessor()
+
+    elif wandb.config['dataset'] == ClipDatasets.FLICKR30K.value:
+        dataset_processor = Flickr30kProcessor()
     elif wandb.config['dataset'] == ClipDatasets.WIT400.value:
         dataset_processor = WITProcessor()
     elif wandb.config['dataset'] == ClipDatasets.CONCEPTUAL_CAPTIONS.value:
