@@ -33,12 +33,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:0'
+config_cuda_device = 'cuda:5'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:0', # SET index of GPU
+    'cuda_device': 'cuda:5', # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 42,
@@ -79,7 +79,7 @@ training_hyperparameters = {
     # 'small_train_loader_dataset_size': 35000, # 30000
     # 'small_train_loader_dataset_size': 80000, # when using training set
     # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
-    'num_workers': 0,
+    'num_workers': 1,
     'zero_shot_acc_num_workers': 4,
     'loss_weights': {
         'image_to_text_weight': 0.5,
@@ -145,6 +145,7 @@ training_hyperparameters = {
 
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_FINAL2', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_EVAL2', # can have name, temp, iweight, tweight, loss as of now,
+    # 'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_FINAL2', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

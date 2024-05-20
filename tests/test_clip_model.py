@@ -38,70 +38,115 @@ from dataset_processors.imagenet_processor import ImageNet1k
 from clips.clip_assembler import ClipAssembler
 
 
+config_cuda_device = 'cuda:5'
+
 training_hyperparameters['temperature'] = 0.01
 training_hyperparameters['encoder1_modality'] = 'image'
 training_hyperparameters['encoder2_modality'] = 'text'
 training_hyperparameters['same_inputs'] = False
-training_hyperparameters['clip_projection_dim'] = 64
+training_hyperparameters['clip_projection_dim'] = 32
 training_hyperparameters['vision_model'] = 'VIT'
 training_hyperparameters['use_train_as_val'] = False
 training_hyperparameters['dataset'] = ClipDatasets.MSCOCO.value
-training_hyperparameters['validation_dataset_size'] = 32
-training_hyperparameters['validation_batch_size'] = 32
+training_hyperparameters['validation_dataset_size'] = 21
+training_hyperparameters['validation_batch_size'] = 21
 training_hyperparameters['use_small_trainloader'] = True
 training_hyperparameters['small_train_loader_dataset_size'] = 32
 training_hyperparameters['seed'] = 2
 training_hyperparameters['train_from_scratch'] = True
+training_hyperparameters['cuda_device'] = config_cuda_device
+
+
+
 
 
 wandb.init(config=training_hyperparameters)
 
 
-
-# set seed
-torch.manual_seed(wandb.config['seed'])
-random.seed(wandb.config['seed'])
-np.random.seed(wandb.config['seed'])
-torch.backends.cudnn.benchmark = False
-torch.use_deterministic_algorithms(True)
-os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
+with torch.no_grad():
 
 
-
-device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
-
-evaluator = Evaluator(MSCOCOProcessor())
-# evaluator = Evaluator(MSCOCOProcessor())
-
-
-clip_model = ClipAssembler().clip_model.to(device)
-
-# checkpoint_path = 'checkpoints/T0.01_uniform_2_finetune_MLP_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT_pretrained.pt'
-# checkpoint_path = 'checkpoints/T0.01_Lit_2_finetune_MLP_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT_pretrained.pt'
-
-default_checkpoint_path = 'checkpoints/T0.07_Lit_2_scratch_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT.pt'
-
-uniform_checkpoint_path = 'checkpoints/T0.07_uniform_2_scratch_I1C2E1E2_512_val_as_val_2048_conceptual_captions_VIT.pt'
-
-uniform_finetune_checkpoint_path = 'checkpoints/T0.01_uniform_align_2_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT16_pretrained.pt'
-
-default_finetune_checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained.pt'
-
-# checkpoint = torch.load(default_checkpoint_path)
-checkpoint = torch.load(default_finetune_checkpoint_path, map_location=device)
-
-model_state_dict = checkpoint['model_state_dict']
-
-clip_model.load_state_dict(model_state_dict)
-
-# evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor())
-# evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor())
-evaluator.get_dataset_zero_shot_acc(clip_model, ImageNet1k())
-# evaluator.get_dataset_linear_probe_accuracy(clip_model, CIFAR100Processor())
-
-# evaluator.get_dataset_metrics(clip_model, CIFAR10Processor())
+    # set seed
+    torch.manual_seed(wandb.config['seed'])
+    random.seed(wandb.config['seed'])
+    np.random.seed(wandb.config['seed'])
+    torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True)
+    os.environ['CUBLAS_WORKSPACE_CONFIG'] = ":4096:8"
 
 
 
+    device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
-# evaluator.evaluate_model(clip_model, 0, 0)
+    val_batch_cache_file = 'datasets/mscoco/val_batch_cache_mscoco_full_5k.pt'
+
+    # evaluator = Evaluator(MSCOCOProcessor(), val_batch_cache_file)
+    evaluator = Evaluator(MSCOCOProcessor())
+
+
+    clip_model = ClipAssembler().clip_model.to(device)
+
+
+    # 3D
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_3_val_as_val_512_mscoco_VIT_pretrained_FINAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_3_val_a[s_val_512_mscoco_VIT_pretrained_FINAL.pt'
+
+    # 16D
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_16_val_as_val_512_mscoco_VIT_pretrained_FINAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_16_val_as_val_512_mscoco_VIT_pretrained_FINAL.pt'
+
+    # 64D
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL.pt'
+
+
+    '''
+    CUAXU
+    '''
+
+    #32D
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+
+
+    #64D
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+
+
+
+
+
+    # 128D 
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+
+
+
+    # checkpoint = torch.load(default_checkpoint_path)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    model_state_dict = checkpoint['model_state_dict']
+
+    clip_model.load_state_dict(model_state_dict)
+
+    # clip_model.half()
+
+    evaluator.set_val_outputs(clip_model, output_loss=False)
+
+    evaluator.evaluate_model(clip_model, 0, 0)
+
+    # evaluator.get_val_image_classification_acc()
+
+    # evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor())
+    # evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor())
+    # evaluator.get_dataset_zero_shot_acc(clip_model, ImageNet1k())
+    # evaluator.get_dataset_linear_probe_accuracy(clip_model, CIFAR100Processor())
+    # evaluator.get_dataset_linear_probe_accuracy(clip_model, CIFAR10Processor())
+
+    # evaluator.get_dataset_metrics(clip_model, CIFAR10Processor())
+
+
+
+
+    # evaluator.evaluate_model(clip_model, 0, 0)

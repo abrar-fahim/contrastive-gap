@@ -47,10 +47,13 @@ from dataset_processors.conceptual_captions_processor import ConceptualCaptionsP
 
 
 class Evaluator():
-    def __init__(self, dataset_processor: DatasetProcessorParent):
+    def __init__(self, dataset_processor: DatasetProcessorParent, val_batch_cache_file: str=None):
         self.dataset_processor = dataset_processor
 
-        self.mscoco_batch_file_path = f"datasets/{wandb.config['dataset']}/val_batch_cache_{generate_csv_file_name()}.pt"
+        if val_batch_cache_file is not None:
+            self.mscoco_batch_file_path = val_batch_cache_file
+        else:
+            self.mscoco_batch_file_path = f"datasets/{wandb.config['dataset']}/val_batch_cache_{generate_csv_file_name()}.pt"
 
         self.mscoco_train_dataset_batch_file_path = self.mscoco_batch_file_path
 
@@ -141,23 +144,32 @@ class Evaluator():
 
 
         if os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']:
-            print('loading batch from cache')
+            print('loading batch from cache ', self.mscoco_batch_file_path)
 
             (mscoco_val_imgs, mscoco_val_captions) = torch.load(self.mscoco_batch_file_path)
             print('loading cache done')
 
         else:
+
+            # mscoco_val_imgs = torch.empty(wandb.config['validation_dataset_size'], 3, 224, 224)
+            # mscoco_val_captions = [None] * wandb.config['validation_dataset_size']
             print('LOADING VAL BATCH')
+            # for i, batch in tqdm(enumerate(mscoco_val_dataloader)):
             for batch in mscoco_val_dataloader:
                 print('loading val batch')
                 # (val_imgs, val_captions) = next(iter(val_dataloader))
+
+                # val_imgs, val_caps = batch
                 (mscoco_val_imgs, mscoco_val_captions) = batch
+
+                # mscoco_val_imgs[i * batch_size: (i + 1) * batch_size] = val_imgs
+                # mscoco_val_captions[i * batch_size: (i + 1) * batch_size] = val_caps
                 print('val batch loading done')
 
                 break
 
             if wandb.config['use_cached_val_batch']:
-                print('saving batch to cache')
+                print('saving batch to cache ', self.mscoco_batch_file_path)
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), self.mscoco_batch_file_path)
 
@@ -637,7 +649,6 @@ class Evaluator():
         '''
 
 
-
         print()
         print('getting clip features for ', dataset_processor.name)
 
@@ -695,7 +706,9 @@ class Evaluator():
 
 
         
-    def set_val_outputs(self, clip_model: HFClip):
+    def set_val_outputs(self, clip_model: HFClip, output_loss=True):
+
+        # only set output_loss to false when you're calling this outside of evaluator
 
         
         
@@ -703,7 +716,7 @@ class Evaluator():
             clip_model.eval()
             # val_outputs = do_validation(clip_model, mscoco_val_imgs, mscoco_val_captions, device, self.wandb)
             # val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=True, output_intra_modality_loss=True) # outputting everything all at once and storing them
-            val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=False, output_intra_modality_loss=True) # outputting everything all at once and storing them
+            val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=output_loss, return_all=True, output_hidden_states=False, output_intra_modality_loss=True) # outputting everything all at once and storing them
             self.val_outputs = val_outputs
 
 
@@ -965,6 +978,15 @@ class Evaluator():
         # softmax on logits_per_image
         val_image_class_probs = F.softmax(val_logits_per_image, dim=-1) # shape: ([64, 64])
 
+        topk = [1, 3, 5, 10]
+        correct = {k: 0 for k in topk}
+
+        ranks = val_logits_per_image.topk(max(topk), 1)[1].T
+
+        for k in topk:
+            correct[k] += torch.sum(torch.any(ranks[:k] == torch.arange(ranks.shape[1], device=ranks.device).unsqueeze(0), dim = 0)).item()
+
+
 
        
         # calculate accuracy
@@ -977,6 +999,8 @@ class Evaluator():
 
         # calculate accuracy
         val_image_classification_accuracy = (val_image_class_preds == val_image_class_labels).float().mean()
+
+        print('val image class acc ', {k: round(correct[k] / val_image_class_labels.shape[0], 3) for k in topk})
 
         print('val_image_classification_accuracy ', val_image_classification_accuracy.item())
 
