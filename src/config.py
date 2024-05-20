@@ -41,7 +41,7 @@ training_hyperparameters = {
     'cuda_device': 'cuda:0', # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
-    'seed': 2,
+    'seed': 42,
     'selected_clip_model': selected_clip_model.value,
     'dataset': ClipDatasets.MSCOCO.value,
     # 'dataset': ClipDatasets.CONCEPTUAL_CAPTIONS.value,
@@ -79,7 +79,7 @@ training_hyperparameters = {
     # 'small_train_loader_dataset_size': 35000, # 30000
     # 'small_train_loader_dataset_size': 80000, # when using training set
     # 'small_train_loader_dataset_size': 6, # SO that I'm only training a single batch
-    'num_workers': 24,
+    'num_workers': 0,
     'zero_shot_acc_num_workers': 4,
     'loss_weights': {
         'image_to_text_weight': 0.5,
