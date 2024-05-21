@@ -23,6 +23,11 @@ class Caltech101Processor(DatasetProcessorParent):
 
         self.name = 'Caltech 101'
         self.keyname = self.name.replace(' ', '').lower()
+
+        dataset_config = eval(open(f"{self.root}/caltech101/classes.py", "r").read())
+
+        classes, templates = dataset_config["classes"], dataset_config["templates"]
+        self.templates = templates
         self.print_dataset_stats()
         
 

@@ -33,12 +33,12 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:5'
+config_cuda_device = 'cuda:4'
 
 training_hyperparameters = {
 
     # hardware settings
-    'cuda_device': 'cuda:5', # SET index of GPU
+    'cuda_device': 'cuda:4', # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', # SET 'local' or 'cirrus' # CHANGE IN LOCAL
     'seed': 42,
@@ -145,7 +145,7 @@ training_hyperparameters = {
 
     'save_losses': False,
     'csv_path': 'stats/',
-    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_EVAL2', # can have name, temp, iweight, tweight, loss as of now,
-    # 'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_FINAL2', # can have name, temp, iweight, tweight, loss as of now,
+    # 'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_EVAL2', # can have name, temp, iweight, tweight, loss as of now,
+    'loss_file_name_template': 'Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_FINAL4', # can have name, temp, iweight, tweight, loss as of now,
     'show_incorrect_images': False,
 }

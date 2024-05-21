@@ -1,3 +1,19 @@
+
+
+
+uniformity = -3.4139-2.1259-3.0493-2.5984-2.5751
+
+centroid_dist=0.5068+0.7397+0.6281+0.5222+0.5610
+
+print('centroid dist ', centroid_dist / 5)
+
+print('uniformity ', uniformity / 5)
+
+exit()
+
+
+
+
 # conceptual captions streaming test
 
 from torchdata.datapipes.iter import IterDataPipe

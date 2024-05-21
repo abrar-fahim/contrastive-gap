@@ -21,6 +21,10 @@ class DTDProcessor(DatasetProcessorParent):
 
         self.name = 'Describable Textures Dataset (DTD)'
         self.keyname = 'dtd'
+        dataset_config = eval(open(f"{self.root}/classes.py", "r").read())
+
+        classes, templates = dataset_config["classes"], dataset_config["templates"]
+        self.templates = templates
         self.print_dataset_stats()
         
 

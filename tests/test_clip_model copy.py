@@ -43,13 +43,13 @@ from clips.clip_assembler import ClipAssembler
 
 
 
-config_cuda_device = 'cuda:5'
+config_cuda_device = 'cuda:4'
 
 training_hyperparameters['temperature'] = 0.01
 training_hyperparameters['encoder1_modality'] = 'image'
 training_hyperparameters['encoder2_modality'] = 'text'
 training_hyperparameters['same_inputs'] = False
-training_hyperparameters['clip_projection_dim'] = 128
+training_hyperparameters['clip_projection_dim'] = 32
 training_hyperparameters['vision_model'] = 'VIT'
 training_hyperparameters['use_train_as_val'] = False
 training_hyperparameters['dataset'] = ClipDatasets.MSCOCO.value
@@ -65,33 +65,35 @@ training_hyperparameters['cuda_device'] = config_cuda_device
 
 def get_gap_stuff(evaluator: Evaluator):
     ranks = evaluator.get_rank()
-    n_s_buckets = 8
+    # n_s_buckets = 8
 
-    # group S values into buckets, and get mean of each bucket
-    # S shape: (clip_projection_dim, )
+    # # group S values into buckets, and get mean of each bucket
+    # # S shape: (clip_projection_dim, )
 
-    image_S_buckets = torch.chunk(ranks['image_S'], n_s_buckets) 
-    text_S_buckets = torch.chunk(ranks['text_S'], n_s_buckets)
+    # image_S_buckets = torch.chunk(ranks['image_S'], n_s_buckets) 
+    # text_S_buckets = torch.chunk(ranks['text_S'], n_s_buckets)
 
-    image_pca_variance_ratio_buckets = torch.chunk(ranks['image_explained_variance_ratios'], n_s_buckets)
-    text_pca_variance_ratio_buckets = torch.chunk(ranks['text_explained_variance_ratios'], n_s_buckets)
+    # image_pca_variance_ratio_buckets = torch.chunk(ranks['image_explained_variance_ratios'], n_s_buckets)
+    # text_pca_variance_ratio_buckets = torch.chunk(ranks['text_explained_variance_ratios'], n_s_buckets)
 
-    if len(image_S_buckets) < n_s_buckets:
-        image_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_S_buckets))])
+    # if len(image_S_buckets) < n_s_buckets:
+    #     image_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_S_buckets))])
 
-        image_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_pca_variance_ratio_buckets))])
+    #     image_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_pca_variance_ratio_buckets))])
     
-    if len(text_S_buckets) < n_s_buckets:
-        text_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_S_buckets))])
+    # if len(text_S_buckets) < n_s_buckets:
+    #     text_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_S_buckets))])
 
-        text_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_pca_variance_ratio_buckets))])
+    #     text_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_pca_variance_ratio_buckets))])
 
-    image_S_bucket_means = [torch.mean(bucket) for bucket in image_S_buckets]
-    text_S_bucket_means = [torch.mean(bucket) for bucket in text_S_buckets]
+    # image_S_bucket_means = [torch.mean(bucket) for bucket in image_S_buckets]
+    # text_S_bucket_means = [torch.mean(bucket) for bucket in text_S_buckets]
 
-    image_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in image_pca_variance_ratio_buckets]
+    # image_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in image_pca_variance_ratio_buckets]
 
-    text_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in text_pca_variance_ratio_buckets]
+    # text_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in text_pca_variance_ratio_buckets]
+
+
 
 
     return {
@@ -102,43 +104,56 @@ def get_gap_stuff(evaluator: Evaluator):
         'val_image_classification_acc': evaluator.get_val_image_classification_acc(return_all=True),
 
         'get_val_image_retrieval_acc': evaluator.get_val_image_retrieval_acc(return_all=True),
+
+        'image_variances': ranks['image_explained_variance_ratios'],
+        'text_variances': ranks['text_explained_variance_ratios'],
+
+        'uniformity_loss': evaluator.get_mscoco_uniformity(),
+        'alignment_loss': evaluator.get_mscoco_alignment(),
         
 
 
 
-        'image_variance0': image_pca_variance_ratio_bucket_sums[0],
-        'image_variance1': image_pca_variance_ratio_bucket_sums[1],
-        'image_variance2': image_pca_variance_ratio_bucket_sums[2],
-        'image_variance3': image_pca_variance_ratio_bucket_sums[3],
-        'image_variance4': image_pca_variance_ratio_bucket_sums[4],
-        'image_variance5': image_pca_variance_ratio_bucket_sums[5],
-        'image_variance6': image_pca_variance_ratio_bucket_sums[6],
-        'image_variance7': image_pca_variance_ratio_bucket_sums[7],
+        # 'image_variance0': image_pca_variance_ratio_bucket_sums[0],
+        # 'image_variance1': image_pca_variance_ratio_bucket_sums[1],
+        # 'image_variance2': image_pca_variance_ratio_bucket_sums[2],
+        # 'image_variance3': image_pca_variance_ratio_bucket_sums[3],
+        # 'image_variance4': image_pca_variance_ratio_bucket_sums[4],
+        # 'image_variance5': image_pca_variance_ratio_bucket_sums[5],
+        # 'image_variance6': image_pca_variance_ratio_bucket_sums[6],
+        # 'image_variance7': image_pca_variance_ratio_bucket_sums[7],
 
-        'text_variance0': text_pca_variance_ratio_bucket_sums[0],
-        'text_variance1': text_pca_variance_ratio_bucket_sums[1],
-        'text_variance2': text_pca_variance_ratio_bucket_sums[2],
-        'text_variance3': text_pca_variance_ratio_bucket_sums[3],
-        'text_variance4': text_pca_variance_ratio_bucket_sums[4],
-        'text_variance5': text_pca_variance_ratio_bucket_sums[5],
-        'text_variance6': text_pca_variance_ratio_bucket_sums[6],
-        'text_variance7': text_pca_variance_ratio_bucket_sums[7],
+        # 'text_variance0': text_pca_variance_ratio_bucket_sums[0],
+        # 'text_variance1': text_pca_variance_ratio_bucket_sums[1],
+        # 'text_variance2': text_pca_variance_ratio_bucket_sums[2],
+        # 'text_variance3': text_pca_variance_ratio_bucket_sums[3],
+        # 'text_variance4': text_pca_variance_ratio_bucket_sums[4],
+        # 'text_variance5': text_pca_variance_ratio_bucket_sums[5],
+        # 'text_variance6': text_pca_variance_ratio_bucket_sums[6],
+        # 'text_variance7': text_pca_variance_ratio_bucket_sums[7],
     }
 
 def get_zs_stuff(clip_model, evaluator: Evaluator):
 
     return {
         'imagenet_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, ImageNet1k()),
-
+        
         'dtd_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, DTDProcessor()),
+        
         'caltech101_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, Caltech101Processor()),
         
+        
         'cifar10_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor()),
+        
         'cifar100_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor()),
 
 
 
-
+        # 'cifar100_gap_stuff': evaluator.get_dataset_metrics(clip_model, CIFAR100Processor()),
+        # 'imagenet_gap_stuff': evaluator.get_dataset_metrics(clip_model, ImageNet1k()),
+        # 'caltech101_gap_stuff': evaluator.get_dataset_metrics(clip_model, Caltech101Processor()),
+        # 'cifar10_gap_stuff': evaluator.get_dataset_metrics(clip_model, CIFAR10Processor()),
+        # 'dtd_gap_stuff': evaluator.get_dataset_metrics(clip_model, DTDProcessor()),
         
       
     }
@@ -199,7 +214,7 @@ with torch.no_grad():
 
     # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
 
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+    checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
 
 
 
@@ -217,7 +232,7 @@ with torch.no_grad():
 
     # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
 
-    checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
 
 
 
@@ -232,7 +247,7 @@ with torch.no_grad():
 
     evaluator.set_val_outputs(clip_model, output_loss=False)
 
-    # gap_stuff = get_gap_stuff(evaluator)
+    gap_stuff = get_gap_stuff(evaluator)
 
 
 

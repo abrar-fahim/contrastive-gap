@@ -608,6 +608,8 @@ class Evaluator():
                 image_sq_pdist = torch.pdist(cifar_image_embeddings, p=2).pow(2)
                 image_uniformity_loss = image_sq_pdist.mul(-2).exp().mean().log()
 
+                
+
                 image_uniformity_loss_runsum += image_uniformity_loss
             
             image_uniformity_loss = image_uniformity_loss_runsum / len(dataset_processor.val_dataloader)
@@ -767,6 +769,69 @@ class Evaluator():
             self.encoder1_pooled_hidden_states.append(e1_pool)
             self.encoder2_pooled_hidden_states.append(e2_pool)
 
+    def get_mscoco_uniformity(self, image_embeds=None, text_embeds=None):
+        '''
+        get uniformity of mscoco dataset
+        '''
+
+        with torch.no_grad():
+
+            if image_embeds == None:
+                image_embeds = self.val_outputs.image_embeds
+                text_embeds = self.val_outputs.text_embeds
+            else:
+                image_embeds = image_embeds
+                text_embeds = text_embeds
+
+
+            # device = self.val_outputs.image_embeds.device
+
+            device = image_embeds.device
+
+            image_sq_pdist = torch.pdist(image_embeds, p=2).pow(2)
+            image_uniformity_loss = image_sq_pdist.mul(-2).exp().mean().log()
+
+            text_sq_pdist = torch.pdist(text_embeds, p=2).pow(2)
+            text_uniformity_loss = text_sq_pdist.mul(-2).exp().mean().log()
+
+            total_uniformity_loss = (image_uniformity_loss + text_uniformity_loss) / 2
+
+            off_diagonal_ones = torch.ones((len(image_embeds), len(text_embeds))).to(device).tril(diagonal = -1) 
+
+            off_diagonal_ones += torch.ones((len(image_embeds), len(text_embeds))).to(device).triu(diagonal = 1)
+            
+            off_diagonal_ones = off_diagonal_ones.to(device)
+
+            cross_encoder_uniform_loss  = torch.masked_select(torch.cdist(image_embeds.unsqueeze(0), text_embeds.unsqueeze(0))[0], off_diagonal_ones == 1).square().mul(-2).exp().mean().log()
+
+
+            return {
+                'image_uniformity_loss': image_uniformity_loss,
+                'text_uniformity_loss': text_uniformity_loss,
+                'total_uniformity_loss': total_uniformity_loss,
+                'cross_encoder_uniform_loss': cross_encoder_uniform_loss
+            }
+        
+    def get_mscoco_alignment(self, image_embeds=None, text_embeds=None):
+        '''
+        get alignment of mscoco dataset
+        '''
+
+        if image_embeds == None:
+            image_embeds = self.val_outputs.image_embeds
+            text_embeds = self.val_outputs.text_embeds
+
+        else:
+            image_embeds = image_embeds
+            text_embeds = text_embeds
+
+        with torch.no_grad():
+
+
+            align = (image_embeds - text_embeds).norm(dim=1).pow(2).mean()
+
+            return align
+
     def save_pooled_hidden_states_to_file(self, save_path:str, epoch:int, index:int):
 
         print('saving encoder hidden states to ', save_path)
@@ -833,8 +898,10 @@ class Evaluator():
 
 
 
-        image_embeds = self.val_outputs.image_embeds[:wandb.config['validation_batch_size']]
-        text_embeds = self.val_outputs.text_embeds[:wandb.config['validation_batch_size']]
+        # image_embeds = self.val_outputs.image_embeds[:wandb.config['validation_batch_size']]
+        # text_embeds = self.val_outputs.text_embeds[:wandb.config['validation_batch_size']]
+        image_embeds = self.val_outputs.image_embeds
+        text_embeds = self.val_outputs.text_embeds
         # image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']].T
         # text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']].T
 
@@ -962,7 +1029,7 @@ class Evaluator():
 
 
 
-    def get_val_image_classification_acc(self):
+    def get_val_image_classification_acc(self, return_all=False):
 
         val_logits_per_image = self.val_outputs.logits_per_image # shape of both: ([64, 64])
 
@@ -1004,9 +1071,12 @@ class Evaluator():
 
         print('val_image_classification_accuracy ', val_image_classification_accuracy.item())
 
-        return val_image_classification_accuracy.item()
+        if return_all:
+            return {k: correct[k] / val_image_class_labels.shape[0] for k in topk}
+        else:
+            return val_image_classification_accuracy.item()
 
-    def get_dataset_zero_shot_acc(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent) -> float:
+    def get_dataset_zero_shot_acc(self, clip_model: HFClip, dataset_processor: DatasetProcessorParent, return_all=False) -> float:
 
         if dataset_processor == None:
             return  0
@@ -1089,7 +1159,12 @@ class Evaluator():
         
             # return cifar10_val_image_classification_accuracy
             # return top1 acc as string
-            return correct[1] / len(dataset_processor.val_dataset)
+
+            if return_all:
+                return {k: correct[k] / len(dataset_processor.val_dataset) for k in topk}
+            else:
+
+                return correct[1] / len(dataset_processor.val_dataset)
 
 
     def get_cifar10_zero_shot_acc(self, clip_model: HFClip):
@@ -1136,7 +1211,7 @@ class Evaluator():
             
 
 
-    def get_val_image_retrieval_acc(self):
+    def get_val_image_retrieval_acc(self, return_all=False):
         logits_per_text = self.val_outputs.logits_per_text # shape of both: ([64, 64])
 
         # softmax on logits_per_text
@@ -1152,8 +1227,22 @@ class Evaluator():
         # calculate accuracy
         val_image_retrieval_accuracy = (text_class_preds == val_text_class_labels).float().mean()
 
+        topk = [1, 3, 5, 10]
+        correct = {k: 0 for k in topk}
+
+        ranks = logits_per_text.topk(max(topk), 1)[1].T
+
+        for k in topk:
+            correct[k] += torch.sum(torch.any(ranks[:k] == torch.arange(ranks.shape[1], device=ranks.device).unsqueeze(0), dim = 0)).item()
+
+        if return_all:
+            return {k: correct[k] / val_text_class_labels.shape[0] for k in topk}
+
+        else:
+            return val_image_retrieval_accuracy.item()
+
         # print('retrieval done')
-        return val_image_retrieval_accuracy.item()
+        # return val_image_retrieval_accuracy.item()
     
 
 
@@ -1372,14 +1461,18 @@ class Evaluator():
 
 
 
-    def get_centroid_euclidean_distance(self):
+    def get_centroid_euclidean_distance(self, image_embeds=None, text_embeds=None):
             
             '''
             - Euclidean distance between image and text centroids
             '''
-    
-            image_embeds = self.val_outputs.image_embeds
-            text_embeds = self.val_outputs.text_embeds
+
+            if image_embeds == None:
+                image_embeds = self.val_outputs.image_embeds
+                text_embeds = self.val_outputs.text_embeds
+            else:
+                image_embeds = image_embeds
+                text_embeds = text_embeds
     
             image_encoder_outputs = image_embeds # shape: ([batch_size, 512])   
             text_encoder_outputs = text_embeds
@@ -1402,12 +1495,18 @@ class Evaluator():
 
 
 
-    def get_linear_seperability(self):
+    def get_linear_seperability(self, image_embeds=None, text_embeds=None):
         # Split validation dataset into train and test splits
         # train on 20% of the data and test on 80%
 
-        image_embeds = self.val_outputs.image_embeds
-        text_embeds = self.val_outputs.text_embeds
+        if image_embeds == None:
+
+            image_embeds = self.val_outputs.image_embeds
+            text_embeds = self.val_outputs.text_embeds
+
+        else:
+            image_embeds = image_embeds
+            text_embeds = text_embeds            
 
 
         normalized_image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
@@ -1417,7 +1516,7 @@ class Evaluator():
         assert torch.allclose(torch.norm(normalized_image_embeds, dim=1), torch.ones(normalized_image_embeds.shape[0], device=normalized_image_embeds.device))
         assert torch.allclose(torch.norm(normalized_text_embeds, dim=1), torch.ones(normalized_text_embeds.shape[0], device=normalized_text_embeds.device))
 
-        n_train = int(0.2 * len(image_embeds))
+        n_train = int(0.8 * len(image_embeds))
         n_test = len(image_embeds) - n_train
 
         # get random indices
