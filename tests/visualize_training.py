@@ -24,8 +24,67 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import numpy as np
 
+plt.rcParams.update({'font.size': 18})
+
 
 # embeddings_path = 'embeddings/T0.01_uniform_align_2_finetune_I1C2E1E2_3_train_as_val_512_mscoco_VIT16_pretrained.pt'
+
+def plot_cumulative_explained_vars(image_embeddings, text_embeddings):
+
+    # embeddings shape: (n, 3)
+
+    # calculate PCA
+
+    image_pca = PCA(n_components=3)
+
+    text_pca = PCA(n_components=3)
+
+    _ = text_pca.fit_transform(text_embeddings)
+
+    pca_embeddings = image_pca.fit_transform(image_embeddings)
+
+    image_explained_vars = image_pca.explained_variance_ratio_  
+    text_explained_vars = text_pca.explained_variance_ratio_
+
+    average_explained_vars = (image_explained_vars + text_explained_vars) / 2  
+
+
+
+
+
+        
+    width=0.45
+  
+    variances_cumsum = np.cumsum(average_explained_vars)
+  
+  
+    # for i, explained_var in enumerate(explained_vars):
+          
+          
+  
+    plt.plot(torch.arange(start=1, end=4), variances_cumsum)
+        # plt.plot(np.arange(start=1, stop=64, step=8), np.cumsum(all_average_variances[i]), label='{}'.format(''), color=f'tab:blue')
+  
+      
+        
+    # plt.xticks(np.arange(8) + width / 2, ('0-7', '8-15', '16-23', '24-31', '32-39', '40-47', '48-55', '56-63'))
+  
+    # plt.legend(fontsize="22")
+  
+    plt.xlabel('Dimensions')
+
+    # only show integers in x axis
+    plt.xticks(np.arange(1, 4), np.arange(1, 4))
+
+    # y axis numbers to 2 decimal places
+    plt.gca().yaxis.set_major_formatter('{:.2f}'.format)
+  
+    # plt.ylabel('PCA Explained variance')
+  
+    plt.show()
+
+
+
 
 
 embeddings_path = 'embeddings/T0.01_Lit_2_scratch_I1C2E1E2_3_train_as_val_1024_mscoco_VIT_pretrained.pt'
@@ -36,10 +95,11 @@ with open(embeddings_path, 'rb') as f:
 n_plots = 10
 
 #subplots of 3d scatter plots
-fig = plt.figure(figsize=(10, 10))
+fig = plt.figure(figsize=(6, 6))
 
 # set title
-fig.suptitle('Train dataset, default CLIP')
+# fig.suptitle('Train dataset, default CLIP')
+
 
 print('len of embeddings ', len(embeddings))
 
@@ -48,8 +108,9 @@ print('len of embeddings ', len(embeddings))
 
 start=26
 pseudo_epochs_to_visualize = np.arange(2, 25)
-pseudo_epochs_to_visualize = [24]
 
+pseudo_epochs_to_visualize = [24]
+# pseudo_epochs_to_visualize = [24] # 275
 pca = PCA(n_components=3)
 
 # collect embeddings 
@@ -93,6 +154,9 @@ for i, pseudo_epoch in enumerate(pseudo_epochs_to_visualize):
     print('start ', start)
     print('end ', end)
 
+    # fig.suptitle(f'Epoch {epoch}: Cumulative PCA Explained Variance')
+    fig.suptitle(f'Epoch {epoch}')
+
     
 
 
@@ -110,6 +174,8 @@ for i, pseudo_epoch in enumerate(pseudo_epochs_to_visualize):
 
     pca_image_embeds = image_embeds
     pca_text_embeds = text_embeds
+
+    plot_cumulative_explained_vars(pca_image_embeds, pca_text_embeds)
 
 
 
@@ -188,6 +254,7 @@ plt.show()
 
 
     
+
 
 
 
