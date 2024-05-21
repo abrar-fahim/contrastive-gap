@@ -82,11 +82,12 @@ class ImageEncoder(Encoder):
         elif wandb.config['finetune_clip_backbone']:
 
 
-            if wandb.config['clip_projection_dim'] != self.CLIPVisionConfig.projection_dim:
-                print()
-                print(f" --- Changing projection layer size of {name}: {self.vision_model}  to {wandb.config['clip_projection_dim']}--- ")
-                print()
-                self.image_model.visual_projection = torch.nn.Linear(self.CLIPVisionConfig.hidden_size, wandb.config['clip_projection_dim'], bias=False).to(self.device)
+            # if wandb.config['clip_projection_dim'] != self.CLIPVisionConfig.projection_dim:
+            # ALWAYS RE-TRAINING PROJECTION LAYER FROM SCRATCH
+            print()
+            print(f" --- Changing projection layer size of {name}: {self.vision_model}  to {wandb.config['clip_projection_dim']}--- ")
+            print()
+            self.image_model.visual_projection = torch.nn.Linear(self.CLIPVisionConfig.hidden_size, wandb.config['clip_projection_dim'], bias=False).to(self.device)
 
 
             

@@ -18,7 +18,7 @@ import wandb
 
 
             
-sweep_id = 'b3tmb1lc'
+sweep_id = 'qgj5tvwh'
 
 # wandb.agent(sweep_id='nrjuh2de', function=main, project="clipverse")
 wandb.agent(sweep_id=sweep_id, function=main, project="clipverse")
