@@ -41,6 +41,8 @@ from dataset_processors.caltech101_processor import Caltech101Processor
 from dataset_processors.dtd_processor import DTDProcessor
 from clips.clip_assembler import ClipAssembler
 
+DIM = 128
+
 
 
 config_cuda_device = 'cuda:5'
@@ -49,7 +51,7 @@ training_hyperparameters['temperature'] = 0.01
 training_hyperparameters['encoder1_modality'] = 'image'
 training_hyperparameters['encoder2_modality'] = 'text'
 training_hyperparameters['same_inputs'] = False
-training_hyperparameters['clip_projection_dim'] = 32
+training_hyperparameters['clip_projection_dim'] = DIM
 training_hyperparameters['vision_model'] = 'VIT'
 training_hyperparameters['use_train_as_val'] = False
 training_hyperparameters['dataset'] = ClipDatasets.MSCOCO.value
@@ -65,7 +67,7 @@ training_hyperparameters['cuda_device'] = config_cuda_device
 
 d32_checkpoints = [
     'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
-    'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
+    'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt',
     'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
 
     'checkpoints/T0.01_Lit_24_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL10.pt',
@@ -80,7 +82,7 @@ d32_checkpoints = [
 
 d64_checkpoints = [
     'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
-    'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
+    'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt',
     'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
 
     'checkpoints/T0.01_Lit_24_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL10.pt',
@@ -95,7 +97,7 @@ d64_checkpoints = [
 
 d128_checkpoints = [
     'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
-    'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
+    'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt',
     'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
 
     'checkpoints/T0.01_Lit_24_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_FINAL10.pt',
@@ -110,36 +112,10 @@ d128_checkpoints = [
 
 
 
-def get_gap_stuff(evaluator: Evaluator):
+def get_gap_stuff(clip_model, evaluator: Evaluator):
     ranks = evaluator.get_rank()
-    # n_s_buckets = 8
 
-    # # group S values into buckets, and get mean of each bucket
-    # # S shape: (clip_projection_dim, )
-
-    # image_S_buckets = torch.chunk(ranks['image_S'], n_s_buckets) 
-    # text_S_buckets = torch.chunk(ranks['text_S'], n_s_buckets)
-
-    # image_pca_variance_ratio_buckets = torch.chunk(ranks['image_explained_variance_ratios'], n_s_buckets)
-    # text_pca_variance_ratio_buckets = torch.chunk(ranks['text_explained_variance_ratios'], n_s_buckets)
-
-    # if len(image_S_buckets) < n_s_buckets:
-    #     image_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_S_buckets))])
-
-    #     image_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(image_pca_variance_ratio_buckets))])
-    
-    # if len(text_S_buckets) < n_s_buckets:
-    #     text_S_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_S_buckets))])
-
-    #     text_pca_variance_ratio_buckets += tuple([torch.tensor([0.0]) for _ in range(n_s_buckets - len(text_pca_variance_ratio_buckets))])
-
-    # image_S_bucket_means = [torch.mean(bucket) for bucket in image_S_buckets]
-    # text_S_bucket_means = [torch.mean(bucket) for bucket in text_S_buckets]
-
-    # image_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in image_pca_variance_ratio_buckets]
-
-    # text_pca_variance_ratio_bucket_sums = [torch.sum(bucket) for bucket in text_pca_variance_ratio_buckets]
-
+    uniformity_loss = evaluator.get_mscoco_uniformity()
 
 
 
@@ -155,29 +131,12 @@ def get_gap_stuff(evaluator: Evaluator):
         'image_variances': ranks['image_explained_variance_ratios'],
         'text_variances': ranks['text_explained_variance_ratios'],
 
-        'uniformity_loss': evaluator.get_mscoco_uniformity(),
-        'alignment_loss': evaluator.get_mscoco_alignment(),
+        'image_uniformity_loss': uniformity_loss['image_uniformity_loss'].item(),
+        'text_uniformity_loss': uniformity_loss['text_uniformity_loss'].item(),
+        'total_uniformity_loss': uniformity_loss['total_uniformity_loss'].item(),
+        'cross_encoder_uniform_loss': uniformity_loss['cross_encoder_uniform_loss'].item(),
+        'alignment_loss': evaluator.get_mscoco_alignment().item(),
         
-
-
-
-        # 'image_variance0': image_pca_variance_ratio_bucket_sums[0],
-        # 'image_variance1': image_pca_variance_ratio_bucket_sums[1],
-        # 'image_variance2': image_pca_variance_ratio_bucket_sums[2],
-        # 'image_variance3': image_pca_variance_ratio_bucket_sums[3],
-        # 'image_variance4': image_pca_variance_ratio_bucket_sums[4],
-        # 'image_variance5': image_pca_variance_ratio_bucket_sums[5],
-        # 'image_variance6': image_pca_variance_ratio_bucket_sums[6],
-        # 'image_variance7': image_pca_variance_ratio_bucket_sums[7],
-
-        # 'text_variance0': text_pca_variance_ratio_bucket_sums[0],
-        # 'text_variance1': text_pca_variance_ratio_bucket_sums[1],
-        # 'text_variance2': text_pca_variance_ratio_bucket_sums[2],
-        # 'text_variance3': text_pca_variance_ratio_bucket_sums[3],
-        # 'text_variance4': text_pca_variance_ratio_bucket_sums[4],
-        # 'text_variance5': text_pca_variance_ratio_bucket_sums[5],
-        # 'text_variance6': text_pca_variance_ratio_bucket_sums[6],
-        # 'text_variance7': text_pca_variance_ratio_bucket_sums[7],
     }
 
 def get_zs_stuff(clip_model, evaluator: Evaluator):
@@ -231,6 +190,194 @@ def get_lp_stuff(clip_model, evaluator: Evaluator):
 wandb.init(config=training_hyperparameters)
 
 
+def get_gap_stuff_all(checkpoints: list[str], evaluator: Evaluator, dim: int):
+    # checkpoints has checkpoint paths for each dimensionaltiy
+
+    clip_model = ClipAssembler().clip_model.to(device)
+
+    all_gap_stuff = { # for one dimensionality only
+        
+        'CLIP': {
+            'mean_cosine_similarity': [],
+            'linear_seperability_accuracy': [],
+            'centroid_euclidean_distance': [],
+
+            'val_image_classification_acc': {
+                1: [],
+                3: [],
+                5: [],
+                10: []
+            },
+
+            'get_val_image_retrieval_acc': {
+                1: [],
+                3: [],
+                5: [],
+                10: []
+            },
+
+            'image_variances': [],
+            'text_variances': [], # not gonna do std devs for this
+
+            'image_uniformity_loss': [],
+            'text_uniformity_loss': [],
+            'total_uniformity_loss': [],
+            'cross_encoder_uniform_loss': [],
+            'alignment_loss': [],
+            },
+        'CUA': {
+            'mean_cosine_similarity': [],
+            'linear_seperability_accuracy': [],
+            'centroid_euclidean_distance': [],
+
+            'val_image_classification_acc': {
+                1: [],
+                3: [],
+                5: [],
+                10: []
+            },
+
+            'get_val_image_retrieval_acc': {
+                1: [],
+                3: [],
+                5: [],
+                10: []
+            },
+
+           
+
+            'image_variances': [],
+            'text_variances': [], # not gonna do std devs for this
+
+            'image_uniformity_loss': [],
+            'text_uniformity_loss': [],
+            'total_uniformity_loss': [],
+            'cross_encoder_uniform_loss': [],
+            'alignment_loss': [],
+            
+
+        },
+        'CUAXU': {
+            'mean_cosine_similarity': [],
+            'linear_seperability_accuracy': [],
+            'centroid_euclidean_distance': [],
+        'val_image_classification_acc': {
+                    1: [],
+                    3: [],
+                    5: [],
+                    10: []
+                },
+
+            'get_val_image_retrieval_acc': {
+                1: [],
+                3: [],
+                5: [],
+                10: []
+            },
+
+            'image_variances': [],
+            'text_variances': [], # not gonna do std devs for this
+
+            'image_uniformity_loss': [],
+            'text_uniformity_loss': [],
+            'total_uniformity_loss': [],
+            'cross_encoder_uniform_loss': [],
+            'alignment_loss': [],
+
+        }
+                
+
+    }
+
+
+    for checkpoint_path in checkpoints:
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+
+        model_state_dict = checkpoint['model_state_dict']
+
+        clip_model.load_state_dict(model_state_dict)
+
+        # clip_model.half()
+
+        evaluator.set_val_outputs(clip_model, output_loss=False)
+
+        gap_stuff = get_gap_stuff(clip_model, evaluator)
+
+        name: str = None
+
+        topks = [1, 3, 5, 10]
+
+        if 'xuniform' in checkpoint_path:
+            name = 'CUAXU'
+
+        elif 'uniform_align' in checkpoint_path:
+            name = 'CUA'
+
+        else:
+            name = 'CLIP'
+
+        # maintain arrays of items for each key
+        for key in gap_stuff:
+
+            if key in ['image_variances', 'text_variances']:
+                continue
+            if key in ['val_image_classification_acc', 'get_val_image_retrieval_acc']:
+                for topk in topks:
+                    all_gap_stuff[name][key][topk].append(gap_stuff[key][topk])
+                continue
+
+
+            all_gap_stuff[name][key].append(gap_stuff[key])
+
+
+    # compute mean and std dev for each key
+
+    names = ['CLIP', 'CUA', 'CUAXU']
+
+    print(' --- ALL GAP STUFF --- ')
+    print(all_gap_stuff)
+    print()
+
+    all_gap_stuff_output = all_gap_stuff.copy()
+
+
+    for name in names:
+        for key in all_gap_stuff[name]:
+
+            if key in ['image_variances', 'text_variances']:
+                continue
+
+            if key in ['val_image_classification_acc', 'get_val_image_retrieval_acc']:
+                for topk in topks:
+                    all_gap_stuff_output[name][key][topk] = {
+                        'mean': np.mean(all_gap_stuff[name][key][topk]),
+                        'std_dev': np.std(all_gap_stuff[name][key][topk], ddof=1),
+                        '2_std_dev': 2 * np.std(all_gap_stuff[name][key][topk], ddof=1)
+                    }
+                continue
+            all_gap_stuff_output[name][key] = {
+                'mean': np.mean(all_gap_stuff[name][key]),
+                'std_dev': np.std(all_gap_stuff[name][key], ddof=1),
+                '2_std_dev': 2 * np.std(all_gap_stuff[name][key], ddof=1)
+            }
+
+    print(' --- ALL GAP STUFF --- ')
+    print(all_gap_stuff_output)
+    print()
+
+
+
+
+
+
+    # write checkpoint path to file
+    with open(f'paper_evals/all_gap_{dim}.txt', 'w') as f:
+
+        print({
+            'dim': dim,
+            'all_gap_stuff': all_gap_stuff_output
+        }, file=f)
+
 # set seed
 torch.manual_seed(wandb.config['seed'])
 random.seed(wandb.config['seed'])
@@ -247,86 +394,28 @@ mscoco_evaluator = Evaluator(MSCOCOProcessor(), val_batch_cache_file)
 
 with torch.no_grad():
 
+    if DIM == 32:
+        get_gap_stuff_all(d32_checkpoints, mscoco_evaluator, 32)
+    elif DIM == 64:
+        get_gap_stuff_all(d64_checkpoints, mscoco_evaluator, 64)
+    elif DIM == 128:
+        get_gap_stuff_all(d128_checkpoints, mscoco_evaluator, 128)
 
-
-
-
-
-   
-
-    
-
-    evaluator = Evaluator(MSCOCOProcessor(), val_batch_cache_file)
     # evaluator = Evaluator(MSCOCOProcessor())
 
 
-    clip_model = ClipAssembler().clip_model.to(device)
 
+    # checkpoint = torch.load(default_checkpoint_path)
+    
 
-    #32D
-
-    cps_32 = [
-        'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
-        'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt',
-        'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-
-    ]
-
-    checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
-
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-
-
-    # 64D
-    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
-
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-
-    # 128D
-
-    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
-
-    # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
-
-
-
-
-    for checkpoint_path in cps_32:
-
-        # checkpoint = torch.load(default_checkpoint_path)
-        checkpoint = torch.load(checkpoint_path, map_location=device)
-
-        model_state_dict = checkpoint['model_state_dict']
-
-        clip_model.load_state_dict(model_state_dict)
-
-        # clip_model.half()
-
-        evaluator.set_val_outputs(clip_model, output_loss=False)
-
-        gap_stuff = get_gap_stuff(evaluator)
+    
 
 
 
     # write both checkpoint file and gap stuff to same file
     
 
-    # write checkpoint path to file
-    # with open(f'paper_evals/{checkpoint_path.split("/")[-1]}_stuff.txt', 'w') as f:
 
-    #     print({
-    #         'checkpoint_path': checkpoint_path,
-    #         'gap_stuff': gap_stuff
-    #     }, file=f)
 
     
     # zs_stuff = get_zs_stuff(clip_model, evaluator)

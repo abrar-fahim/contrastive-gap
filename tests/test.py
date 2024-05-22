@@ -1,4 +1,14 @@
+a = {
+    10: 'a',
+    2: 'b',
+    3: 'c'
+}
 
+
+a[20] = 'd'
+print(a[20])
+
+exit()
 
 import torch
 import numpy as np
