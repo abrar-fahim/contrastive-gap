@@ -17,7 +17,7 @@ import traceback
 
 
 
-config.config_cuda_device = 'cuda:0' 
+config.config_cuda_device = 'cuda:2' 
 
 training_hyperparameters = config.training_hyperparameters
 training_hyperparameters['cuda_device'] = config.config_cuda_device
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP default batch_size=64 SWEEPING Ds, full MSCOCO, val as val, 0.01T",
+        "name": "(finetuning CLIP backbone), VIT/B-32, CLIP default, batch_size=64 full Concaps, val as val, 0.01T",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -74,10 +74,10 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [128, 64, 32]}, # 512
+            'clip_projection_dim': {'values': [128]}, # 512
             'batch_size': {'values': [64]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': ['no']},
+            'use_scheduler': {'values': ['no']}, # COSINE or EXP
             'schedule_every': {'values': [400]}, # num steps, NOT epochs
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
@@ -108,7 +108,7 @@ if __name__ == "__main__":
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
+            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 

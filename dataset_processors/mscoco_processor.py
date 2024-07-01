@@ -257,9 +257,11 @@ class MSCOCOProcessor(DatasetProcessorParent):
     def load_train_dataset(self):
 
         self.full_train_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco2/train2017',
+            # root = './datasets/mscoco2/train2017',
+            root = './datasets/mscoco/train2014',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco_train/train2014',
-            annFile = 'datasets/mscoco2/annotations/captions_train2017.json',
+            # annFile = 'datasets/mscoco/annotations/captions_train2017.json',
+            annFile = 'datasets/mscoco/annotations/captions_train2014.json',
             transform=self.image_preprocessor,
         )
 
@@ -292,19 +294,31 @@ class MSCOCOProcessor(DatasetProcessorParent):
    
     def load_val_dataset(self):
         val_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco2/val2017',
+            # root = './datasets/mscoco2/val2017',
+            root = './datasets/mscoco/val2014',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
-            annFile= './datasets/mscoco2/annotations/captions_val2017.json',
+            # annFile= './datasets/mscoco2/annotations/captions_val2017.json',
+            annFile= './datasets/mscoco/annotations/captions_val2014.json',
             transform=self.image_preprocessor,
         )
 
         # generate random indices
-        # val_indices = torch.randint(0, len(val_dataset) , (wandb.config['validation_dataset_sizes '],))
-        val_indices = torch.randperm(len(val_dataset))[:wandb.config['validation_dataset_size']]
 
-        val_data_subset = Subset(val_dataset, val_indices)
+        use_subset = False
 
-        self.val_dataset = val_data_subset # using only one validation batch for now. change to use entire val batch LATER
+        val_dataset_to_use = None
+
+        if use_subset:
+
+            val_indices = torch.randperm(len(val_dataset))[:wandb.config['validation_dataset_size']]
+
+            val_dataset_to_use = Subset(val_dataset, val_indices)
+
+        else:
+
+            val_dataset_to_use = val_dataset
+
+        self.val_dataset = val_dataset_to_use # using only one validation batch for now. change to use entire val batch LATER
 
 
 

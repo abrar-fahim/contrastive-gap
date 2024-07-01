@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import wandb
+import time
 
 # add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -38,14 +39,27 @@ from dataset_processors.conceptual_captions_processor import ConceptualCaptionsP
 
 processor = ConceptualCaptionsProcessor()
 
-# for image, caption in tqdm(data_pipe):
-for image, caption in tqdm(processor.train_dataloader):
+pbar = tqdm(processor.train_dataloader)
 
-    print('caption 0 ', caption[0])
+n_images = 0
+
+start_time = time.time()
+# for image, caption in tqdm(data_pipe):
+for image, caption in pbar:
+
+    
+
+    # print('caption 0 ', caption[0])
 
     if image == None:
         print('Image is None')
         continue
+
+    current_time = time.time()
+
+    n_images += image.shape[0]
+
+    pbar.set_description(f'Rate for processing {n_images} images (per second): {n_images / (current_time - start_time)}')
     # print(f"Caption: {caption}")
     # print(f"Image size: {image.shape}")
     # # display first image

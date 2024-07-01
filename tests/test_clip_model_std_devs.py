@@ -41,8 +41,8 @@ from dataset_processors.caltech101_processor import Caltech101Processor
 from dataset_processors.dtd_processor import DTDProcessor
 from clips.clip_assembler import ClipAssembler
 
-DIM = 128
-
+DIM = 64
+device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
 
 config_cuda_device = 'cuda:5'
@@ -261,7 +261,7 @@ def get_gap_stuff_all(checkpoints: list[str], evaluator: Evaluator, dim: int):
             'mean_cosine_similarity': [],
             'linear_seperability_accuracy': [],
             'centroid_euclidean_distance': [],
-        'val_image_classification_acc': {
+            'val_image_classification_acc': {
                     1: [],
                     3: [],
                     5: [],
@@ -378,6 +378,102 @@ def get_gap_stuff_all(checkpoints: list[str], evaluator: Evaluator, dim: int):
             'all_gap_stuff': all_gap_stuff_output
         }, file=f)
 
+
+def get_zs_stuff_all(checkpoints: list[str], evaluator: Evaluator, dim: int):
+    # checkpoints has checkpoint paths for each dimensionaltiy
+
+
+    clip_model = ClipAssembler().clip_model.to(device)
+    all_zs_stuff = { # for one dimensionality only
+        
+        'CLIP': {
+            'imagenet_zs_acc': [],
+            'dtd_zs_acc': [],
+            'caltech101_zs_acc': [],
+            'cifar10_zs_acc': [],
+            'cifar100_zs_acc': [],
+        },
+        'CUA': {
+            'imagenet_zs_acc': [],
+            'dtd_zs_acc': [],
+            'caltech101_zs_acc': [],
+            'cifar10_zs_acc': [],
+            'cifar100_zs_acc': [],
+        },
+        'CUAXU': {
+            'imagenet_zs_acc': [],
+            'dtd_zs_acc': [],
+            'caltech101_zs_acc': [],
+            'cifar10_zs_acc': [],
+            'cifar100_zs_acc': [],
+        }
+                
+
+    }
+
+
+    for checkpoint_path in checkpoints:
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+
+        model_state_dict = checkpoint['model_state_dict']
+
+        clip_model.load_state_dict(model_state_dict)
+
+        # clip_model.half()
+
+        # evaluator.set_val_outputs(clip_model, output_loss=False)
+
+        zs_stuff = get_zs_stuff(clip_model, evaluator)
+
+        name: str = None
+
+        if 'xuniform' in checkpoint_path:
+            name = 'CUAXU'
+
+        elif 'uniform_align' in checkpoint_path:
+            name = 'CUA'
+
+        else:
+            name = 'CLIP'
+
+        # maintain arrays of items for each key
+        for key in zs_stuff:
+            all_zs_stuff[name][key].append(zs_stuff[key])
+
+    # compute mean and std dev for each key
+
+    names = ['CLIP', 'CUA', 'CUAXU']
+
+    print(' --- ALL ZS STUFF --- ')
+    print(all_zs_stuff)
+    print()
+
+    all_zs_stuff_output = all_zs_stuff.copy()
+
+
+    for name in names:
+        for key in all_zs_stuff[name]:
+            all_zs_stuff_output[name][key] = {
+                'mean': np.mean(all_zs_stuff[name][key]),
+                'std_dev': np.std(all_zs_stuff[name][key], ddof=1),
+                '2_std_dev': 2 * np.std(all_zs_stuff[name][key],ddof=1)
+            }
+
+
+    print(' --- ALL GAP STUFF --- ')
+    print(all_zs_stuff_output)
+    print()
+
+    # write checkpoint path to file
+    with open(f'paper_evals/all_zs_{dim}.txt', 'w') as f:
+
+        print({
+            'dim': dim,
+            'all_zs_stuff': all_zs_stuff_output
+        }, file=f)
+
+
+
 # set seed
 torch.manual_seed(wandb.config['seed'])
 random.seed(wandb.config['seed'])
@@ -394,12 +490,20 @@ mscoco_evaluator = Evaluator(MSCOCOProcessor(), val_batch_cache_file)
 
 with torch.no_grad():
 
+    # if DIM == 32:
+    #     get_gap_stuff_all(d32_checkpoints, mscoco_evaluator, 32)
+    # elif DIM == 64:
+    #     get_gap_stuff_all(d64_checkpoints, mscoco_evaluator, 64)
+    # elif DIM == 128:
+    #     get_gap_stuff_all(d128_checkpoints, mscoco_evaluator, 128)
+
+
     if DIM == 32:
-        get_gap_stuff_all(d32_checkpoints, mscoco_evaluator, 32)
+        get_zs_stuff_all(d32_checkpoints, mscoco_evaluator, 32)
     elif DIM == 64:
-        get_gap_stuff_all(d64_checkpoints, mscoco_evaluator, 64)
+        get_zs_stuff_all(d64_checkpoints,  mscoco_evaluator, 64)
     elif DIM == 128:
-        get_gap_stuff_all(d128_checkpoints, mscoco_evaluator, 128)
+        get_zs_stuff_all(d128_checkpoints,  mscoco_evaluator, 128)
 
     # evaluator = Evaluator(MSCOCOProcessor())
 

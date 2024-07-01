@@ -9,14 +9,19 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import wandb
 
-import train_clip
+
 from src.utils import generate_csv_file_name, cleanup_after_training
 
-from src.config import training_hyperparameters
+import src.config as config
 
-from src.config import ClipDatasets
+config.config_cuda_device = 'cuda:0' 
 
-    
+training_hyperparameters = config.training_hyperparameters
+
+training_hyperparameters['cuda_device'] = config.config_cuda_device
+ClipDatasets = config.ClipDatasets
+
+import train_clip
 
 
 def set_sweep_config(training_hyperparameters: dict, sweep_config: dict) -> dict:
@@ -65,7 +70,7 @@ if __name__ == "__main__":
 
     sweep_configuration = {
         "method": "grid",
-        "name": "Gap persists even after accounting for all factors, scheduling, T=0.01",
+        "name": "Gap persists even after accounting for all factors, scheduling, T=0.01, POST PAPER, visualizing embeds",
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
             "temperature": {"values": [0.01]}, # learnable temperature now, so this i s the starting temp
@@ -80,19 +85,20 @@ if __name__ == "__main__":
             'encoder2_modality': {'values': ['image']},
             'same_inputs': {'values': [True]},
             
-
-
-
             'clip_projection_dim': {'values': [512]}, # 512
             'weight_decay': {'values': [0.1]},
-            'batch_size': {'values': [64]},
+            'batch_size': {'values': [128]},
             
             'vision_model': {'values': ['VIT']}, # RN50 or VIT
-            'use_scheduler': {'values': [True]}, # because its just small dataset
+
+            'use_scheduler': {'values': ['EXP']},
+            'schedule_every': {'values': [50]}, # num steps, NOT epochs
+
+
             'n_warmup_steps': {'values': [100]}, # 10000
             'W_layer_gap': {'values': [0]}, # 0 means no gap, 1 means full gap. -1 means no W layer
             
-            "lr": {'values': [5e-4]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-4]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [1000]}, 
             'num_workers': {'values': [12]}, # SET
 
@@ -120,13 +126,15 @@ if __name__ == "__main__":
 
             # DATASET STUFF
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
-            'validation_dataset_size': {'values': [1024]},
-            'validation_batch_size': {'values': [1024]},
+            'validation_dataset_size': {'values': [2048]},
+            'validation_batch_size': {'values': [2048]},
             'use_small_trainloader': {'values': [True]}, 
-            'small_train_loader_dataset_size': {'values': [1024]},
+            'small_train_loader_dataset_size': {'values': [2048]},
             'cifar10_acc': {'values': [False]}, # Don't measure cifar10 val acc for these toy runs
-            'save_encoder_hidden_states': {'values': [False]},
+            'save_encoder_hidden_states': {'values': [True]},
             'n_embeds_to_save': {'values': [1000]},
+            'save_every': {'values': [200]},
+
             
             'seed': {'values': [2]},
         },

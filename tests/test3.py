@@ -52,6 +52,19 @@ val_dataloader = torch.utils.data.DataLoader(processor.val_dataset, batch_size=b
 
 
 
+print('len dataset ', len(processor.train_dataset))
+# image = processor.train_dataset[393226]
+
+image = processor.train_dataset._load_image(131089)
+
+image.save('./test.jpeg')
+
+print('image ', image)
+
+exit()
+
+
+
 
 
 # for image, caption in tqdm(data_pipe):

@@ -49,7 +49,7 @@ training_hyperparameters['temperature'] = 0.01
 training_hyperparameters['encoder1_modality'] = 'image'
 training_hyperparameters['encoder2_modality'] = 'text'
 training_hyperparameters['same_inputs'] = False
-training_hyperparameters['clip_projection_dim'] = 32
+training_hyperparameters['clip_projection_dim'] = 64
 training_hyperparameters['vision_model'] = 'VIT'
 training_hyperparameters['use_train_as_val'] = False
 training_hyperparameters['dataset'] = ClipDatasets.MSCOCO.value
@@ -272,8 +272,15 @@ with torch.no_grad():
 
 
     ]
+    cps_64 = [
+        'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt',
+        'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt',
+        'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
 
-    checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+
+    ]
+
+    # checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
 
     # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
 
@@ -300,7 +307,7 @@ with torch.no_grad():
 
 
 
-    for checkpoint_path in cps_32:
+    for checkpoint_path in cps_64:
 
         # checkpoint = torch.load(default_checkpoint_path)
         checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -315,19 +322,21 @@ with torch.no_grad():
 
         gap_stuff = get_gap_stuff(evaluator)
 
+        with open(f'paper_evals/{checkpoint_path.split("/")[-1]}_stuff_FINAL.txt', 'w') as f:
+
+            print({
+                'checkpoint_path': checkpoint_path,
+                'gap_stuff': gap_stuff
+            }, file=f)
+
+
 
 
     # write both checkpoint file and gap stuff to same file
     
 
     # write checkpoint path to file
-    # with open(f'paper_evals/{checkpoint_path.split("/")[-1]}_stuff.txt', 'w') as f:
-
-    #     print({
-    #         'checkpoint_path': checkpoint_path,
-    #         'gap_stuff': gap_stuff
-    #     }, file=f)
-
+  
     
     # zs_stuff = get_zs_stuff(clip_model, evaluator)
     # with open(f'paper_evals/{checkpoint_path.split("/")[-1]}_zeroshot.txt', 'w') as f:
