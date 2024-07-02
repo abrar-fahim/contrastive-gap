@@ -1,0 +1,1 @@
+{'default_clip': {'average_corr_cap_similarity': tensor(25.0722, device='cuda:5'), 'average_incorrect_cap_similarity': tensor(25.0838, device='cuda:5'), 'num_correct': None, 'num_incorrect': None, 'n_correct': 18872, 'n_incorrect': 19511}, 'CUAXU': {'average_corr_cap_similarity': None, 'average_incorrect_cap_similarity': None, 'num_correct': None, 'num_incorrect': None}}
