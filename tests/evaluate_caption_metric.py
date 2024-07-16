@@ -34,6 +34,8 @@ class CaptionsDataset(Dataset):
         self.MODES = ['fg', 'diff_fg', 'negation']
         assert mode in self.MODES, 'invalid mode'
 
+        self.mode = mode
+
 
 
         if mode == 'fg':
@@ -79,7 +81,7 @@ class CaptionsDataset(Dataset):
         self.mscoco_processor: MSCOCOProcessor = MSCOCOProcessor()
 
     def __len__(self):
-        return len(self.fine_grained_correct)
+        return len(self.jsons[0])
     
 
 
@@ -95,10 +97,10 @@ class CaptionsDataset(Dataset):
 
             if data['image_id'] == None:
                 data['image_id'] = int(json[index]['imgid'])
-                data['question_id'] = int(json[index]['question_id'])
+                # data['question_id'] = int(json[index]['question_id'])
             else:
                 assert int(json[index]['imgid']) == data['image_id'], "Image ids do not match"
-                assert int(json[index]['question_id']) == data['question_id'], "Question ids do not match"
+                # assert int(json[index]['question_id']) == data['question_id'], "Question ids do not match"
                 
 
             data[self.caption_types[i]] = json[index] # EX: data['fg_correct'] = {... (the json element itself)}
@@ -244,7 +246,7 @@ device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu"
 
 
 
-captions_dataset = CaptionsDataset()
+captions_dataset = CaptionsDataset(mode='negation')
 
 
 
@@ -317,7 +319,7 @@ with torch.no_grad():
 
         
 
-        captions_dataloader = DataLoader(captions_dataset, batch_size=1024, shuffle=False, num_workers=16, collate_fn=captions_dataset.collate_fn)
+        captions_dataloader = DataLoader(captions_dataset, batch_size=512, shuffle=False, num_workers=16, collate_fn=captions_dataset.collate_fn)
 
         counts: dict[str, float] = {}
 
@@ -458,11 +460,11 @@ with torch.no_grad():
 
         for caption_type in captions_dataset.caption_types:
             checkpoint_result[caption_type] = {}
-            checkpoint_result[caption_type]['average'] = similarity_run_sums[caption_type] / n_captions 
+            checkpoint_result[caption_type]['average'] = similarity_run_sums[caption_type].item() / n_captions 
 
             if caption_type in counts:
 
-                checkpoint_result[caption_type]['counts'] = counts[caption_type] / n_captions 
+                checkpoint_result[caption_type]['counts'] = counts[caption_type].item() / n_captions 
 
             
 
@@ -518,7 +520,7 @@ with torch.no_grad():
         #     final_results['default_clip']['n_negation_incorrect'] = n_negation_incorrect / n_captions
 
 
-    with open(f'file_results/{checkpoint_path.split("/")[-1]}_stuff_FINAL.txt', 'w') as f:
+    with open(f'file_results/{captions_dataset.mode}_caption_eval.txt', 'w') as f:
 
         print(final_results, file=f)
 

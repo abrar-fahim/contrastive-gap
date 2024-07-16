@@ -1,0 +1,1 @@
+{'checkpoint_path': 'checkpoints/T0.01_Lit_44_finetune_I1C2E1E2_128_val_as_val_512_conceptual_captions_VIT_pretrained_POST_PAPER.pt', 'zs_stuff': {'imagenet_zs_acc': 0.33726, 'dtd_zs_acc': 0.28085106382978725, 'caltech101_zs_acc': 0.7781491298836003, 'cifar10_zs_acc': 0.8072, 'cifar100_zs_acc': 0.5027}}

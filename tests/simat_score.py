@@ -50,7 +50,7 @@ device = cuda_device if torch.cuda.is_available() else "cpu"
 
 model, prep = clip.load('ViT-B/32', device=device)
 
-dim = 64
+dim = 128
 
 
 def simat_encode(clip_model):
@@ -174,6 +174,12 @@ training_hyperparameters['seed'] = 2
 training_hyperparameters['train_from_scratch'] = True
 
 
+training_hyperparameters['continue_from_checkpoint'] = False
+training_hyperparameters['train_from_pretrained'] = True
+training_hyperparameters['finetune_clip_backbone'] = True
+training_hyperparameters['finetune_multi_layer_projection'] = False
+
+
 wandb.init(config=training_hyperparameters)
 
 
@@ -192,7 +198,9 @@ clip_model = ClipAssembler().clip_model.to(device)
 
 # 128
 
-checkpoint_path = 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
+# checkpoint_path =  'checkpoints/T0.01_Lit_44_finetune_I1C2E1E2_128_val_as_val_512_conceptual_captions_VIT_pretrained_POST_PAPER.pt'
+
+checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_44_finetune_I1C2E1E2_128_val_as_val_512_conceptual_captions_VIT_pretrained_POST_PAPER.pt'
 # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt'
 # checkpoint_path = 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt'
 

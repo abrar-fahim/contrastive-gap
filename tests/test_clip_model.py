@@ -103,9 +103,6 @@ def get_gap_stuff(evaluator: Evaluator):
 
         'get_val_image_retrieval_acc': evaluator.get_val_image_retrieval_acc(return_all=True),
         
-
-
-
         'image_variance0': image_pca_variance_ratio_bucket_sums[0],
         'image_variance1': image_pca_variance_ratio_bucket_sums[1],
         'image_variance2': image_pca_variance_ratio_bucket_sums[2],

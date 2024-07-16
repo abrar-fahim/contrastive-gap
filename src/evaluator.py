@@ -47,7 +47,7 @@ from dataset_processors.conceptual_captions_processor import ConceptualCaptionsP
 
 
 class Evaluator():
-    def __init__(self, dataset_processor: DatasetProcessorParent, val_batch_cache_file: str=None):
+    def __init__(self, dataset_processor: DatasetProcessorParent, val_batch_cache_file=None):
         self.dataset_processor = dataset_processor
 
         if val_batch_cache_file is not None:
@@ -887,7 +887,7 @@ class Evaluator():
 
 
 
-    def get_rank(self) ->  dict:
+    def get_rank(self, linalg=True) ->  dict:
         '''
         Get rank (threshold = 1) using SVD, of image and text embeds
         Rank of only first config['validation_batch_size'] embeds
@@ -911,44 +911,45 @@ class Evaluator():
         image_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
         text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
 
-        # get pytorch rank
-        full_image_rank = torch.linalg.matrix_rank(image_embeds)
-        full_text_rank = torch.linalg.matrix_rank(text_embeds)
+        if linalg:
+            # get pytorch rank
+            full_image_rank = torch.linalg.matrix_rank(image_embeds)
+            full_text_rank = torch.linalg.matrix_rank(text_embeds)
 
-        # get rank
-        U, S, Vh = torch.linalg.svd(image_embeds)
+            # get rank
+            U, S, Vh = torch.linalg.svd(image_embeds)
 
-        image_S = S
+            image_S = S
 
-        
+            
 
-        
-
-
-        # rank is number of singular values greater than 1
-        image_rank = torch.count_nonzero(S > 1)
-
-        U, S, Vh = torch.linalg.svd(text_embeds)
-
-        text_S = S
-
-        text_rank = torch.count_nonzero(S > 1)
-
-        # get first element that is less than 1
-        lt1_values = S[S <= 1]
-
-        if len(lt1_values) > 0:
-            first_lt1_value = lt1_values[0] # works because S is sorted in descending order
-        else:
-            first_lt1_value = -1
+            
 
 
+            # rank is number of singular values greater than 1
+            image_rank = torch.count_nonzero(S > 1)
 
-        # get average S value
-        avg_S = torch.mean(S)
+            U, S, Vh = torch.linalg.svd(text_embeds)
 
-        print('image_rank ', image_rank)
-        print('text_rank ', text_rank)  
+            text_S = S
+
+            text_rank = torch.count_nonzero(S > 1)
+
+            # get first element that is less than 1
+            lt1_values = S[S <= 1]
+
+            if len(lt1_values) > 0:
+                first_lt1_value = lt1_values[0] # works because S is sorted in descending order
+            else:
+                first_lt1_value = -1
+
+
+
+            # get average S value
+            avg_S = torch.mean(S)
+
+            print('image_rank ', image_rank)
+            print('text_rank ', text_rank)  
 
         image_pca = PCA(n_components=min(image_embeds.shape[0], image_embeds.shape[1]))
         image_pca.fit(image_embeds.cpu().numpy())

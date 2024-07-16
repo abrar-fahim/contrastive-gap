@@ -41,7 +41,7 @@ training_hyperparameters = {
     'cuda_device': config_cuda_device, # SET index of GPU
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', 
-    'seed': 42,
+    'seed': 44,
     'selected_clip_model': selected_clip_model.value,
     'dataset': ClipDatasets.MSCOCO.value,
     'batch_size': 64, 

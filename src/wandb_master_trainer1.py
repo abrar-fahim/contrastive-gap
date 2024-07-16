@@ -17,7 +17,7 @@ import traceback
 
 
 
-config.config_cuda_device = 'cuda:2' 
+config.config_cuda_device = 'cuda:0' 
 
 training_hyperparameters = config.training_hyperparameters
 training_hyperparameters['cuda_device'] = config.config_cuda_device
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "(finetuning CLIP backbone), VIT/B-32, CLIP default, batch_size=64 full Concaps, val as val, 0.01T",
+        "name": "Finetning CUAXU vs CLIP (Default) on MSCOCO to compare with concaps sweep earlier",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -103,12 +103,13 @@ if __name__ == "__main__":
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [9]},
-            'num_workers': {'values': [12]},
+            'n_epochs': {'values': [25]},
+            'num_workers': {'values': [24]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
-            'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            # 'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
+            'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
