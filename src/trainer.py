@@ -159,7 +159,11 @@ class TrainerParent(ABC):
         print('--- VALIDATING ---')
         print()
 
-        self.evaluator.evaluate_model(clip_model, epoch=epoch, index=i)
+
+        # run evaluate_model twice, one for train data another for val data
+        self.evaluator.evaluate_model(clip_model, epoch=epoch, index=i, is_train_data=False)
+        self.evaluator.evaluate_model(clip_model, epoch=epoch, index=i, is_train_data=True)
+
 
         # do_validation(self.dataset_processor, clip_model, i, epoch, captioning_model=False, wandb=self.wandb, val_dataset_processor=val_dataset_processor)
 

@@ -55,12 +55,18 @@ class Evaluator():
         else:
             self.mscoco_batch_file_path = f"datasets/{wandb.config['dataset']}/val_batch_cache_{generate_csv_file_name()}.pt"
 
-        self.mscoco_train_dataset_batch_file_path = self.mscoco_batch_file_path
+
+        # self.mscoco_train_dataset_batch_file_path = self.mscoco_batch_file_path
+        self.mscoco_train_dataset_batch_file_path = f"datasets/{wandb.config['dataset']}/val_batch_cache_{generate_csv_file_name()}.pt"
 
         self.mscoco_val_dataloader: torch.utils.data.DataLoader = None
         self.mscoco_train_dataloader: torch.utils.data.DataLoader = None
 
         self.val_outputs: HFClipOutput = None
+
+        self.train_outputs: HFClipOutput = None
+
+        self.outputs_to_use: HFClipOutput = None # outputs used inside evaluate_model depending on whether Im using training or val data
 
         self.pca: PCA = PCA(n_components=2) # for visualizing embeddings
         self.pca_fitted = False
@@ -133,7 +139,7 @@ class Evaluator():
 
 
             # for now, using val dataset as train dataset.
-            self.train_dataloader = mscoco_val_dataloader
+            # self.train_dataloader = mscoco_val_dataloader
 
 
         
@@ -144,10 +150,18 @@ class Evaluator():
 
 
         if os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']:
-            print('loading batch from cache ', self.mscoco_batch_file_path)
+            print('loading VAL batch from cache ', self.mscoco_batch_file_path)
 
             (mscoco_val_imgs, mscoco_val_captions) = torch.load(self.mscoco_batch_file_path)
-            print('loading cache done')
+            print('loading VAL cache done')
+
+            if os.path.exists(self.mscoco_train_dataset_batch_file_path):
+                print('loading TRAIN batch from cache ', self.mscoco_train_dataset_batch_file_path)
+
+                (mscoco_train_imgs, mscoco_train_captions) = torch.load(self.mscoco_train_dataset_batch_file_path)
+                print('loading TRAIN cache done')
+
+
 
         else:
 
@@ -168,24 +182,52 @@ class Evaluator():
 
                 break
 
+            for batch in dataset_processor.train_dataloader:
+                print('loading TRAIN batch')
+                # (val_imgs, val_captions) = next(iter(val_dataloader))
+
+                # val_imgs, val_caps = batch
+                (mscoco_train_imgs, mscoco_train_captions) = batch
+
+                # mscoco_val_imgs[i * batch_size: (i + 1) * batch_size] = val_imgs
+                # mscoco_val_captions[i * batch_size: (i + 1) * batch_size] = val_caps
+                print('TRAIN batch loading done')
+                
+
             if wandb.config['use_cached_val_batch']:
-                print('saving batch to cache ', self.mscoco_batch_file_path)
+                print('saving VAL batch to cache ', self.mscoco_batch_file_path)
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), self.mscoco_batch_file_path)
+
+                print('saving TRAIN batch to cache')
+
+                torch.save((mscoco_train_imgs, mscoco_train_captions), self.mscoco_batch_file_path)
+
+
 
                 del mscoco_val_dataloader
 
         self.mscoco_val_imgs = mscoco_val_imgs
         self.mscoco_val_captions = mscoco_val_captions
 
+        self.mscoco_train_imgs = mscoco_train_imgs
+        self.mscoco_train_captions = mscoco_train_captions
 
-    def evaluate_model(self, clip_model: HFClip, epoch: int, index: int):
+
+    def evaluate_model(self, clip_model: HFClip, epoch: int, index: int, is_train_data=False):
+
+        # is_train_data = False for validation dataset, true for training dataset.
 
         with torch.no_grad():
 
 
 
-            self.set_val_outputs(clip_model)
+            self.set_val_outputs(clip_model, is_train_data=is_train_data)
+
+            if is_train_data:
+                self.outputs_to_use = self.train_outputs
+            else:
+                self.outputs_to_use = self.val_outputs
             # self.set_pooled_hidden_states(clip_model)
 
             # save pooled hidden states to file
@@ -273,27 +315,23 @@ class Evaluator():
                     'temp_scaled_inter_modality_loss': 100,
                 }
 
-
-
-            if wandb is not None:
-                wandb.log(
-                    data={
-                        'val_image_classification_accuracy': self.get_val_image_classification_acc(),
-                        'val_image_retrieval_accuracy': self.get_val_image_retrieval_acc(),
-                        'train_intramodality_loss': val_loss['intra_modality'],
-                        'train_intermodality_loss': val_loss['inter_modality'],
-                        'train_alignment_loss': val_loss['alignment'],
-                        'train_uniformity_loss': val_loss['uniformity'],
-                        'train_cyclic_loss': val_loss['cyclic'],
-                        'train_cyclic_dir_loss': val_loss['cyclic_direction'],
-                        'train_uniform_cyclic_loss': val_loss['uniform_cyclic'],
-                        'train_cross_uniformity_loss': val_loss['cross_uniformity'],
-                        'train_uniform_cyclic_loss': val_loss['uniform_cyclic'],
-                        'train_rsa_loss': val_loss['rsa'],
-                        'train_pearson_loss': val_loss['pearson_rsa'],
+            data: dict = {
+                        'image_classification_accuracy': self.get_val_image_classification_acc(),
+                        'image_retrieval_accuracy': self.get_val_image_retrieval_acc(),
+                        'intramodality_loss': val_loss['intra_modality'],
+                        'intermodality_loss': val_loss['inter_modality'],
+                        'alignment_loss': val_loss['alignment'],
+                        'uniformity_loss': val_loss['uniformity'],
+                        'cyclic_loss': val_loss['cyclic'],
+                        'cyclic_dir_loss': val_loss['cyclic_direction'],
+                        'uniform_cyclic_loss': val_loss['uniform_cyclic'],
+                        'cross_uniformity_loss': val_loss['cross_uniformity'],
+                        'uniform_cyclic_loss': val_loss['uniform_cyclic'],
+                        'rsa_loss': val_loss['rsa'],
+                        'pearson_loss': val_loss['pearson_rsa'],
                         'svd': val_loss['svd'],
                         'uniformity': val_loss['uniformity'],
-                        'train_total_loss':val_loss['total'],
+                        'total_loss':val_loss['total'],
                         'mean_pairwise_euclidean_distance':  self.get_mean_pairwise_euclidean_distance(),
                         'mean_cosine_similarity': self.get_mean_cosine_similarity(clip_model.get_temperature()),
                         'linear_seperability_accuracy': self.get_linear_seperability(),
@@ -350,9 +388,6 @@ class Evaluator():
                         'text_variance5': text_pca_variance_ratio_bucket_sums[5],
                         'text_variance6': text_pca_variance_ratio_bucket_sums[6],
                         'text_variance7': text_pca_variance_ratio_bucket_sums[7],
-
-
-
 
 
                         # 'image_S0': ranks['image_S'][0],
@@ -420,7 +455,20 @@ class Evaluator():
                         'cifar10_centroid_euclidean_distance': zero_shot_dataset_modality_gap_metrics['centroid_euclidean_distance'],
                         'cifar10_inter_modality_loss': zero_shot_dataset_modality_gap_metrics['inter_modality_loss'],
                         'cifar10_temp_scaled_inter_modality_loss': zero_shot_dataset_modality_gap_metrics['temp_scaled_inter_modality_loss'],
-                    },
+                    }
+
+
+
+            # changing key names to reflect train or val
+            wandb_log_data = data.copy()
+
+            metric_prefix = 'train_' if is_train_data else 'val_'
+
+            for key in data.keys():
+                wandb_log_data[f'{metric_prefix}{key}'] = wandb_log_data.pop(key)
+            if wandb is not None:
+                wandb.log(
+                    data=wandb_log_data,
                     # step = int(epoch * (len(dataset_processor.train_dataloader) // wandb.config['batch_size']) + index) # this may not work with WIT dataset, check later
                     # step= int(epoch * 470 + index), # by 100 to maintain fair comparison with existing runs data
                     step = int(epoch * self.dataset_processor.get_num_batches() + index), # by 100 to maintain fair comparison with existing runs data
@@ -708,18 +756,24 @@ class Evaluator():
 
 
         
-    def set_val_outputs(self, clip_model: HFClip, output_loss=True):
+    def set_val_outputs(self, clip_model: HFClip, output_loss=True, is_train_data=False):
 
         # only set output_loss to false when you're calling this outside of evaluator
+        # if is_train_data = False, set val outputs. Otherwise, set train outputs.
 
         
         
         with torch.no_grad():
             clip_model.eval()
-            # val_outputs = do_validation(clip_model, mscoco_val_imgs, mscoco_val_captions, device, self.wandb)
-            # val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=True, return_all=True, output_hidden_states=True, output_intra_modality_loss=True) # outputting everything all at once and storing them
-            val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=output_loss, return_all=True, output_hidden_states=False, output_intra_modality_loss=True) # outputting everything all at once and storing them
-            self.val_outputs = val_outputs
+
+            if is_train_data:
+                train_outputs: HFClipOutput = clip_model(self.mscoco_train_imgs, self.mscoco_train_captions, output_loss=output_loss, return_all=True, output_hidden_states=False, output_intra_modality_loss=True) 
+
+                self.train_outputs = train_outputs
+            else:
+
+                val_outputs: HFClipOutput = clip_model(self.mscoco_val_imgs, self.mscoco_val_captions, output_loss=output_loss, return_all=True, output_hidden_states=False, output_intra_modality_loss=True) # outputting everything all at once and storing them
+                self.val_outputs = val_outputs
 
 
     def set_pooled_hidden_states(self, clip_model: HFClip):
@@ -845,8 +899,8 @@ class Evaluator():
 
         encoder2_pooled_hidden_states_to_save = [e2_pool[:n_to_save] for e2_pool in self.encoder2_pooled_hidden_states]
 
-        image_embeds = self.val_outputs.image_embeds
-        text_embeds = self.val_outputs.text_embeds
+        image_embeds = self.outputs_to_use.image_embeds
+        text_embeds = self.outputs_to_use.text_embeds
 
         # normalize features
         normalized_encoder1_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
@@ -900,8 +954,8 @@ class Evaluator():
 
         # image_embeds = self.val_outputs.image_embeds[:wandb.config['validation_batch_size']]
         # text_embeds = self.val_outputs.text_embeds[:wandb.config['validation_batch_size']]
-        image_embeds = self.val_outputs.image_embeds
-        text_embeds = self.val_outputs.text_embeds
+        image_embeds = self.outputs_to_use.image_embeds
+        text_embeds = self.outputs_to_use.text_embeds
         # image_embeds = self.val_outputs.image_embeds[:wandb.config['batch_size']].T
         # text_embeds = self.val_outputs.text_embeds[:wandb.config['batch_size']].T
 
@@ -1032,11 +1086,11 @@ class Evaluator():
 
     def get_val_image_classification_acc(self, return_all=False):
 
-        val_logits_per_image = self.val_outputs.logits_per_image # shape of both: ([64, 64])
+        val_logits_per_image = self.outputs_to_use.logits_per_image # shape of both: ([64, 64])
 
         # image embeddings
-        image_embeds = self.val_outputs.image_embeds # normalized_encoder1 embeds. Shape: ([batch_size, 512])
-        text_embeds = self.val_outputs.text_embeds # normalized_encoder2 embeds
+        image_embeds = self.outputs_to_use.image_embeds # normalized_encoder1 embeds. Shape: ([batch_size, 512])
+        text_embeds = self.outputs_to_use.text_embeds # normalized_encoder2 embeds
 
         # normalize
         normalized_encoder1_embeds = image_embeds / torch.norm(image_embeds, dim=1, keepdim=True)
@@ -1213,7 +1267,7 @@ class Evaluator():
 
 
     def get_val_image_retrieval_acc(self, return_all=False):
-        logits_per_text = self.val_outputs.logits_per_text # shape of both: ([64, 64])
+        logits_per_text = self.outputs_to_use.logits_per_text # shape of both: ([64, 64])
 
         # softmax on logits_per_text
         text_class_probs = F.softmax(logits_per_text, dim=-1)
@@ -1249,13 +1303,13 @@ class Evaluator():
 
     def get_val_loss(self):
 
-        loss = self.val_outputs.loss
+        loss = self.outputs_to_use.loss
 
         return loss
 
     def get_mean_cosine_similarity(self, temperature: int):
 
-        cosine_similarities = self.val_outputs.logits_per_image.diag() # shape: [64]
+        cosine_similarities = self.outputs_to_use.logits_per_image.diag() # shape: [64]
         # get mean cosine similarity
         mean_cosine_similarity = torch.mean(cosine_similarities)
 
@@ -1271,7 +1325,7 @@ class Evaluator():
     def non_similar_mean_cosine_similarity(self, temperature: int) -> float:
 
         # get mean of elements that are not on the diagonal
-        non_similar_mean_cosine_similarity = self.val_outputs.logits_per_image[~torch.eye(self.val_outputs.logits_per_image.shape[0], dtype=bool)].mean()
+        non_similar_mean_cosine_similarity = self.outputs_to_use.logits_per_image[~torch.eye(self.outputs_to_use.logits_per_image.shape[0], dtype=bool)].mean()
 
         # scale with temperature
 
@@ -1313,7 +1367,7 @@ class Evaluator():
 
     def get_text_text_similarity(self):
 
-        text_embeds = self.val_outputs.text_embeds
+        text_embeds = self.outputs_to_use.text_embeds
 
         text_encoder_outputs = text_embeds # shape: ([batch_size, 512])
     
@@ -1333,7 +1387,7 @@ class Evaluator():
     
     def get_image_image_similarity(self):
 
-        image_embeds = self.val_outputs.image_embeds
+        image_embeds = self.outputs_to_use.image_embeds
 
         image_encoder_outputs = image_embeds
 
@@ -1365,8 +1419,8 @@ class Evaluator():
         Euclidean distance between image and text pairs
         '''
 
-        image_embeds = self.val_outputs.image_embeds
-        text_embeds = self.val_outputs.text_embeds
+        image_embeds = self.outputs_to_use.image_embeds
+        text_embeds = self.outputs_to_use.text_embeds
 
         image_encoder_outputs = image_embeds # shape: ([batch_size, 512])
         text_encoder_outputs = text_embeds
@@ -1432,8 +1486,8 @@ class Evaluator():
         - Cosine similarity between image and text centroids
         '''
 
-        image_embeds = self.val_outputs.image_embeds
-        text_embeds = self.val_outputs.text_embeds
+        image_embeds = self.outputs_to_use.image_embeds
+        text_embeds = self.outputs_to_use.text_embeds
 
         image_encoder_outputs = image_embeds # shape: ([batch_size, 512])
         text_encoder_outputs = text_embeds
@@ -1469,8 +1523,8 @@ class Evaluator():
             '''
 
             if image_embeds == None:
-                image_embeds = self.val_outputs.image_embeds
-                text_embeds = self.val_outputs.text_embeds
+                image_embeds = self.outputs_to_use.image_embeds
+                text_embeds = self.outputs_to_use.text_embeds
             else:
                 image_embeds = image_embeds
                 text_embeds = text_embeds
@@ -1502,8 +1556,8 @@ class Evaluator():
 
         if image_embeds == None:
 
-            image_embeds = self.val_outputs.image_embeds
-            text_embeds = self.val_outputs.text_embeds
+            image_embeds = self.outputs_to_use.image_embeds
+            text_embeds = self.outputs_to_use.text_embeds
 
         else:
             image_embeds = image_embeds
@@ -1623,13 +1677,13 @@ class Evaluator():
          - Before interchanging
         '''
 
-        text_embeds = self.val_outputs.text_embeds
-        image_embeds = self.val_outputs.image_embeds
+        text_embeds = self.outputs_to_use.text_embeds
+        image_embeds = self.outputs_to_use.image_embeds
 
         text_encoder_outputs = text_embeds # shape: ([batch_size, 512])
         image_encoder_outputs = image_embeds
 
-        val_logits_per_image = self.val_outputs.logits_per_image
+        val_logits_per_image = self.outputs_to_use.logits_per_image
 
         # normalize features
         text_encoder_outputs = text_encoder_outputs / torch.norm(text_encoder_outputs, dim=1, keepdim=True)

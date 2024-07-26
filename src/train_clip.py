@@ -98,7 +98,6 @@ def main():
 
     if wandb.config['dataset'] == ClipDatasets.MSCOCO.value:
         dataset_processor = MSCOCOProcessor()
-
     elif wandb.config['dataset'] == ClipDatasets.FLICKR30K.value:
         dataset_processor = Flickr30kProcessor()
     elif wandb.config['dataset'] == ClipDatasets.WIT400.value:
@@ -164,9 +163,6 @@ def main():
 
     else:
         scheduler = None
-
-
-    
     
 
     if os.path.exists(checkpoint_path) and wandb.config['continue_from_checkpoint'] and wandb.config['do_checkpointing']:
@@ -226,7 +222,6 @@ def main():
 
     if wandb.config['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, evaluator)
-    else:
         trainer = Trainer(dataset_processor, evaluator)
 
 

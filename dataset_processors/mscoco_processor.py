@@ -21,7 +21,7 @@ class MSCOCOProcessor(DatasetProcessorParent):
     def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
         self.train_dataset = None
         self.full_train_dataset = None
-        self.train_dataloader = None
+        self.train_dataloader: DataLoader = None
         self.train_subset_indices = None
         self.val_dataset = None
         self.val_dataloader = None
