@@ -222,6 +222,8 @@ def main():
 
     if wandb.config['grad_cache']:
         trainer = GradCacheTrainer(dataset_processor, evaluator)
+
+    else:
         trainer = Trainer(dataset_processor, evaluator)
 
 

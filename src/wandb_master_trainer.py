@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
-            "lr": {'values': [1e-6]}, # 5e-4, from CyClip paper
+            "lr": {'values': [1e-7]}, # 5e-4, from CyClip paper
             'n_epochs': {'values': [25]},
             'num_workers': {'values': [24]},
             'zero_shot_acc_num_workers': {'values': [4]},
