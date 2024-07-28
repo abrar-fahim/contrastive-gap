@@ -223,7 +223,7 @@ class Evaluator():
 
                 print('saving TRAIN batch to cache')
 
-                torch.save((mscoco_train_imgs, mscoco_train_captions), self.mscoco_batch_file_path)
+                torch.save((mscoco_train_imgs, mscoco_train_captions), self.mscoco_train_dataset_batch_file_path)
 
 
 
@@ -234,8 +234,6 @@ class Evaluator():
 
         self.mscoco_train_imgs = mscoco_train_imgs
         self.mscoco_train_captions = mscoco_train_captions
-
-        print('mscoco train captions ', mscoco_train_captions)
 
 
     def evaluate_model(self, clip_model: HFClip, epoch: int, index: int, is_train_data=False):
