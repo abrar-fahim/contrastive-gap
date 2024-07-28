@@ -57,7 +57,7 @@ class Evaluator():
 
 
         # self.mscoco_train_dataset_batch_file_path = self.mscoco_batch_file_path
-        self.mscoco_train_dataset_batch_file_path = f"datasets/{wandb.config['dataset']}/val_batch_cache_{generate_csv_file_name()}.pt"
+        self.mscoco_train_dataset_batch_file_path = f"datasets/{wandb.config['dataset']}/train_batch_cache_{generate_csv_file_name()}.pt"
 
         self.mscoco_val_dataloader: torch.utils.data.DataLoader = None
         self.mscoco_train_dataloader: torch.utils.data.DataLoader = None
@@ -92,8 +92,6 @@ class Evaluator():
 
             # self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
             self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
-
-
 
 
         self.encoder1_pooled_hidden_states = []
@@ -182,16 +180,40 @@ class Evaluator():
 
                 break
 
-            for batch in dataset_processor.train_dataloader:
-                print('loading TRAIN batch')
+
+            print('loading TRAIN batch')
+
+            mscoco_train_imgs = torch.empty(wandb.config['validation_dataset_size'], 3, 224, 224)
+
+            mscoco_train_captions = [None] * wandb.config['validation_dataset_size']
+
+            
+
+            train_batch_size = wandb.config['batch_size']
+
+            num_train_batches_to_get = wandb.config['validation_dataset_size'] / train_batch_size
+
+            for i, batch in tqdm(enumerate(dataset_processor.train_dataloader)):
+
+                if i >= num_train_batches_to_get:
+                    break
+                
                 # (val_imgs, val_captions) = next(iter(val_dataloader))
 
-                # val_imgs, val_caps = batch
-                (mscoco_train_imgs, mscoco_train_captions) = batch
+                (train_imgs, train_caps) = batch
 
-                # mscoco_val_imgs[i * batch_size: (i + 1) * batch_size] = val_imgs
-                # mscoco_val_captions[i * batch_size: (i + 1) * batch_size] = val_caps
-                print('TRAIN batch loading done')
+
+                # handling case when batch size is NOT factor of val datasetr size
+                length = len(mscoco_train_imgs[i * train_batch_size: (i + 1) * train_batch_size])
+
+                mscoco_train_imgs[i * train_batch_size: (i + 1) * train_batch_size] = train_imgs[:length]
+                mscoco_train_captions[i * train_batch_size: (i + 1) * train_batch_size] = train_caps[:length]
+
+                
+
+            print('TRAIN batch loading done')
+
+            
                 
 
             if wandb.config['use_cached_val_batch']:
@@ -213,14 +235,14 @@ class Evaluator():
         self.mscoco_train_imgs = mscoco_train_imgs
         self.mscoco_train_captions = mscoco_train_captions
 
+        print('mscoco train captions ', mscoco_train_captions)
+
 
     def evaluate_model(self, clip_model: HFClip, epoch: int, index: int, is_train_data=False):
 
         # is_train_data = False for validation dataset, true for training dataset.
 
         with torch.no_grad():
-
-
 
             self.set_val_outputs(clip_model, is_train_data=is_train_data)
 

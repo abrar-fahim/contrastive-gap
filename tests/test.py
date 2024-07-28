@@ -1,13 +1,10 @@
-a = {
-    10: 'a',
-    2: 'b',
-    3: 'c'
-}
+a=  [None] * 20
 
+b = ['a', 'b']
 
-a[20] = 'd'
-print(a[20])
+a[1:3] = b
 
+print(a)
 exit()
 
 import torch
