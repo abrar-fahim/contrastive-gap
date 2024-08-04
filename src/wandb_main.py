@@ -28,6 +28,6 @@ except Exception as e:
     cleanup_after_training()
     wandb.finish()
     # delete cache batches
-    return 
+    exit()
 
 
