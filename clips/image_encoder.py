@@ -107,6 +107,10 @@ class ImageEncoder(Encoder):
 
     def forward(self, images, output_hidden_states=False):
 
+        '''
+        images are preprocessed images
+        '''
+
         # preprocessed_images = self.preprocess_images(images)
 
 

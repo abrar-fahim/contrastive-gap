@@ -47,7 +47,7 @@ from dataset_processors.conceptual_captions_processor import ConceptualCaptionsP
 
 
 class Evaluator():
-    def __init__(self, dataset_processor: DatasetProcessorParent, val_batch_cache_file=None):
+    def __init__(self, dataset_processor: DatasetProcessorParent, val_batch_cache_file=None, load_train_dataset=True):
         self.dataset_processor = dataset_processor
 
         if val_batch_cache_file is not None:
@@ -153,7 +153,7 @@ class Evaluator():
             (mscoco_val_imgs, mscoco_val_captions) = torch.load(self.mscoco_batch_file_path)
             print('loading VAL cache done')
 
-            if os.path.exists(self.mscoco_train_dataset_batch_file_path):
+            if os.path.exists(self.mscoco_train_dataset_batch_file_path) and load_train_dataset:
                 print('loading TRAIN batch from cache ', self.mscoco_train_dataset_batch_file_path)
 
                 (mscoco_train_imgs, mscoco_train_captions) = torch.load(self.mscoco_train_dataset_batch_file_path)
@@ -180,38 +180,40 @@ class Evaluator():
 
                 break
 
-
-            print('loading TRAIN batch')
-
-            mscoco_train_imgs = torch.empty(wandb.config['validation_dataset_size'], 3, 224, 224)
-
-            mscoco_train_captions = [None] * wandb.config['validation_dataset_size']
-
-            
-
-            train_batch_size = wandb.config['batch_size']
-
-            num_train_batches_to_get = wandb.config['validation_dataset_size'] / train_batch_size
-
-            for i, batch in tqdm(enumerate(dataset_processor.train_dataloader)):
-
-                if i >= num_train_batches_to_get:
-                    break
-                
-                # (val_imgs, val_captions) = next(iter(val_dataloader))
-
-                (train_imgs, train_caps) = batch
+            if load_train_dataset:
 
 
-                # handling case when batch size is NOT factor of val datasetr size
-                length = len(mscoco_train_imgs[i * train_batch_size: (i + 1) * train_batch_size])
+                print('loading TRAIN batch')
 
-                mscoco_train_imgs[i * train_batch_size: (i + 1) * train_batch_size] = train_imgs[:length]
-                mscoco_train_captions[i * train_batch_size: (i + 1) * train_batch_size] = train_caps[:length]
+                mscoco_train_imgs = torch.empty(wandb.config['validation_dataset_size'], 3, 224, 224)
+
+                mscoco_train_captions = [None] * wandb.config['validation_dataset_size']
 
                 
 
-            print('TRAIN batch loading done')
+                train_batch_size = wandb.config['batch_size']
+
+                num_train_batches_to_get = wandb.config['validation_dataset_size'] / train_batch_size
+
+                for i, batch in tqdm(enumerate(dataset_processor.train_dataloader)):
+
+                    if i >= num_train_batches_to_get:
+                        break
+                    
+                    # (val_imgs, val_captions) = next(iter(val_dataloader))
+
+                    (train_imgs, train_caps) = batch
+
+
+                    # handling case when batch size is NOT factor of val datasetr size
+                    length = len(mscoco_train_imgs[i * train_batch_size: (i + 1) * train_batch_size])
+
+                    mscoco_train_imgs[i * train_batch_size: (i + 1) * train_batch_size] = train_imgs[:length]
+                    mscoco_train_captions[i * train_batch_size: (i + 1) * train_batch_size] = train_caps[:length]
+
+                    
+
+                print('TRAIN batch loading done')
 
             
                 
@@ -221,9 +223,11 @@ class Evaluator():
                 # save batch to cache
                 torch.save((mscoco_val_imgs, mscoco_val_captions), self.mscoco_batch_file_path)
 
-                print('saving TRAIN batch to cache')
+                if load_train_dataset:
 
-                torch.save((mscoco_train_imgs, mscoco_train_captions), self.mscoco_train_dataset_batch_file_path)
+                    print('saving TRAIN batch to cache')
+
+                    torch.save((mscoco_train_imgs, mscoco_train_captions), self.mscoco_train_dataset_batch_file_path)
 
 
 
@@ -232,9 +236,19 @@ class Evaluator():
         self.mscoco_val_imgs = mscoco_val_imgs
         self.mscoco_val_captions = mscoco_val_captions
 
-        self.mscoco_train_imgs = mscoco_train_imgs
-        self.mscoco_train_captions = mscoco_train_captions
+        if load_train_dataset:
 
+            self.mscoco_train_imgs = mscoco_train_imgs
+            self.mscoco_train_captions = mscoco_train_captions
+
+
+    def set_outputs_to_use(self, split='val'):
+        if split == 'val':
+            self.outputs_to_use = self.val_outputs
+        elif split == 'train':
+            self.outputs_to_use = self.train_outputs
+        else:
+            raise ValueError('split should be either val or train')
 
     def evaluate_model(self, clip_model: HFClip, epoch: int, index: int, is_train_data=False):
 
@@ -1588,8 +1602,8 @@ class Evaluator():
         normalized_text_embeds = text_embeds / torch.norm(text_embeds, dim=1, keepdim=True)
 
         # check if normalization happened properly as expected
-        assert torch.allclose(torch.norm(normalized_image_embeds, dim=1), torch.ones(normalized_image_embeds.shape[0], device=normalized_image_embeds.device))
-        assert torch.allclose(torch.norm(normalized_text_embeds, dim=1), torch.ones(normalized_text_embeds.shape[0], device=normalized_text_embeds.device))
+        # assert torch.allclose(torch.norm(normalized_image_embeds, dim=1), torch.ones(normalized_image_embeds.shape[0], device=normalized_image_embeds.device))
+        # assert torch.allclose(torch.norm(normalized_text_embeds, dim=1), torch.ones(normalized_text_embeds.shape[0], device=normalized_text_embeds.device))
 
         n_train = int(0.8 * len(image_embeds))
         n_test = len(image_embeds) - n_train

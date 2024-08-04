@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=4 wandb agent team-abrar/clipverse/m3cp1tqj

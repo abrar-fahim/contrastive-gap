@@ -17,7 +17,7 @@ import traceback
 
 
 
-config.config_cuda_device = 'cuda:5' 
+config.config_cuda_device = 'cuda:4' 
 
 training_hyperparameters = config.training_hyperparameters
 training_hyperparameters['cuda_device'] = config.config_cuda_device
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         # "method": "bayes",
         # "method": "random",``
         # "name": "Checking AGAIN whether same inputs cause modality gap or no",
-        "name": "LR TUNE RUN from pretrained CLIP (finetuning CLIP backbone), VIT/B-32, CLIP + AU no weights  loss batch_size=64 256D, full MSCOCO, val as val, 0.01T",
+        "name": "Testing dim vs batch size run. default CLIP",
         # "metric": {"goal": "maximize", "name": "val_image_classification_accuracy"},
         "metric": {"goal": "minimize", "name": "train_intermodality_loss"},
         "parameters": {
@@ -74,25 +74,25 @@ if __name__ == "__main__":
             # CUDA: 2
 
             # TRAINING STUFF
-            'clip_projection_dim': {'values': [256]}, # 512
-            'batch_size': {'values': [64]},
+            'clip_projection_dim': {'values': [6]}, # 512
+            'batch_size': {'values': [32,64,128,256]},
             'vision_model': {'values': ['VIT']}, # RN50 or VIT or VIT16
-            'use_scheduler': {'values': ['EXP']},
-            'schedule_every': {'values': [400]}, # num steps, NOT epochs
+            'use_scheduler': {'values': ['no']}, # COSINE or EXP
+            'schedule_every': {'values': [400]}, # num steps, NOT epochsd
             'n_warmup_steps': {'values': [10000]},
             'weight_decay': {'values': [0.1]},
-            'train_from_scratch': {'values': [False]},
+            'train_from_scratch': {'values': [True]},
             'continue_from_checkpoint': {'values': [False]},
-            'train_from_pretrained': {'values': [True]},
-            'finetune_clip_backbone': {'values': [True]},
+            'train_from_pretrained': {'values': [False]},
+            'finetune_clip_backbone': {'values': [False]},
             'finetune_multi_layer_projection': {'values': [False]},
 
 
 
             # LOSS STUFF
             'intra_modality_loss': {'values': [False]},
-            'uniformity_loss': {'values': [True]},
-            'alignment_loss': {'values': [True]},
+            'uniformity_loss': {'values': [False]},
+            'alignment_loss': {'values': [False]},
             'cross_uniformity_loss': {'values': [False]},
             'remove_contrastive_loss': {'values': [False]},
             'cyclip_loss': {'values': [False]},
@@ -103,22 +103,23 @@ if __name__ == "__main__":
             # "lr": {"max": 2e-4, "min": 4e-5},and
             # "lr": {'values': [0.000015]}, # 1.5e-5, optimized for 0.01 temp
             "lr": {'values': [1e-5]}, # 5e-4, from CyClip paper
-            'n_epochs': {'values': [25]},
-            'num_workers': {'values': [12]},
+            'n_epochs': {'values': [100]},
+            'num_workers': {'values': [8]},
             'zero_shot_acc_num_workers': {'values': [4]},
 
             # DATASET STUFF
+            # 'dataset': {'values': [ClipDatasets.CONCEPTUAL_CAPTIONS.value]},
             'dataset': {'values': [ClipDatasets.MSCOCO.value]},
             'validation_dataset_size': {'values': [512]},
             'validation_batch_size': {'values': [512]},
             'use_small_trainloader': {'values': [False]}, 
-            'cifar10_acc': {'values': [True]}, 
+            'cifar10_acc': {'values': [False]}, 
             'use_train_as_val': {'values': [False]}, # SET
 
             'save_encoder_hidden_states': {'values': [False]},
             'n_embeds_to_save': {'values': [512]},
 
-            'seed': {'values': [42]},
+            'seed': {'values': [44]},
         },
     }
 

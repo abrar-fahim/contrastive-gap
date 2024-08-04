@@ -40,8 +40,8 @@ from dataset_processors.cifar10_processor import CIFAR10Processor
 from dataset_processors.imagenet_processor import ImageNet1k
 from dataset_processors.caltech101_processor import Caltech101Processor
 from dataset_processors.dtd_processor import DTDProcessor
+from dataset_processors.food101_processor import Food101Processor
 from clips.clip_assembler import ClipAssembler
-
 
 
 config_cuda_device = 'cuda:5'
@@ -145,16 +145,18 @@ def get_gap_stuff(evaluator: Evaluator):
 def get_zs_stuff(clip_model, evaluator: Evaluator):
 
     return {
-        'imagenet_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, ImageNet1k()),
+
+        'food101_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, Food101Processor()),
+        # 'imagenet_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, ImageNet1k()),
         
-        'dtd_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, DTDProcessor()),
+        # 'dtd_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, DTDProcessor()),
         
-        'caltech101_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, Caltech101Processor()),
+        # 'caltech101_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, Caltech101Processor()),
         
         
-        'cifar10_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor()),
+        # 'cifar10_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR10Processor()),
         
-        'cifar100_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor()),
+        # 'cifar100_zs_acc': evaluator.get_dataset_zero_shot_acc(clip_model, CIFAR100Processor()),
 
 
 
@@ -205,7 +207,7 @@ with torch.no_grad():
 
 
     # evaluator = Evaluator(MSCOCOProcessor(), val_batch_cache_file)
-    evaluator = Evaluator(ConceptualCaptionsProcessor(), val_batch_cache_file)
+    evaluator = Evaluator(ConceptualCaptionsProcessor(), val_batch_cache_file, load_train_dataset=False)
     # evaluator = Evaluator(MSCOCOProcessor())
 
 
@@ -247,17 +249,21 @@ with torch.no_grad():
 
         clip_model.half()
 
-        # evaluator.set_val_outputs(clip_model, output_loss=False)
+        evaluator.set_val_outputs(clip_model, output_loss=False)
 
-        # gap_stuff = get_gap_stuff(evaluator)
+        evaluator.set_outputs_to_use('val')
 
-        zs_stuff = get_zs_stuff(clip_model, evaluator)
-        with open(f'paper_evals/zs_stuff_{checkpoint_path.split("/")[-1]}_stuff_POST_PAPER.txt', 'w') as f:
+
+
+        gap_stuff = get_gap_stuff(evaluator)
+
+        # zs_stuff = get_zs_stuff(clip_model, evaluator)
+        with open(f'paper_evals/gap_stuff_{checkpoint_path.split("/")[-1]}_stuff_POST_PAPER.txt', 'w') as f:
 
             print({
                 'checkpoint_path': checkpoint_path,
-                # 'gap_stuff': gap_stuff
-                'zs_stuff': zs_stuff
+                'gap_stuff': gap_stuff
+                # 'zs_stuff': zs_stuff
             }, file=f)
 
 

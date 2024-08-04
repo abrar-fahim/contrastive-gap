@@ -1,0 +1,1 @@
+wandb sweep --project clipverse ./src/sweep_config.yaml
