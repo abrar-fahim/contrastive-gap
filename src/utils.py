@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from evaluate import load as load_evaluator
+# from evaluate import load as load_evaluator
 from src.config import *
 import wandb
 import random
@@ -713,9 +713,9 @@ def generate_csv_file_name(clip_model=None):
         elif 'name' in part:
             new_part = part.replace('name', str(selected_clip_model.value))
         elif 'iweight' in part:
-            new_part = part.replace('iweight', str(wandb.config['loss_weights']['image_to_text_weight']))
+            new_part = part.replace('iweight', str(wandb.config['i_t_loss_weight']))
         elif 'tweight' in part:
-            new_part = part.replace('tweight', str(wandb.config['loss_weights']['text_to_image_weight']))
+            new_part = part.replace('tweight', str(wandb.config['t_i_loss_weight']))
         elif 'loss' in part:
 
             loss_name = 'Lit'

@@ -1,1 +1,2 @@
-ViT-B-32,openai
+ft_clip,mscoco_default
+ft_clip,mscoco_cuaxu

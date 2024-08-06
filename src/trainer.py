@@ -275,7 +275,7 @@ class GradCacheTrainer(TrainerParent):
                     if wandb.config['train_only_one_batch']:
                         break
 
-                    if wandb.config['max_steps'] is not None and step >= wandb.config['max_steps']:
+                    if wandb.config['max_steps'] > 0 and step >= wandb.config['max_steps']:
                         break
 
                     step += 1
@@ -355,7 +355,7 @@ class Trainer(TrainerParent):
             # if wandb.config['train_only_one_batch']:
             #     break
 
-            if wandb.config['max_steps'] is not None and i >= wandb.config['max_steps']:
+            if wandb.config['max_steps'] > 0 and i >= wandb.config['max_steps']:
                 break
 
             if step % wandb.config['schedule_every'] == 0:

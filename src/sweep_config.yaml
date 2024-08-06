@@ -1,5 +1,5 @@
 program: src/wandb_main.py
-name: 6D different batch sizes
+name: 6D different batch sizes, finetune
 method: grid
 metric:
   goal: minimize
@@ -10,9 +10,9 @@ parameters:
   learnable_temperature:
     values: [False]
   clip_projection_dim: 
-    values: [6] # 512
+    values: [64] # 512
   batch_size: 
-    values: [64, 128, 256]
+    values: [32, 64, 128, 150]
   vision_model: 
     values: [VIT] # RN50 or VIT or VIT16
   use_scheduler: 
@@ -24,13 +24,13 @@ parameters:
   weight_decay:
     values: [0.1]
   train_from_scratch:
-    values: [True]
+    values: [False]
   continue_from_checkpoint: 
     values: [False]
   train_from_pretrained: 
-    values: [False]
+    values: [True]
   finetune_clip_backbone: 
-    values: [False]
+    values: [True]
   finetune_multi_layer_projection: 
     values: [False]
 
@@ -58,7 +58,7 @@ parameters:
   lr: 
     values: [1e-6] # 5e-4 from CyClip paper
   n_epochs: 
-    values: [25]
+    values: [200]
   num_workers: 
     values: [8]
   zero_shot_acc_num_workers: 
@@ -67,7 +67,7 @@ parameters:
   # DATASET STUFF
   # dataset: values: [ClipDatasets.CONCEPTUAL_CAPTIONS.value]
   dataset: 
-    values: [ClipDatasets.MSCOCO.value]
+    values: [mscoco] # conceptual_captions, mscoco
   validation_dataset_size: 
     values: [512]
   validation_batch_size: 
@@ -85,4 +85,107 @@ parameters:
     values: [512]
 
   seed: 
-    values: [44]
+    values: [2]
+
+
+
+  # others
+  grad_cache:
+    values: [False]
+  grad_cache_multiplier: 
+    values: [16]
+  max_steps:
+    values: [-1]
+  i_t_loss_weight:
+    values: [0.5]
+  t_i_loss_weight:
+    values: [0.5]
+  encoder1_modality:
+    values: [image]
+  encoder2_modality:
+    values: [text]
+  same_encoder:
+    values: [False]
+  one_encoder:
+    values: [False]
+  common_projection_layer:
+    values: [False]
+  W_layer_gap: 
+    values: [-1]
+  shared_transformer_layers: 
+    values: [False]
+  same_inputs:
+    values: [False]
+  second_caption_offset:
+    values: [False]
+  mismatched_pairs:
+    values: [False]
+  selected_clip_model:
+    values: [clip_finetuned_temp]
+
+  # loss
+  rsa_loss:
+    values: [False]
+  intra_modality_loss:
+    values: [False]
+  intra_modality_temperature:
+    values: [0.01]
+  pearson_loss:
+    values: [False]
+  scaled_denominator:
+    values: [False]
+  svd_loss:
+    values: [False]
+  uniform_cyclic_loss:
+    values: [False]
+  cyclic_direction_loss:
+    values: [False]
+  cosine_uniformity_loss:
+    values: [False]
+  cosine_align_loss:
+    values: [False]
+
+  # train 
+  train_only_one_batch:
+    values: [False]
+  use_cached_val_batch:
+    values: [False]
+  delete_val_batch_first:
+    values: [False]
+
+  small_train_loader_batch_size:
+    values: [6]
+
+  cifar_batch_size:
+    values: [128]
+  
+
+  openai_clip_model:
+    values: [ViT-B/32]
+  hf_clip_model:
+    values: [openai/clip-vit-base-patch32]
+  visualize_embeddings:
+    values: [False]
+  save_losses:
+    values: [False]
+  csv_path:
+    values: [stats/]
+  loss_file_name_template:
+    values: [Ttemp_loss_seed_trainmode_captionencoder_dim_val_bsize_dataset_vmodel_pretrained_POST_PAPER]
+  show_incorrect_images:
+    values: [False]
+  save_every:
+    values: [200]
+  do_checkpointing:
+    values: [True]
+  
+
+  
+  
+  
+
+  
+
+  
+  
+

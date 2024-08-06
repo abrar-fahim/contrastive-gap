@@ -39,6 +39,12 @@ class ClipAssembler():
 
         _, self.image_preprocessor = clip.load(wandb.config['openai_clip_model'], device=self.device)
 
+        self.openai_clip_tokenizer = clip.tokenize
+
+
+
+
+
 
         '''
         Setting text configs

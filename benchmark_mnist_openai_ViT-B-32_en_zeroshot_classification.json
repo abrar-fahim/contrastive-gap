@@ -1,0 +1,1 @@
+{"dataset": "wds/mnist", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.4883, "acc5": 0.8493, "mean_per_class_recall": 0.47749873131548454}, "language": "en"}

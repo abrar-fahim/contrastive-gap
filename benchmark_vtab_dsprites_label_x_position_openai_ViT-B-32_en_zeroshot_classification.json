@@ -1,0 +1,1 @@
+{"dataset": "wds/vtab/dsprites_label_x_position", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.03615993923611111, "acc5": 0.1731906467013889, "mean_per_class_recall": 0.0354793638206276}, "language": "en"}

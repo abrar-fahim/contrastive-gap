@@ -1,0 +1,1 @@
+{"dataset": "wds/vtab/pcam", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.622222900390625, "acc5": NaN, "mean_per_class_recall": 0.6223394088247084}, "language": "en"}

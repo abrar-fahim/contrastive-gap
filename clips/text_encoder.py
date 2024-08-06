@@ -98,9 +98,25 @@ class TextEncoder(Encoder):
 
 
 
-    def forward(self, captions: list, output_hidden_states=False):
+    def forward(self, captions: torch.Tensor, output_hidden_states=False, output_dict=False, input_tokenized_captions=False) -> torch.Tensor:
 
-        tokenized_captions = self.tokenize_captions(captions)
+        if input_tokenized_captions:
+
+            # input here is tokenized captions from openai clip tokenizer. Outputs of the form tensor([[49406,   320,  1125,   539,   320,  2368, 49407,     0,     0,     0,]])
+
+            # Create attention mask to mask out the zeros. Attn mask should have 0s and 1s
+
+            attention_mask = captions.ne(0).int()
+
+            tokenized_captions = {
+                'input_ids': captions,
+                'attention_mask': attention_mask
+            }
+
+        else:
+
+            tokenized_captions = self.tokenize_captions(captions)
+
 
         outputs = self.text_model(**tokenized_captions, output_hidden_states=output_hidden_states)
 
@@ -110,17 +126,18 @@ class TextEncoder(Encoder):
         if self.added_projection_layer is not None:
             outputs.text_embeds = self.added_projection_layer(outputs.text_embeds)
 
-            
+        if output_dict:
+            return {
+                'embeds': outputs.text_embeds,
+                'hidden_states': outputs.hidden_states if output_hidden_states else None,
+                'input_ids': tokenized_captions['input_ids']
+            }
+        else:
+            return outputs.text_embeds
 
-        return {
-            'embeds': outputs.text_embeds,
-            'hidden_states': outputs.hidden_states if output_hidden_states else None,
-            'input_ids': tokenized_captions['input_ids']
-        }
 
 
-
-    def tokenize_captions(self, captions: list):
+    def tokenize_captions(self, captions: list) -> torch.Tensor:
         return self.tokenizer(captions, padding=True, truncation=True, return_tensors="pt").to(self.device)
     
 

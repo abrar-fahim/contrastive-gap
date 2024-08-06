@@ -202,7 +202,7 @@ class HFClip(ClipParent):
             raise ValueError('No text encoder found')
         
 
-    def encode_image(self, images):
+    def encode_image(self, images, output_dict=False):
         '''
         Find which encoder is image
         '''
@@ -211,7 +211,7 @@ class HFClip(ClipParent):
             raise ValueError('Ambigious! Both encoders are image encoders')
         
         if self.one_encoder:
-            return self.encoder1(images)
+            return self.encoder1(images, output_dict=output_dict)
 
         if isinstance(self.encoder1, ImageEncoder):
             image_encoder = self.encoder1
@@ -222,15 +222,17 @@ class HFClip(ClipParent):
 
         # preprocessed_images = image_encoder.preprocess_images(images)
 
-        image_features = image_encoder(images)
+        image_features = image_encoder(images, output_dict=output_dict)
 
         # return pooled_output AFTER projection
         return image_features
 
     
-    def encode_text(self, captions):
+    def encode_text(self, tokenized_captions: torch.Tensor, output_dict=False):
         '''
         Returns pooled_output AFTER projection
+
+        captions = tokenized captions
         '''
 
 
@@ -239,7 +241,9 @@ class HFClip(ClipParent):
             raise ValueError('Ambigious! Both encoders are text encoders')
 
         if self.one_encoder:
-            return self.encoder1(captions)
+
+            # tokenized_captions = self.encoder1.tokenize_captions(captions)
+            return self.encoder1(tokenized_captions, output_dict=output_dict, input_tokenized_captions=True)
 
         # find which encoder is text
         if isinstance(self.encoder1, TextEncoder):
@@ -248,9 +252,12 @@ class HFClip(ClipParent):
             text_encoder = self.encoder2
         else:
             raise ValueError('No text encoder found')
-    
 
-        text_features = text_encoder(captions)
+
+
+
+        # tokenized_captions = text_encoder.tokenize_captions(captions)
+        text_features = text_encoder(tokenized_captions, output_dict=output_dict, input_tokenized_captions=True)
 
         return text_features
     
@@ -366,8 +373,8 @@ class HFClip(ClipParent):
 
         labels = torch.arange(normalized_encoder1_embeds.shape[0]).to(self.device)
 
-        encoder1_weight = wandb.config['loss_weights']['image_to_text_weight']
-        encoder2_weight = wandb.config['loss_weights']['text_to_image_weight']
+        encoder1_weight = wandb.config['i_t_loss_weight']
+        encoder2_weight = wandb.config['t_i_loss_weight']
 
         loss = 0 
 
@@ -814,8 +821,8 @@ class HFClip(ClipParent):
 
         labels = torch.arange(logits_per_image.shape[0]).to(self.device)
 
-        image_weight = wandb.config['loss_weights']['image_to_text_weight']
-        text_weight = wandb.config['loss_weights']['text_to_image_weight']
+        image_weight = wandb.config['i_t_loss_weight']
+        text_weight = wandb.config['t_i_loss_weight']
 
         loss = 0
 

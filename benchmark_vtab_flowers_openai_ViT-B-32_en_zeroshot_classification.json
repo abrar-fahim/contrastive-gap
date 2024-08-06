@@ -1,0 +1,1 @@
+{"dataset": "wds/vtab/flowers", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.6635225239876402, "acc5": 0.8568872987477638, "mean_per_class_recall": 0.6658134687317456}, "language": "en"}

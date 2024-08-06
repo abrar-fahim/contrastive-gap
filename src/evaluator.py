@@ -634,8 +634,8 @@ class Evaluator():
             for c in cifar_classes:
                 text = [template(c) for template in templates]
 
-
-                text_embedding = clip_model.encode_text(text)['embeds']
+                tokenized_text = clip_model.get_text_encoder().tokenize_captions(text)
+                text_embedding = clip_model.encode_text(tokenized_text, output_dict=True)['embeds']
                 text_embedding /= text_embedding.norm(dim = -1, keepdim = True)
                 text_embedding = text_embedding.mean(dim = 0)
                 text_embedding /= text_embedding.norm()
@@ -658,7 +658,7 @@ class Evaluator():
                 (cifar_val_imgs, cifar_val_labels) = batch
                 cifar_val_labels = cifar_val_labels.to(clip_model.device) # shape: ([64])
 
-                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)['embeds']
+                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs, output_dict=True)['embeds']
 
                 cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
 
@@ -1186,8 +1186,10 @@ class Evaluator():
             for c in cifar_classes:
                 text = [template(c) for template in templates]
 
+                tokenized_text = clip_model.get_text_encoder().tokenize_captions(text)
 
-                text_embedding = clip_model.encode_text(text)['embeds']
+
+                text_embedding = clip_model.encode_text(tokenized_text, output_dict=True)['embeds']
                 text_embedding /= text_embedding.norm(dim = -1, keepdim = True)
                 text_embedding = text_embedding.mean(dim = 0)
                 text_embedding /= text_embedding.norm()
@@ -1207,7 +1209,7 @@ class Evaluator():
                 
                 (cifar_val_imgs, cifar_val_indices) = batch
                 
-                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs)['embeds']
+                cifar_image_embeddings = clip_model.encode_image(cifar_val_imgs, output_dict=True)['embeds']
 
                 cifar_image_embeddings /= cifar_image_embeddings.norm(dim = -1, keepdim = True)
 

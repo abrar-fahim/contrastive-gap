@@ -33,7 +33,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda:5'
+config_cuda_device = 'cuda'
 
 training_hyperparameters = {
 
@@ -42,13 +42,13 @@ training_hyperparameters = {
     # 'cuda_device': 'cpu', # SET index of GPU
     'host': 'cirrus', 
     'seed': 44,
-    'selected_clip_model': selected_clip_model.value,
+    'selected_clip_model': selected_clip_model.value, # clip_finetuned_temp
     'dataset': ClipDatasets.MSCOCO.value,
     'batch_size': 64, 
     'grad_cache': False,
     'grad_cache_multiplier': 16,
     'n_epochs': 9, 
-    'max_steps': None, # SET or None, in which case each epoch goes through all the data
+    'max_steps': -1, # SET or -1, in which case each epoch goes through all the data
     'lr': 1e-6,
     'use_scheduler': 'none', # can be EXP or COSINE or NONE
     'schedule_every': 400, # num steps, NOT epochs
@@ -82,10 +82,13 @@ training_hyperparameters = {
     'small_train_loader_batch_size': 6, # SET
     'num_workers': 16,
     'zero_shot_acc_num_workers': 4,
-    'loss_weights': {
-        'image_to_text_weight': 0.5,
-        'text_to_image_weight': 0.5,
-    },
+
+    'i_t_loss_weight': 0.5,
+    't_i_loss_weight': 0.5,
+    # 'loss_weights': {
+    #     'image_to_text_weight': 0.5,
+    #     'text_to_image_weight': 0.5,
+    # },
 
 
     # Architecture settings

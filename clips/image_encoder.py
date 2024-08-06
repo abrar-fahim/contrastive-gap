@@ -105,7 +105,7 @@ class ImageEncoder(Encoder):
             # requires grad stuff LATER
 
 
-    def forward(self, images, output_hidden_states=False):
+    def forward(self, images, output_hidden_states=False, output_dict=False):
 
         '''
         images are preprocessed images
@@ -125,11 +125,16 @@ class ImageEncoder(Encoder):
         if self.added_projection_layer is not None:
             image_features.image_embeds = self.added_projection_layer(image_features.image_embeds)
 
-        return {
-            'embeds': image_features.image_embeds,
-            'hidden_states': image_features.hidden_states if output_hidden_states else None,
-            'input_ids': None
-        }
+        if output_dict:
+
+            return {
+                'embeds': image_features.image_embeds,
+                'hidden_states': image_features.hidden_states if output_hidden_states else None,
+                'input_ids': None
+            }
+        else:
+            return image_features.image_embeds
+
     
 
 

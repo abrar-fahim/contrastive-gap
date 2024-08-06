@@ -1,0 +1,1 @@
+{"dataset": "wds/vtab/eurosat", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.5042592592592593, "acc5": 0.9231481481481482, "mean_per_class_recall": 0.4888312370520236}, "language": "en"}

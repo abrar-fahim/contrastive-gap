@@ -1,0 +1,1 @@
+{"dataset": "wds/vtab/resisc45", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.5371428571428571, "acc5": 0.8674603174603175, "mean_per_class_recall": 0.5402131292780799}, "language": "en"}

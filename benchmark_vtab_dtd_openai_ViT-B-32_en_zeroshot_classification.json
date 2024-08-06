@@ -1,0 +1,1 @@
+{"dataset": "wds/vtab/dtd", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.44361702127659575, "acc5": 0.7659574468085106, "mean_per_class_recall": 0.4441489361702129}, "language": "en"}
