@@ -1,5 +1,6 @@
 program: src/wandb_main.py
-name: 50D, diff batch sizes, 1e- lr
+name: Retesting that gap does NOT close in ideal scenario
+description: This time, I have full MSCOCO, and smaller lr. Val batch size is 512. I'm trying to push the model to close the gap. If I can, then my hypothesis may be flawed. Running with 3 seeds.
 method: grid
 metric:
   goal: minimize
@@ -10,9 +11,9 @@ parameters:
   learnable_temperature:
     values: [False]
   clip_projection_dim: 
-    values: [35] # 512
+    values: [512] # 512
   batch_size: 
-    values: [8, 12, 16, 32, 48, 64]
+    values: [64]
   vision_model: 
     values: [VIT] # RN50 or VIT or VIT16
   use_scheduler: 
@@ -30,7 +31,7 @@ parameters:
   train_from_pretrained: 
     values: [True]
   finetune_clip_backbone: 
-    values: [True]
+    values: [False]
   finetune_multi_layer_projection: 
     values: [False]
 
@@ -85,7 +86,7 @@ parameters:
     values: [512]
 
   seed: 
-    values: [2]
+    values: [2, 42, 999]
 
 
 
@@ -103,7 +104,7 @@ parameters:
   encoder1_modality:
     values: [image]
   encoder2_modality:
-    values: [text]
+    values: [image]
   same_encoder:
     values: [False]
   one_encoder:
@@ -111,11 +112,11 @@ parameters:
   common_projection_layer:
     values: [False]
   W_layer_gap: 
-    values: [-1]
+    values: [0]
   shared_transformer_layers: 
     values: [False]
   same_inputs:
-    values: [False]
+    values: [True]
   second_caption_offset:
     values: [False]
   mismatched_pairs:

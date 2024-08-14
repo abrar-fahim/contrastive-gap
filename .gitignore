@@ -179,4 +179,4 @@ dataset
 
 checkpoints/downloaded checkpoints/
 
-CLIP_benchmark/
+clip_benchmarks/

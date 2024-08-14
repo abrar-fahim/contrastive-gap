@@ -1,2 +1,2 @@
-ft_clip,mscoco_default
-ft_clip,mscoco_cuaxu
+ft_clip,concaps_default
+ft_clip,concaps_cuaxu

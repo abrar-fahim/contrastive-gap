@@ -187,7 +187,16 @@ class Evaluator():
 
                 mscoco_train_imgs = torch.empty(wandb.config['validation_dataset_size'], 3, 224, 224)
 
-                mscoco_train_captions = [None] * wandb.config['validation_dataset_size']
+                if wandb.config['encoder2_modality'] == 'text':
+
+                    mscoco_train_captions = [None] * wandb.config['validation_dataset_size']
+                elif wandb.config['encoder2_modality'] == 'image':
+
+                    mscoco_train_captions = torch.empty(wandb.config['validation_dataset_size'], 3, 224, 224)
+                else:
+                    raise ValueError('encoder2_modality should be either text or image')
+                
+                
 
                 
 

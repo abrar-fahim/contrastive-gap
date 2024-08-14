@@ -264,16 +264,16 @@ class HFClip(ClipParent):
 
     def encoder1_features(self, inputs):
 
-        return self.encoder1(inputs)
+        return self.encoder1(inputs, output_dict=True)
     
 
 
     def encoder2_features(self, inputs):
 
         if self.one_encoder:
-            return self.encoder1(inputs)
+            return self.encoder1(inputs, output_dict=True)
 
-        return self.encoder2(inputs)
+        return self.encoder2(inputs, output_dict=True)
 
     
     def pool_hidden_states(self, hidden_state: torch.FloatTensor):
@@ -305,7 +305,7 @@ class HFClip(ClipParent):
         )
         '''
 
-        encoder1_outputs = self.encoder1(encoder1_inputs, output_hidden_states)
+        encoder1_outputs = self.encoder1(encoder1_inputs, output_hidden_states, output_dict=True)
 
         encoder1_hidden_states  = encoder1_outputs['hidden_states']
         encoder1_input_ids = encoder1_outputs['input_ids']
@@ -323,9 +323,9 @@ class HFClip(ClipParent):
 
 
         if self.one_encoder:
-            encoder2_outputs = self.encoder1(encoder2_inputs, output_hidden_states)
+            encoder2_outputs = self.encoder1(encoder2_inputs, output_hidden_states, output_dict=True)
         else:
-            encoder2_outputs = self.encoder2(encoder2_inputs, output_hidden_states)
+            encoder2_outputs = self.encoder2(encoder2_inputs, output_hidden_states, output_dict=True)
 
         encoder2_hidden_states  = encoder2_outputs['hidden_states']
         encoder2_input_ids = encoder2_outputs['input_ids']
