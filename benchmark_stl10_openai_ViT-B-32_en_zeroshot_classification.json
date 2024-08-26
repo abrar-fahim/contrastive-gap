@@ -1,1 +1,0 @@
-{"dataset": "wds/stl10", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.97125, "acc5": 0.9995, "mean_per_class_recall": 0.9713750000000001}, "language": "en"}

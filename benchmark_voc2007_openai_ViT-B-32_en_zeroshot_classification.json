@@ -1,1 +1,0 @@
-{"dataset": "wds/voc2007", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.7639556623931624, "acc5": 0.9590010683760684, "mean_per_class_recall": 0.8053255404815547}, "language": "en"}

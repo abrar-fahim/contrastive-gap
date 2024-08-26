@@ -1,6 +1,6 @@
 program: src/wandb_main.py
 name: Retesting that gap does NOT close in ideal scenario
-description: This time, I have full MSCOCO, and smaller lr. Val batch size is 512. I'm trying to push the model to close the gap. If I can, then my hypothesis may be flawed. Running with 3 seeds.
+description: This time, I have full MSCOCO, and smaller lr. Val batch size is 512. I'm trying to push the model to close the gap. If I can, then my hypothesis may be flawed. Running with 3 seeds. Training from scratch
 method: grid
 metric:
   goal: minimize
@@ -25,11 +25,11 @@ parameters:
   weight_decay:
     values: [0.1]
   train_from_scratch:
-    values: [False]
+    values: [True]
   continue_from_checkpoint: 
     values: [False]
   train_from_pretrained: 
-    values: [True]
+    values: [False]
   finetune_clip_backbone: 
     values: [False]
   finetune_multi_layer_projection: 

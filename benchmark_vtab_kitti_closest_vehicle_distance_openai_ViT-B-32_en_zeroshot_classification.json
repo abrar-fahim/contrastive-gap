@@ -1,1 +1,0 @@
-{"dataset": "wds/vtab/kitti_closest_vehicle_distance", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.2742616033755274, "acc5": NaN, "mean_per_class_recall": 0.40417802963771}, "language": "en"}

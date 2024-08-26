@@ -18,7 +18,7 @@ from torchvision.transforms.functional import resized_crop
 
 class MSCOCOProcessor(DatasetProcessorParent):
 
-    def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False) -> None:
+    def __init__(self, return_org_imgs_collate_fn=False, return_only_captions=False, root='.') -> None:
         self.train_dataset = None
         self.full_train_dataset = None
         self.train_dataloader: DataLoader = None
@@ -32,6 +32,8 @@ class MSCOCOProcessor(DatasetProcessorParent):
         self.val_tokenized_captions = None
 
         self.use_cached_tokenized_captions = False
+
+        self.root = root
 
         self.device = torch.device(config_cuda_device if torch.cuda.is_available() else "cpu")
 
@@ -256,11 +258,13 @@ class MSCOCOProcessor(DatasetProcessorParent):
     
     def load_train_dataset(self):
 
+        dset.CocoDetection()
+
         self.full_train_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco2/train2017',
+            root = f'{self.root}/datasets/mscoco2/train2017',
             # root = './datasets/mscoco/train2014',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco_train/train2014',
-            annFile = 'datasets/mscoco2/annotations/captions_train2017.json',
+            annFile = f'{self.root}/datasets/mscoco2/annotations/captions_train2017.json',
             # annFile = 'datasets/mscoco/annotations/captions_train2014.json',
             transform=self.image_preprocessor,
         )
@@ -294,10 +298,10 @@ class MSCOCOProcessor(DatasetProcessorParent):
    
     def load_val_dataset(self):
         val_dataset = dset.CocoCaptions(
-            root = './datasets/mscoco2/val2017',
+            root = f'{self.root}/datasets/mscoco2/val2017',
             # root = './datasets/mscoco/val2014',
             # root = '/Volumes/SanDisk Extreme SSD Media/clipverse/mscoco copy/val2014',
-            annFile= './datasets/mscoco2/annotations/captions_val2017.json',
+            annFile= f'{self.root}/datasets/mscoco2/annotations/captions_val2017.json',
             # annFile= './datasets/mscoco/annotations/captions_val2014.json',
             transform=self.image_preprocessor,
         )

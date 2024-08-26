@@ -1,1 +1,0 @@
-{"dataset": "wds/objectnet", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.4416388500053839, "acc5": 0.7022719931086465, "mean_per_class_recall": 0.42684552027055467}, "language": "en"}

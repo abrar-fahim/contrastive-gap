@@ -1,1 +1,0 @@
-{"dataset": "wds/vtab/diabetic_retinopathy", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.4559643777829857, "acc5": 1.0, "mean_per_class_recall": 0.2225100331416181}, "language": "en"}

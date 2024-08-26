@@ -1,1 +1,0 @@
-{"dataset": "wds/vtab/smallnorb_label_azimuth", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.05983539094650206, "acc5": 0.2891358024691358, "mean_per_class_recall": 0.0614001159788594}, "language": "en"}

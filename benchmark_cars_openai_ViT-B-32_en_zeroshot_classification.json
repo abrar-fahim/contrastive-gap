@@ -1,1 +1,0 @@
-{"dataset": "wds/cars", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.5965675910956348, "acc5": 0.9159308543713468, "mean_per_class_recall": 0.5976188544631}, "language": "en"}

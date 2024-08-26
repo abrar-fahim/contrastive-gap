@@ -1,1 +1,0 @@
-{"dataset": "wds/mscoco_captions", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_retrieval", "metrics": {"image_retrieval_recall@5": 0.5595361590385437, "text_retrieval_recall@5": 0.7495999932289124}, "language": "en"}

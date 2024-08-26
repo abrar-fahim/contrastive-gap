@@ -17,8 +17,8 @@ from tqdm import tqdm
 
 class CIFAR10Processor(DatasetProcessorParent):
 
-    def __init__(self) -> None:
-        self.root = './datasets/cifar10'
+    def __init__(self, root = '.') -> None:
+        self.root = f'{root}/datasets/cifar10'
         super().__init__()
 
         self.name = 'CIFAR 10'

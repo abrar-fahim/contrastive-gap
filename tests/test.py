@@ -1,10 +1,13 @@
-a=  [None] * 20
+from torchmetrics.text.spice import SPICE
 
-b = ['a', 'b']
+spice = SPICE()
 
-a[1:3] = b
+# Assuming you have your candidate and reference captions
+candidate = ["A dog is running in the park"]
+references = [["A brown dog runs through the grass", "A canine plays in a field"]]
 
-print(a)
+score = spice(candidate, references)
+print(f"SPICE score: {score}")
 exit()
 
 import torch

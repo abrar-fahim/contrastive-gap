@@ -1,1 +1,0 @@
-{"dataset": "wds/fer2013", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.4140429088882697, "acc5": 0.9478963499582056, "mean_per_class_recall": 0.36225622078787323}, "language": "en"}

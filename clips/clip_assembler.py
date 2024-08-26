@@ -14,8 +14,6 @@ from clips.projection_layer import ProjectionLayer
 
 class ClipAssembler():
 
-    
-
 
 
     def __init__(self) -> None:

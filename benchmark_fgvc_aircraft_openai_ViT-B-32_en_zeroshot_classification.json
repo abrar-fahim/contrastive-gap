@@ -1,1 +1,0 @@
-{"dataset": "wds/fgvc_aircraft", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.19651965196519652, "acc5": 0.4965496549654965, "mean_per_class_recall": 0.19767379679144384}, "language": "en"}

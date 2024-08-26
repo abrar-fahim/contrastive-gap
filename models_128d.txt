@@ -1,0 +1,11 @@
+ft_clip,mscoco_default_128d_s42
+ft_clip,mscoco_cua_128d_s42
+ft_clip,mscoco_cuaxu_128d_s42
+
+ft_clip,mscoco_default_128d_s24
+ft_clip,mscoco_cua_128d_s24
+ft_clip,mscoco_cuaxu_128d_s24
+
+ft_clip,mscoco_default_128d_s44
+ft_clip,mscoco_cua_128d_s44
+ft_clip,mscoco_cuaxu_128d_s44

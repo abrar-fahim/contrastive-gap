@@ -1,1 +1,0 @@
-{"dataset": "wds/voc2007_multilabel", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"mean_average_precision": 0.7601621747016907}, "language": "en"}

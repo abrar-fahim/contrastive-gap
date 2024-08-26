@@ -91,7 +91,9 @@ class Evaluator():
         else:
 
             # self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
-            self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]    
+            # self.zero_shot_datasets: list[DatasetProcessorParent] = [CIFAR10Processor()]   
+            # 
+            self.zero_shot_datasets = []
 
 
         self.encoder1_pooled_hidden_states = []
@@ -110,6 +112,8 @@ class Evaluator():
         if os.path.exists(self.mscoco_batch_file_path) and wandb.config['delete_val_batch_first']:
             print('deleting batch from cache')
             os.remove(self.mscoco_batch_file_path)
+
+        print(f'--- validation dataset size {wandb.config["validation_dataset_size"]}')
 
 
         if not (os.path.exists(self.mscoco_batch_file_path) and wandb.config['use_cached_val_batch']):

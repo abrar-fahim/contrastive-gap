@@ -1,1 +1,0 @@
-{"dataset": "wds/vtab/pets", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.8735350231670755, "acc5": 0.9929136004360861, "mean_per_class_recall": 0.8702894148518912}, "language": "en"}

@@ -1,1 +1,0 @@
-{"dataset": "wds/vtab/svhn", "model": "ViT-B-32", "pretrained": "openai", "task": "zeroshot_classification", "metrics": {"acc1": 0.13544867854947756, "acc5": 0.6520052243392748, "mean_per_class_recall": 0.1444044002887051}, "language": "en"}
