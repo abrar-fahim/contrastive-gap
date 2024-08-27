@@ -3,7 +3,7 @@ Prepare config details for evaluating CLIP on the most common settings
 '''
 
 
-def prepare_config(clip_projection_dim = 128, cuda_device='cuda', seed=2):
+def prepare_config(clip_projection_dim = 128, cuda_device='cuda', seed=2, wandb_enabled=True):
 
     '''
     Prepare config details for evaluating CLIP on the most common settings
@@ -79,9 +79,11 @@ def prepare_config(clip_projection_dim = 128, cuda_device='cuda', seed=2):
     training_hyperparameters['cuda_device'] = config_cuda_device
     training_hyperparameters['num_workers'] = 12
 
+    if wandb_enabled:
 
-
-    wandb.init(config=training_hyperparameters)
+        wandb.init(config=training_hyperparameters)
+    else:
+        wandb.init(config=training_hyperparameters, mode="disabled")
 
 
     # set seed

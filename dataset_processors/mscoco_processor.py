@@ -258,8 +258,6 @@ class MSCOCOProcessor(DatasetProcessorParent):
     
     def load_train_dataset(self):
 
-        dset.CocoDetection()
-
         self.full_train_dataset = dset.CocoCaptions(
             root = f'{self.root}/datasets/mscoco2/train2017',
             # root = './datasets/mscoco/train2014',
