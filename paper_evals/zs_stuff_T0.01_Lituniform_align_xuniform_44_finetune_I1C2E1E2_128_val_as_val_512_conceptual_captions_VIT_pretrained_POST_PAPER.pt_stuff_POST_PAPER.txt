@@ -1,1 +1,0 @@
-{'checkpoint_path': 'checkpoints/T0.01_Lituniform_align_xuniform_44_finetune_I1C2E1E2_128_val_as_val_512_conceptual_captions_VIT_pretrained_POST_PAPER.pt', 'zs_stuff': {'imagenet_zs_acc': 0.33622, 'dtd_zs_acc': 0.24308510638297873, 'caltech101_zs_acc': 0.7721562752103261, 'cifar10_zs_acc': 0.8452, 'cifar100_zs_acc': 0.5463}}

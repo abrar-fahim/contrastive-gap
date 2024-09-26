@@ -1,1 +1,0 @@
-{'checkpoint_path': 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_64_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt', 'gap_stuff': {'dtd_lp_acc': 0.6542553191489362, 'caltech101_lp_acc': 0.9200856527368112, 'cifar10_lp_acc': 0.9108, 'cifar100_lp_acc': 0.6576}}

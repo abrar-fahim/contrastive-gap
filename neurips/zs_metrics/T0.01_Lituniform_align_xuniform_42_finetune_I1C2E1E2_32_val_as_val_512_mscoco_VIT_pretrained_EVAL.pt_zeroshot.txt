@@ -1,1 +1,0 @@
-{'checkpoint_path': 'checkpoints/T0.01_Lituniform_align_xuniform_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt', 'gap_stuff': {'imagenet_zs_acc': 0.1345, 'dtd_zs_acc': 0.10691489361702128, 'caltech101_zs_acc': 0.47055433905727784, 'cifar10_zs_acc': 0.7417, 'cifar100_zs_acc': 0.3247}}

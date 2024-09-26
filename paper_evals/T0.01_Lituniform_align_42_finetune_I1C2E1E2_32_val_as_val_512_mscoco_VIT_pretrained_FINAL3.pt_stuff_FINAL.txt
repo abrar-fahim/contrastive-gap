@@ -1,7 +1,0 @@
-{'checkpoint_path': 'checkpoints/T0.01_Lituniform_align_42_finetune_I1C2E1E2_32_val_as_val_512_mscoco_VIT_pretrained_FINAL3.pt', 'gap_stuff': {'mean_cosine_similarity': 0.8141720294952393, 'linear_seperability_accuracy': 0.595669687814703, 'centroid_euclidean_distance': 0.06688866019248962, 'val_image_classification_acc': {1: 0.24062877871825877, 3: 0.4091092301491334, 5: 0.514913341394599, 10: 0.6503426037887948}, 'get_val_image_retrieval_acc': {1: 0.22511084240225715, 3: 0.4026602176541717, 5: 0.5026199113260782, 10: 0.6318016928657799}, 'image_variances': tensor([0.0719, 0.0681, 0.0574, 0.0559, 0.0547, 0.0533, 0.0472, 0.0457, 0.0438,
-        0.0419, 0.0406, 0.0385, 0.0369, 0.0350, 0.0312, 0.0302, 0.0283, 0.0274,
-        0.0245, 0.0221, 0.0202, 0.0194, 0.0169, 0.0153, 0.0140, 0.0122, 0.0112,
-        0.0093, 0.0088, 0.0072, 0.0056, 0.0053]), 'text_variances': tensor([0.0689, 0.0631, 0.0595, 0.0565, 0.0549, 0.0533, 0.0489, 0.0459, 0.0453,
-        0.0427, 0.0412, 0.0392, 0.0376, 0.0350, 0.0324, 0.0301, 0.0271, 0.0267,
-        0.0250, 0.0228, 0.0207, 0.0189, 0.0171, 0.0157, 0.0136, 0.0125, 0.0104,
-        0.0094, 0.0083, 0.0070, 0.0060, 0.0047]), 'uniformity_loss': {'image_uniformity_loss': tensor(-3.5230, device='cuda:5'), 'text_uniformity_loss': tensor(-3.5081, device='cuda:5'), 'total_uniformity_loss': tensor(-3.5155, device='cuda:5'), 'cross_encoder_uniform_loss': tensor(-3.5381, device='cuda:5')}, 'alignment_loss': tensor(0.3717, device='cuda:5')}}

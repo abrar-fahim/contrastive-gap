@@ -1,1 +1,0 @@
-{'checkpoint_path': 'checkpoints/T0.01_Lit_42_finetune_I1C2E1E2_128_val_as_val_512_mscoco_VIT_pretrained_EVAL.pt', 'gap_stuff': {'dtd_lp_acc': 0.624468085106383, 'caltech101_lp_acc': 0.9184763719906651, 'cifar10_lp_acc': 0.9082, 'cifar100_lp_acc': 0.678}}
