@@ -180,3 +180,5 @@ dataset
 checkpoints/downloaded checkpoints/
 
 clip_benchmarks/
+
+tests/winoground.py
