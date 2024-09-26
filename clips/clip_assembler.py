@@ -27,6 +27,8 @@ class ClipAssembler():
         self.validate_config()
         self.device = config_cuda_device if torch.cuda.is_available() else "cpu"
 
+        print(f'--- config_cuda_device = {config_cuda_device} ---')
+
         self.clip_tokenizer = AutoTokenizer.from_pretrained(wandb.config['hf_clip_model'])
 
         if wandb.config['second_caption_offset']:

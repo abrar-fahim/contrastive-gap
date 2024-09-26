@@ -1,5 +1,5 @@
 program: src/wandb_main.py
-name: 50D, diff batch sizes, 1e- lr
+name: ICLR run, 512D DEFAULT
 method: grid
 metric:
   goal: minimize
@@ -10,9 +10,9 @@ parameters:
   learnable_temperature:
     values: [False]
   clip_projection_dim: 
-    values: [35] # 512
+    values: [512] # 512
   batch_size: 
-    values: [8, 12, 16, 32, 48, 64]
+    values: [64]
   vision_model: 
     values: [VIT] # RN50 or VIT or VIT16
   use_scheduler: 
@@ -35,21 +35,22 @@ parameters:
     values: [False]
 
 
-
   # LOSS STUFF
   intra_modality_loss: 
-    values: [False]
-  uniformity_loss: 
-    values: [False]
-  alignment_loss: 
-    values: [False]
-  cross_uniformity_loss: 
     values: [False]
   remove_contrastive_loss: 
     values: [False]
   cyclip_loss: 
     values: [False]
   simclr_loss: 
+    values: [False]
+
+  # ACTUALLY USING
+  uniformity_loss: 
+    values: [False]
+  alignment_loss: 
+    values: [False]
+  cross_uniformity_loss: 
     values: [False]
   # weight_decay: min: 0.2 max: 0.6
 
@@ -58,7 +59,7 @@ parameters:
   lr: 
     values: [1e-6] # 5e-4 from CyClip paper
   n_epochs: 
-    values: [200]
+    values: [9]
   num_workers: 
     values: [8]
   zero_shot_acc_num_workers: 
@@ -85,10 +86,7 @@ parameters:
     values: [512]
 
   seed: 
-    values: [2]
-
-
-
+    values: [2, 24, 42]
   # others
   grad_cache:
     values: [False]

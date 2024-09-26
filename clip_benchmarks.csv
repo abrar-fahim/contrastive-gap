@@ -1,165 +1,165 @@
-pretrained,acc5,text_retrieval_recall@5,language,image_retrieval_recall@5,mean_average_precision,acc1,model,model_fullname,mean_per_class_recall,task,dataset
-concaps_cuaxu,0.30754881233677406,,en,,,0.08692948638229075,ft_clip,ft_clip concaps_cuaxu,0.08739391269097951,zeroshot_classification,wds/cars
-concaps_default,0.29996269120756125,,en,,,0.08842183807984082,ft_clip,ft_clip concaps_default,0.08812563843818653,zeroshot_classification,wds/cars
-mscoco_cuaxu,0.10981221241139162,,en,,,0.025618704141275962,ft_clip,ft_clip mscoco_cuaxu,0.02621811008701257,zeroshot_classification,wds/cars
-mscoco_default,0.08493968411889069,,en,,,0.016415868673050615,ft_clip,ft_clip mscoco_default,0.01700414894593956,zeroshot_classification,wds/cars
-concaps_cuaxu,0.15639810426540285,,en,,,0.04568720379146919,ft_clip,ft_clip concaps_cuaxu,0.0456872037914692,zeroshot_classification,wds/country211
-concaps_default,0.15734597156398103,,en,,,0.04578199052132701,ft_clip,ft_clip concaps_default,0.04611374407582938,zeroshot_classification,wds/country211
-mscoco_cuaxu,0.06530805687203792,,en,,,0.015071090047393364,ft_clip,ft_clip mscoco_cuaxu,0.015071090047393368,zeroshot_classification,wds/country211
-mscoco_default,0.056919431279620854,,en,,,0.013507109004739337,ft_clip,ft_clip mscoco_default,0.013601895734597157,zeroshot_classification,wds/country211
-concaps_cuaxu,0.8225132348843689,,en,,,0.3258567846196712,ft_clip,ft_clip concaps_cuaxu,0.29482090088056495,zeroshot_classification,wds/fer2013
-concaps_default,0.8349122318194483,,en,,,0.387712454722764,ft_clip,ft_clip concaps_default,0.3471880488733397,zeroshot_classification,wds/fer2013
-mscoco_cuaxu,0.6468375592086932,,en,,,0.10044580663137365,ft_clip,ft_clip mscoco_cuaxu,0.2098324087401003,zeroshot_classification,wds/fer2013
-mscoco_default,0.6312343271106158,,en,,,0.12733351908609641,ft_clip,ft_clip mscoco_default,0.15174292208012338,zeroshot_classification,wds/fer2013
-concaps_cuaxu,0.1926192619261926,,en,,,0.05700570057005701,ft_clip,ft_clip concaps_cuaxu,0.057308377896613194,zeroshot_classification,wds/fgvc_aircraft
-concaps_default,0.24362436243624364,,en,,,0.0675067506750675,ft_clip,ft_clip concaps_default,0.06760249554367201,zeroshot_classification,wds/fgvc_aircraft
-mscoco_cuaxu,0.1152115211521152,,en,,,0.025802580258025804,ft_clip,ft_clip mscoco_cuaxu,0.025231729055258466,zeroshot_classification,wds/fgvc_aircraft
-mscoco_default,0.11971197119711971,,en,,,0.027602760276027604,ft_clip,ft_clip mscoco_default,0.027673796791443852,zeroshot_classification,wds/fgvc_aircraft
-concaps_cuaxu,,0.8050000071525574,en,0.7372000217437744,,,ft_clip,ft_clip concaps_cuaxu,,zeroshot_retrieval,wds/flickr30k
-concaps_default,,0.8389999866485596,en,0.7354000210762024,,,ft_clip,ft_clip concaps_default,,zeroshot_retrieval,wds/flickr30k
-mscoco_cuaxu,,0.765999972820282,en,0.6877999901771545,,,ft_clip,ft_clip mscoco_cuaxu,,zeroshot_retrieval,wds/flickr30k
-mscoco_default,,0.765999972820282,en,0.6773999929428101,,,ft_clip,ft_clip mscoco_default,,zeroshot_retrieval,wds/flickr30k
-concaps_cuaxu,,0.746999979019165,en,0.6840000152587891,,,ft_clip,ft_clip concaps_cuaxu,,zeroshot_retrieval,wds/flickr8k
-concaps_default,,0.7710000276565552,en,0.7071999907493591,,,ft_clip,ft_clip concaps_default,,zeroshot_retrieval,wds/flickr8k
-mscoco_cuaxu,,0.7110000252723694,en,0.646399974822998,,,ft_clip,ft_clip mscoco_cuaxu,,zeroshot_retrieval,wds/flickr8k
-mscoco_default,,0.7570000290870667,en,0.6514000296592712,,,ft_clip,ft_clip mscoco_default,,zeroshot_retrieval,wds/flickr8k
-concaps_cuaxu,0.33167062549485354,,en,,,0.1041963578780681,ft_clip,ft_clip concaps_cuaxu,0.09269778532518673,zeroshot_classification,wds/gtsrb
-concaps_default,0.30102929532858275,,en,,,0.08646080760095012,ft_clip,ft_clip concaps_default,0.09948638709154382,zeroshot_classification,wds/gtsrb
-mscoco_cuaxu,0.23357086302454474,,en,,,0.07410926365795724,ft_clip,ft_clip mscoco_cuaxu,0.07940408494250759,zeroshot_classification,wds/gtsrb
-mscoco_default,0.2156769596199525,,en,,,0.06817102137767221,ft_clip,ft_clip mscoco_default,0.08231536060277214,zeroshot_classification,wds/gtsrb
-concaps_cuaxu,0.436,,en,,,0.17053333333333334,ft_clip,ft_clip concaps_cuaxu,0.18509734990850346,zeroshot_classification,wds/imagenet-a
-concaps_default,0.43733333333333335,,en,,,0.16386666666666666,ft_clip,ft_clip concaps_default,0.18109108732330095,zeroshot_classification,wds/imagenet-a
-mscoco_cuaxu,0.2614666666666667,,en,,,0.08973333333333333,ft_clip,ft_clip mscoco_cuaxu,0.11335988876264569,zeroshot_classification,wds/imagenet-a
-mscoco_default,0.22933333333333333,,en,,,0.07093333333333333,ft_clip,ft_clip mscoco_default,0.08946677325920101,zeroshot_classification,wds/imagenet-a
-concaps_cuaxu,0.636,,en,,,0.3405,ft_clip,ft_clip concaps_cuaxu,0.35408536219971976,zeroshot_classification,wds/imagenet-o
-concaps_default,0.6285,,en,,,0.3085,ft_clip,ft_clip concaps_default,0.324884902279523,zeroshot_classification,wds/imagenet-o
-mscoco_cuaxu,0.421,,en,,,0.172,ft_clip,ft_clip mscoco_cuaxu,0.17951296574942086,zeroshot_classification,wds/imagenet-o
-mscoco_default,0.398,,en,,,0.1555,ft_clip,ft_clip mscoco_default,0.16255665144109416,zeroshot_classification,wds/imagenet-o
-concaps_cuaxu,0.6913666666666667,,en,,,0.4402,ft_clip,ft_clip concaps_cuaxu,0.4163208915715079,zeroshot_classification,wds/imagenet-r
-concaps_default,0.6894,,en,,,0.4221666666666667,ft_clip,ft_clip concaps_default,0.4007461115035866,zeroshot_classification,wds/imagenet-r
-mscoco_cuaxu,0.40546666666666664,,en,,,0.19766666666666666,ft_clip,ft_clip mscoco_cuaxu,0.19062044626988062,zeroshot_classification,wds/imagenet-r
-mscoco_default,0.3641666666666667,,en,,,0.1688,ft_clip,ft_clip mscoco_default,0.16306083451926556,zeroshot_classification,wds/imagenet-r
-concaps_cuaxu,0.674,,en,,,0.37992,ft_clip,ft_clip concaps_cuaxu,0.37964,zeroshot_classification,wds/imagenet1k
-concaps_default,0.66828,,en,,,0.37614,ft_clip,ft_clip concaps_default,0.37636000000000003,zeroshot_classification,wds/imagenet1k
-mscoco_cuaxu,0.38692,,en,,,0.16372,ft_clip,ft_clip mscoco_cuaxu,0.16394,zeroshot_classification,wds/imagenet1k
-mscoco_default,0.35888,,en,,,0.15006,ft_clip,ft_clip mscoco_default,0.15002000000000001,zeroshot_classification,wds/imagenet1k
-concaps_cuaxu,0.48466269724301914,,en,,,0.24559335023285975,ft_clip,ft_clip concaps_cuaxu,0.24554196078431373,zeroshot_classification,wds/imagenet_sketch
-concaps_default,0.4835229617402582,,en,,,0.2405038416946688,ft_clip,ft_clip concaps_default,0.2406207843137255,zeroshot_classification,wds/imagenet_sketch
-mscoco_cuaxu,0.24891430368055964,,en,,,0.10047357975200928,ft_clip,ft_clip mscoco_cuaxu,0.10048156862745097,zeroshot_classification,wds/imagenet_sketch
-mscoco_default,0.21711961327595355,,en,,,0.08270942639863232,ft_clip,ft_clip mscoco_default,0.08262117647058824,zeroshot_classification,wds/imagenet_sketch
-concaps_cuaxu,0.6295,,en,,,0.3354,ft_clip,ft_clip concaps_cuaxu,0.3358,zeroshot_classification,wds/imagenetv2
-concaps_default,0.6245,,en,,,0.3285,ft_clip,ft_clip concaps_default,0.328,zeroshot_classification,wds/imagenetv2
-mscoco_cuaxu,0.3576,,en,,,0.1428,ft_clip,ft_clip mscoco_cuaxu,0.1429,zeroshot_classification,wds/imagenetv2
-mscoco_default,0.3255,,en,,,0.1302,ft_clip,ft_clip mscoco_default,0.1307,zeroshot_classification,wds/imagenetv2
-concaps_cuaxu,0.5469,,en,,,0.1309,ft_clip,ft_clip concaps_cuaxu,0.11855894586648046,zeroshot_classification,wds/mnist
-concaps_default,0.5703,,en,,,0.108,ft_clip,ft_clip concaps_default,0.10604953674966149,zeroshot_classification,wds/mnist
-mscoco_cuaxu,0.5159,,en,,,0.0985,ft_clip,ft_clip mscoco_cuaxu,0.10057336268258281,zeroshot_classification,wds/mnist
-mscoco_default,0.517,,en,,,0.1918,ft_clip,ft_clip mscoco_default,0.1941968732402369,zeroshot_classification,wds/mnist
-concaps_cuaxu,,0.5559999942779541,en,0.46485406160354614,,,ft_clip,ft_clip concaps_cuaxu,,zeroshot_retrieval,wds/mscoco_captions
-concaps_default,,0.5609999895095825,en,0.47892841696739197,,,ft_clip,ft_clip concaps_default,,zeroshot_retrieval,wds/mscoco_captions
-mscoco_cuaxu,,0.7021999955177307,en,0.6039184331893921,,,ft_clip,ft_clip mscoco_cuaxu,,zeroshot_retrieval,wds/mscoco_captions
-mscoco_default,,0.723800003528595,en,0.6219912171363831,,,ft_clip,ft_clip mscoco_default,,zeroshot_retrieval,wds/mscoco_captions
-concaps_cuaxu,0.5473780553461829,,en,,,0.30639603747173466,ft_clip,ft_clip concaps_cuaxu,0.2940565941077875,zeroshot_classification,wds/objectnet
-concaps_default,0.5282114784106816,,en,,,0.2803919457305912,ft_clip,ft_clip concaps_default,0.270049233924399,zeroshot_classification,wds/objectnet
-mscoco_cuaxu,0.3846236674921934,,en,,,0.18827393130181974,ft_clip,ft_clip mscoco_cuaxu,0.18071092175941,zeroshot_classification,wds/objectnet
-mscoco_default,0.3833853774092818,,en,,,0.16916119306557553,ft_clip,ft_clip mscoco_default,0.16385457017117067,zeroshot_classification,wds/objectnet
-concaps_cuaxu,nan,,en,,,0.527732015376167,ft_clip,ft_clip concaps_cuaxu,0.527050402408662,zeroshot_classification,wds/renderedsst2
-concaps_default,nan,,en,,,0.5211422295442065,ft_clip,ft_clip concaps_default,0.5204316484280007,zeroshot_classification,wds/renderedsst2
-mscoco_cuaxu,nan,,en,,,0.5035694673256452,ft_clip,ft_clip mscoco_cuaxu,0.5027557032018991,zeroshot_classification,wds/renderedsst2
-mscoco_default,nan,,en,,,0.5013728720483251,ft_clip,ft_clip mscoco_default,0.5005536737884315,zeroshot_classification,wds/renderedsst2
-concaps_cuaxu,0.9985,,en,,,0.954625,ft_clip,ft_clip concaps_cuaxu,0.9546250000000001,zeroshot_classification,wds/stl10
-concaps_default,0.99725,,en,,,0.945375,ft_clip,ft_clip concaps_default,0.94525,zeroshot_classification,wds/stl10
-mscoco_cuaxu,0.9985,,en,,,0.8765,ft_clip,ft_clip mscoco_cuaxu,0.8764999999999998,zeroshot_classification,wds/stl10
-mscoco_default,0.999,,en,,,0.869875,ft_clip,ft_clip mscoco_default,0.8696249999999999,zeroshot_classification,wds/stl10
-concaps_cuaxu,0.8727954833845192,,en,,,0.5610828107471909,ft_clip,ft_clip concaps_cuaxu,0.5220404673539091,zeroshot_classification,wds/sun397
-concaps_default,0.8524651966824208,,en,,,0.5330562554021001,ft_clip,ft_clip concaps_default,0.5008708829700189,zeroshot_classification,wds/sun397
-mscoco_cuaxu,0.6577597145852107,,en,,,0.3507916950181143,ft_clip,ft_clip mscoco_cuaxu,0.2760585220299809,zeroshot_classification,wds/sun397
-mscoco_default,0.6399580705077514,,en,,,0.3201261562793093,ft_clip,ft_clip mscoco_default,0.2650940331760515,zeroshot_classification,wds/sun397
-concaps_cuaxu,0.9151308760683761,,en,,,0.7156784188034188,ft_clip,ft_clip concaps_cuaxu,0.7629567361112602,zeroshot_classification,wds/voc2007
-concaps_default,0.9205395299145299,,en,,,0.6886351495726496,ft_clip,ft_clip concaps_default,0.7400008200090572,zeroshot_classification,wds/voc2007
-mscoco_cuaxu,0.9251469017094017,,en,,,0.7228231837606838,ft_clip,ft_clip mscoco_cuaxu,0.7642854656306731,zeroshot_classification,wds/voc2007
-mscoco_default,0.9312232905982906,,en,,,0.7443242521367521,ft_clip,ft_clip mscoco_default,0.7463759716371894,zeroshot_classification,wds/voc2007
-concaps_cuaxu,,,en,,0.7625216841697693,,ft_clip,ft_clip concaps_cuaxu,,zeroshot_classification,wds/voc2007_multilabel
-concaps_default,,,en,,0.758492112159729,,ft_clip,ft_clip concaps_default,,zeroshot_classification,wds/voc2007_multilabel
-mscoco_cuaxu,,,en,,0.7784862518310547,,ft_clip,ft_clip mscoco_cuaxu,,zeroshot_classification,wds/voc2007_multilabel
-mscoco_default,,,en,,0.7064222097396851,,ft_clip,ft_clip mscoco_default,,zeroshot_classification,wds/voc2007_multilabel
-concaps_cuaxu,0.9117502054231718,,en,,,0.7477403451109285,ft_clip,ft_clip concaps_cuaxu,0.7232317268164414,zeroshot_classification,wds/vtab/caltech101
-concaps_default,0.9150369761709121,,en,,,0.7599013968775677,ft_clip,ft_clip concaps_default,0.7349994242808716,zeroshot_classification,wds/vtab/caltech101
-mscoco_cuaxu,0.8238290879211175,,en,,,0.5321281840591618,ft_clip,ft_clip mscoco_cuaxu,0.4483720646307769,zeroshot_classification,wds/vtab/caltech101
-mscoco_default,0.8350041084634346,,en,,,0.5027115858668858,ft_clip,ft_clip mscoco_default,0.40706818653847165,zeroshot_classification,wds/vtab/caltech101
-concaps_cuaxu,0.8087,,en,,,0.5387,ft_clip,ft_clip concaps_cuaxu,0.5386000000000001,zeroshot_classification,wds/vtab/cifar100
-concaps_default,0.7672,,en,,,0.4895,ft_clip,ft_clip concaps_default,0.4899,zeroshot_classification,wds/vtab/cifar100
-mscoco_cuaxu,0.6165,,en,,,0.3375,ft_clip,ft_clip mscoco_cuaxu,0.3373999999999999,zeroshot_classification,wds/vtab/cifar100
-mscoco_default,0.5672,,en,,,0.3025,ft_clip,ft_clip mscoco_default,0.3019,zeroshot_classification,wds/vtab/cifar100
-concaps_cuaxu,0.9914,,en,,,0.8538,ft_clip,ft_clip concaps_cuaxu,0.8539999999999999,zeroshot_classification,wds/vtab/cifar10
-concaps_default,0.983,,en,,,0.7992,ft_clip,ft_clip concaps_default,0.7997,zeroshot_classification,wds/vtab/cifar10
-mscoco_cuaxu,0.9881,,en,,,0.8112,ft_clip,ft_clip mscoco_cuaxu,0.8113000000000001,zeroshot_classification,wds/vtab/cifar10
-mscoco_default,0.9863,,en,,,0.7943,ft_clip,ft_clip mscoco_default,0.7933999999999999,zeroshot_classification,wds/vtab/cifar10
-concaps_cuaxu,0.8723333333333333,,en,,,0.22246666666666667,ft_clip,ft_clip concaps_cuaxu,0.1658408390437986,zeroshot_classification,wds/vtab/clevr_closest_object_distance
-concaps_default,0.9096666666666666,,en,,,0.1618,ft_clip,ft_clip concaps_default,0.15385734120379765,zeroshot_classification,wds/vtab/clevr_closest_object_distance
-mscoco_cuaxu,0.918,,en,,,0.20706666666666668,ft_clip,ft_clip mscoco_cuaxu,0.1586264296074911,zeroshot_classification,wds/vtab/clevr_closest_object_distance
-mscoco_default,0.9149333333333334,,en,,,0.1704,ft_clip,ft_clip mscoco_default,0.14962696243032134,zeroshot_classification,wds/vtab/clevr_closest_object_distance
-concaps_cuaxu,0.726,,en,,,0.18193333333333334,ft_clip,ft_clip concaps_cuaxu,0.18281401910038558,zeroshot_classification,wds/vtab/clevr_count_all
-concaps_default,0.6756666666666666,,en,,,0.18493333333333334,ft_clip,ft_clip concaps_default,0.1844818522801231,zeroshot_classification,wds/vtab/clevr_count_all
-mscoco_cuaxu,0.7027333333333333,,en,,,0.17186666666666667,ft_clip,ft_clip mscoco_cuaxu,0.17082850115265275,zeroshot_classification,wds/vtab/clevr_count_all
-mscoco_default,0.728,,en,,,0.21546666666666667,ft_clip,ft_clip mscoco_default,0.21404129619812495,zeroshot_classification,wds/vtab/clevr_count_all
-concaps_cuaxu,1.0,,en,,,0.7092570892898993,ft_clip,ft_clip concaps_cuaxu,0.20901296568769495,zeroshot_classification,wds/vtab/diabetic_retinopathy
-concaps_default,1.0,,en,,,0.735903445043356,ft_clip,ft_clip concaps_default,0.19998726236346848,zeroshot_classification,wds/vtab/diabetic_retinopathy
-mscoco_cuaxu,1.0,,en,,,0.6741973283337239,ft_clip,ft_clip mscoco_cuaxu,0.21144989781631343,zeroshot_classification,wds/vtab/diabetic_retinopathy
-mscoco_default,1.0,,en,,,0.7354112959925005,ft_clip,ft_clip mscoco_default,0.19993836985427696,zeroshot_classification,wds/vtab/diabetic_retinopathy
-concaps_cuaxu,0.8270068176819881,,en,,,0.151440510226523,ft_clip,ft_clip concaps_cuaxu,0.15369472224495792,zeroshot_classification,wds/vtab/dmlab
-concaps_default,0.8038706839674511,,en,,,0.1278645260611392,ft_clip,ft_clip concaps_default,0.16033211091467717,zeroshot_classification,wds/vtab/dmlab
-mscoco_cuaxu,0.8450406861667034,,en,,,0.1785792830437651,ft_clip,ft_clip mscoco_cuaxu,0.17897748538797806,zeroshot_classification,wds/vtab/dmlab
-mscoco_default,0.8336925445348582,,en,,,0.14616230481636244,ft_clip,ft_clip mscoco_default,0.1681660523183054,zeroshot_classification,wds/vtab/dmlab
-concaps_cuaxu,0.12432183159722222,,en,,,0.024169921875,ft_clip,ft_clip concaps_cuaxu,0.024592963284307816,zeroshot_classification,wds/vtab/dsprites_label_orientation
-concaps_default,0.1115451388888889,,en,,,0.019124348958333332,ft_clip,ft_clip concaps_default,0.019496993922379528,zeroshot_classification,wds/vtab/dsprites_label_orientation
-mscoco_cuaxu,0.11751302083333333,,en,,,0.017822265625,ft_clip,ft_clip mscoco_cuaxu,0.017852863519821797,zeroshot_classification,wds/vtab/dsprites_label_orientation
-mscoco_default,0.11664496527777778,,en,,,0.023966471354166668,ft_clip,ft_clip mscoco_default,0.02422681494757486,zeroshot_classification,wds/vtab/dsprites_label_orientation
-concaps_cuaxu,0.15478515625,,en,,,0.031439887152777776,ft_clip,ft_clip concaps_cuaxu,0.031427810156939254,zeroshot_classification,wds/vtab/dsprites_label_x_position
-concaps_default,0.15409342447916666,,en,,,0.030978732638888888,ft_clip,ft_clip concaps_default,0.03165346645761121,zeroshot_classification,wds/vtab/dsprites_label_x_position
-mscoco_cuaxu,0.1509331597222222,,en,,,0.028645833333333332,ft_clip,ft_clip mscoco_cuaxu,0.028014558707107076,zeroshot_classification,wds/vtab/dsprites_label_x_position
-mscoco_default,0.155517578125,,en,,,0.030083550347222224,ft_clip,ft_clip mscoco_default,0.030103748996293703,zeroshot_classification,wds/vtab/dsprites_label_x_position
-concaps_cuaxu,0.1512993706597222,,en,,,0.0313720703125,ft_clip,ft_clip concaps_cuaxu,0.031022002077436113,zeroshot_classification,wds/vtab/dsprites_label_y_position
-concaps_default,0.15177408854166666,,en,,,0.031168619791666668,ft_clip,ft_clip concaps_default,0.03089558634000887,zeroshot_classification,wds/vtab/dsprites_label_y_position
-mscoco_cuaxu,0.1558295355902778,,en,,,0.031426323784722224,ft_clip,ft_clip mscoco_cuaxu,0.031583680476485736,zeroshot_classification,wds/vtab/dsprites_label_y_position
-mscoco_default,0.1559380425347222,,en,,,0.030734592013888888,ft_clip,ft_clip mscoco_default,0.03088464881345361,zeroshot_classification,wds/vtab/dsprites_label_y_position
-concaps_cuaxu,0.6095744680851064,,en,,,0.28882978723404257,ft_clip,ft_clip concaps_cuaxu,0.2877659574468085,zeroshot_classification,wds/vtab/dtd
-concaps_default,0.6313829787234042,,en,,,0.3047872340425532,ft_clip,ft_clip concaps_default,0.30691489361702123,zeroshot_classification,wds/vtab/dtd
-mscoco_cuaxu,0.28191489361702127,,en,,,0.09574468085106383,ft_clip,ft_clip mscoco_cuaxu,0.09627659574468087,zeroshot_classification,wds/vtab/dtd
-mscoco_default,0.28191489361702127,,en,,,0.08670212765957447,ft_clip,ft_clip mscoco_default,0.0872340425531915,zeroshot_classification,wds/vtab/dtd
-concaps_cuaxu,0.8629629629629629,,en,,,0.4325925925925926,ft_clip,ft_clip concaps_cuaxu,0.43212557228276116,zeroshot_classification,wds/vtab/eurosat
-concaps_default,0.8644444444444445,,en,,,0.3459259259259259,ft_clip,ft_clip concaps_default,0.35052428970418104,zeroshot_classification,wds/vtab/eurosat
-mscoco_cuaxu,0.6887037037037037,,en,,,0.28314814814814815,ft_clip,ft_clip mscoco_cuaxu,0.2661070337230388,zeroshot_classification,wds/vtab/eurosat
-mscoco_default,0.7001851851851851,,en,,,0.19648148148148148,ft_clip,ft_clip mscoco_default,0.1942730992327178,zeroshot_classification,wds/vtab/eurosat
-concaps_cuaxu,0.5124410473247683,,en,,,0.23987640266710034,ft_clip,ft_clip concaps_cuaxu,0.23382023552252681,zeroshot_classification,wds/vtab/flowers
-concaps_default,0.5332574402341844,,en,,,0.25776549032362983,ft_clip,ft_clip concaps_default,0.24654195846606208,zeroshot_classification,wds/vtab/flowers
-mscoco_cuaxu,0.15140673280208164,,en,,,0.05610668401366076,ft_clip,ft_clip mscoco_cuaxu,0.037362638332903035,zeroshot_classification,wds/vtab/flowers
-mscoco_default,0.16588063099691006,,en,,,0.050902585786306714,ft_clip,ft_clip mscoco_default,0.0384203788712994,zeroshot_classification,wds/vtab/flowers
-concaps_cuaxu,nan,,en,,,0.24613220815752462,ft_clip,ft_clip concaps_cuaxu,0.3490205380336524,zeroshot_classification,wds/vtab/kitti_closest_vehicle_distance
-concaps_default,nan,,en,,,0.21940928270042195,ft_clip,ft_clip concaps_default,0.2946136566459019,zeroshot_classification,wds/vtab/kitti_closest_vehicle_distance
-mscoco_cuaxu,nan,,en,,,0.39662447257383965,ft_clip,ft_clip mscoco_cuaxu,0.48863005985121716,zeroshot_classification,wds/vtab/kitti_closest_vehicle_distance
-mscoco_default,nan,,en,,,0.42053445850914206,ft_clip,ft_clip mscoco_default,0.5014207400579231,zeroshot_classification,wds/vtab/kitti_closest_vehicle_distance
-concaps_cuaxu,nan,,en,,,0.52252197265625,ft_clip,ft_clip concaps_cuaxu,0.5224608913085746,zeroshot_classification,wds/vtab/pcam
-concaps_default,nan,,en,,,0.500152587890625,ft_clip,ft_clip concaps_default,0.49993899090964555,zeroshot_classification,wds/vtab/pcam
-mscoco_cuaxu,nan,,en,,,0.485626220703125,ft_clip,ft_clip mscoco_cuaxu,0.48547283294859833,zeroshot_classification,wds/vtab/pcam
-mscoco_default,nan,,en,,,0.497955322265625,ft_clip,ft_clip mscoco_default,0.49774274188799544,zeroshot_classification,wds/vtab/pcam
-concaps_cuaxu,0.6355955301171982,,en,,,0.24938675388389206,ft_clip,ft_clip concaps_cuaxu,0.24804582859662208,zeroshot_classification,wds/vtab/pets
-concaps_default,0.6857454347233579,,en,,,0.2747342600163532,ft_clip,ft_clip concaps_default,0.2738179461329004,zeroshot_classification,wds/vtab/pets
-mscoco_cuaxu,0.37748705369310437,,en,,,0.08013082583810302,ft_clip,ft_clip mscoco_cuaxu,0.07909993969317825,zeroshot_classification,wds/vtab/pets
-mscoco_default,0.3586808394657945,,en,,,0.09375851730716817,ft_clip,ft_clip mscoco_default,0.09409285650817314,zeroshot_classification,wds/vtab/pets
-concaps_cuaxu,0.756031746031746,,en,,,0.4141269841269841,ft_clip,ft_clip concaps_cuaxu,0.4188293153985442,zeroshot_classification,wds/vtab/resisc45
-concaps_default,0.7792063492063492,,en,,,0.4384126984126984,ft_clip,ft_clip concaps_default,0.4435786203870395,zeroshot_classification,wds/vtab/resisc45
-mscoco_cuaxu,0.6460317460317461,,en,,,0.2949206349206349,ft_clip,ft_clip mscoco_cuaxu,0.29859761892197234,zeroshot_classification,wds/vtab/resisc45
-mscoco_default,0.6288888888888889,,en,,,0.28174603174603174,ft_clip,ft_clip mscoco_default,0.2844836384607234,zeroshot_classification,wds/vtab/resisc45
-concaps_cuaxu,0.27242798353909464,,en,,,0.051440329218107,ft_clip,ft_clip concaps_cuaxu,0.05229658075533691,zeroshot_classification,wds/vtab/smallnorb_label_azimuth
-concaps_default,0.29218106995884774,,en,,,0.059094650205761316,ft_clip,ft_clip concaps_default,0.05824480963653914,zeroshot_classification,wds/vtab/smallnorb_label_azimuth
-mscoco_cuaxu,0.2908641975308642,,en,,,0.05860082304526749,ft_clip,ft_clip mscoco_cuaxu,0.05836922816531193,zeroshot_classification,wds/vtab/smallnorb_label_azimuth
-mscoco_default,0.2823045267489712,,en,,,0.056707818930041155,ft_clip,ft_clip mscoco_default,0.05701489559267595,zeroshot_classification,wds/vtab/smallnorb_label_azimuth
-concaps_cuaxu,0.5535802469135802,,en,,,0.11522633744855967,ft_clip,ft_clip concaps_cuaxu,0.11721377843302244,zeroshot_classification,wds/vtab/smallnorb_label_elevation
-concaps_default,0.5466666666666666,,en,,,0.10567901234567902,ft_clip,ft_clip concaps_default,0.10749606427736523,zeroshot_classification,wds/vtab/smallnorb_label_elevation
-mscoco_cuaxu,0.5690534979423868,,en,,,0.12189300411522634,ft_clip,ft_clip mscoco_cuaxu,0.1213928112002414,zeroshot_classification,wds/vtab/smallnorb_label_elevation
-mscoco_default,0.5667489711934156,,en,,,0.1097119341563786,ft_clip,ft_clip mscoco_default,0.11053753893392021,zeroshot_classification,wds/vtab/smallnorb_label_elevation
-concaps_cuaxu,0.5291564228641672,,en,,,0.07125845113706208,ft_clip,ft_clip concaps_cuaxu,0.10104192069259663,zeroshot_classification,wds/vtab/svhn
-concaps_default,0.5984557467732022,,en,,,0.11213122311001844,ft_clip,ft_clip concaps_default,0.11597016345733871,zeroshot_classification,wds/vtab/svhn
-mscoco_cuaxu,0.5665334972341733,,en,,,0.08881376767055932,ft_clip,ft_clip mscoco_cuaxu,0.10661058349503949,zeroshot_classification,wds/vtab/svhn
-mscoco_default,0.4977335586969883,,en,,,0.09058082360172096,ft_clip,ft_clip mscoco_default,0.10548707630115825,zeroshot_classification,wds/vtab/svhn
+pretrained      ,acc5                 ,text_retrieval_recall@5 ,language ,image_retrieval_recall@5 ,mean_average_precision ,acc1                 ,model   ,model_fullname          ,mean_per_class_recall ,task                    ,dataset
+concaps_cuaxu   ,0.30754881233677406  ,                        ,en       ,                         ,                       ,0.08692948638229075  ,ft_clip ,ft_clip concaps_cuaxu   , 0.08739391269097951  ,zeroshot_classification ,wds/cars
+concaps_default ,0.29996269120756125  ,                        ,en       ,                         ,                       ,0.08842183807984082  ,ft_clip ,ft_clip concaps_default , 0.08812563843818653  ,zeroshot_classification ,wds/cars
+mscoco_cuaxu    ,0.10981221241139162  ,                        ,en       ,                         ,                       ,0.025618704141275962 ,ft_clip ,ft_clip mscoco_cuaxu    , 0.02621811008701257  ,zeroshot_classification ,wds/cars
+mscoco_default  ,0.08493968411889069  ,                        ,en       ,                         ,                       ,0.016415868673050615 ,ft_clip ,ft_clip mscoco_default  , 0.01700414894593956  ,zeroshot_classification ,wds/cars
+concaps_cuaxu   ,0.15639810426540285  ,                        ,en       ,                         ,                       ,0.04568720379146919  ,ft_clip ,ft_clip concaps_cuaxu   , 0.0456872037914692   ,zeroshot_classification ,wds/country211
+concaps_default ,0.15734597156398103  ,                        ,en       ,                         ,                       ,0.04578199052132701  ,ft_clip ,ft_clip concaps_default , 0.04611374407582938  ,zeroshot_classification ,wds/country211
+mscoco_cuaxu    ,0.06530805687203792  ,                        ,en       ,                         ,                       ,0.015071090047393364 ,ft_clip ,ft_clip mscoco_cuaxu    , 0.015071090047393368 ,zeroshot_classification ,wds/country211
+mscoco_default  ,0.056919431279620854 ,                        ,en       ,                         ,                       ,0.013507109004739337 ,ft_clip ,ft_clip mscoco_default  , 0.013601895734597157 ,zeroshot_classification ,wds/country211
+concaps_cuaxu   ,0.8225132348843689   ,                        ,en       ,                         ,                       ,0.3258567846196712   ,ft_clip ,ft_clip concaps_cuaxu   , 0.29482090088056495  ,zeroshot_classification ,wds/fer2013
+concaps_default ,0.8349122318194483   ,                        ,en       ,                         ,                       ,0.387712454722764    ,ft_clip ,ft_clip concaps_default , 0.3471880488733397   ,zeroshot_classification ,wds/fer2013
+mscoco_cuaxu    ,0.6468375592086932   ,                        ,en       ,                         ,                       ,0.10044580663137365  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.2098324087401003   ,zeroshot_classification ,wds/fer2013
+mscoco_default  ,0.6312343271106158   ,                        ,en       ,                         ,                       ,0.12733351908609641  ,ft_clip ,ft_clip mscoco_default  , 0.15174292208012338  ,zeroshot_classification ,wds/fer2013
+concaps_cuaxu   ,0.1926192619261926   ,                        ,en       ,                         ,                       ,0.05700570057005701  ,ft_clip ,ft_clip concaps_cuaxu   , 0.057308377896613194 ,zeroshot_classification ,wds/fgvc_aircraft
+concaps_default ,0.24362436243624364  ,                        ,en       ,                         ,                       ,0.0675067506750675   ,ft_clip ,ft_clip concaps_default , 0.06760249554367201  ,zeroshot_classification ,wds/fgvc_aircraft
+mscoco_cuaxu    ,0.1152115211521152   ,                        ,en       ,                         ,                       ,0.025802580258025804 ,ft_clip ,ft_clip mscoco_cuaxu    , 0.025231729055258466 ,zeroshot_classification ,wds/fgvc_aircraft
+mscoco_default  ,0.11971197119711971  ,                        ,en       ,                         ,                       ,0.027602760276027604 ,ft_clip ,ft_clip mscoco_default  , 0.027673796791443852 ,zeroshot_classification ,wds/fgvc_aircraft
+concaps_cuaxu   ,                     ,     0.8050000071525574 ,en       ,     0.7372000217437744  ,                       ,                     ,ft_clip ,ft_clip concaps_cuaxu   ,                      ,zeroshot_retrieval      ,wds/flickr30k
+concaps_default ,                     ,     0.8389999866485596 ,en       ,     0.7354000210762024  ,                       ,                     ,ft_clip ,ft_clip concaps_default ,                      ,zeroshot_retrieval      ,wds/flickr30k
+mscoco_cuaxu    ,                     ,     0.765999972820282  ,en       ,     0.6877999901771545  ,                       ,                     ,ft_clip ,ft_clip mscoco_cuaxu    ,                      ,zeroshot_retrieval      ,wds/flickr30k
+mscoco_default  ,                     ,     0.765999972820282  ,en       ,     0.6773999929428101  ,                       ,                     ,ft_clip ,ft_clip mscoco_default  ,                      ,zeroshot_retrieval      ,wds/flickr30k
+concaps_cuaxu   ,                     ,     0.746999979019165  ,en       ,     0.6840000152587891  ,                       ,                     ,ft_clip ,ft_clip concaps_cuaxu   ,                      ,zeroshot_retrieval      ,wds/flickr8k
+concaps_default ,                     ,     0.7710000276565552 ,en       ,     0.7071999907493591  ,                       ,                     ,ft_clip ,ft_clip concaps_default ,                      ,zeroshot_retrieval      ,wds/flickr8k
+mscoco_cuaxu    ,                     ,     0.7110000252723694 ,en       ,     0.646399974822998   ,                       ,                     ,ft_clip ,ft_clip mscoco_cuaxu    ,                      ,zeroshot_retrieval      ,wds/flickr8k
+mscoco_default  ,                     ,     0.7570000290870667 ,en       ,     0.6514000296592712  ,                       ,                     ,ft_clip ,ft_clip mscoco_default  ,                      ,zeroshot_retrieval      ,wds/flickr8k
+concaps_cuaxu   ,0.33167062549485354  ,                        ,en       ,                         ,                       ,0.1041963578780681   ,ft_clip ,ft_clip concaps_cuaxu   , 0.09269778532518673  ,zeroshot_classification ,wds/gtsrb
+concaps_default ,0.30102929532858275  ,                        ,en       ,                         ,                       ,0.08646080760095012  ,ft_clip ,ft_clip concaps_default , 0.09948638709154382  ,zeroshot_classification ,wds/gtsrb
+mscoco_cuaxu    ,0.23357086302454474  ,                        ,en       ,                         ,                       ,0.07410926365795724  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.07940408494250759  ,zeroshot_classification ,wds/gtsrb
+mscoco_default  ,0.2156769596199525   ,                        ,en       ,                         ,                       ,0.06817102137767221  ,ft_clip ,ft_clip mscoco_default  , 0.08231536060277214  ,zeroshot_classification ,wds/gtsrb
+concaps_cuaxu   ,0.436                ,                        ,en       ,                         ,                       ,0.17053333333333334  ,ft_clip ,ft_clip concaps_cuaxu   , 0.18509734990850346  ,zeroshot_classification ,wds/imagenet-a
+concaps_default ,0.43733333333333335  ,                        ,en       ,                         ,                       ,0.16386666666666666  ,ft_clip ,ft_clip concaps_default , 0.18109108732330095  ,zeroshot_classification ,wds/imagenet-a
+mscoco_cuaxu    ,0.2614666666666667   ,                        ,en       ,                         ,                       ,0.08973333333333333  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.11335988876264569  ,zeroshot_classification ,wds/imagenet-a
+mscoco_default  ,0.22933333333333333  ,                        ,en       ,                         ,                       ,0.07093333333333333  ,ft_clip ,ft_clip mscoco_default  , 0.08946677325920101  ,zeroshot_classification ,wds/imagenet-a
+concaps_cuaxu   ,0.636                ,                        ,en       ,                         ,                       ,0.3405               ,ft_clip ,ft_clip concaps_cuaxu   , 0.35408536219971976  ,zeroshot_classification ,wds/imagenet-o
+concaps_default ,0.6285               ,                        ,en       ,                         ,                       ,0.3085               ,ft_clip ,ft_clip concaps_default , 0.324884902279523    ,zeroshot_classification ,wds/imagenet-o
+mscoco_cuaxu    ,0.421                ,                        ,en       ,                         ,                       ,0.172                ,ft_clip ,ft_clip mscoco_cuaxu    , 0.17951296574942086  ,zeroshot_classification ,wds/imagenet-o
+mscoco_default  ,0.398                ,                        ,en       ,                         ,                       ,0.1555               ,ft_clip ,ft_clip mscoco_default  , 0.16255665144109416  ,zeroshot_classification ,wds/imagenet-o
+concaps_cuaxu   ,0.6913666666666667   ,                        ,en       ,                         ,                       ,0.4402               ,ft_clip ,ft_clip concaps_cuaxu   , 0.4163208915715079   ,zeroshot_classification ,wds/imagenet-r
+concaps_default ,0.6894               ,                        ,en       ,                         ,                       ,0.4221666666666667   ,ft_clip ,ft_clip concaps_default , 0.4007461115035866   ,zeroshot_classification ,wds/imagenet-r
+mscoco_cuaxu    ,0.40546666666666664  ,                        ,en       ,                         ,                       ,0.19766666666666666  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.19062044626988062  ,zeroshot_classification ,wds/imagenet-r
+mscoco_default  ,0.3641666666666667   ,                        ,en       ,                         ,                       ,0.1688               ,ft_clip ,ft_clip mscoco_default  , 0.16306083451926556  ,zeroshot_classification ,wds/imagenet-r
+concaps_cuaxu   ,0.674                ,                        ,en       ,                         ,                       ,0.37992              ,ft_clip ,ft_clip concaps_cuaxu   , 0.37964              ,zeroshot_classification ,wds/imagenet1k
+concaps_default ,0.66828              ,                        ,en       ,                         ,                       ,0.37614              ,ft_clip ,ft_clip concaps_default , 0.37636000000000003  ,zeroshot_classification ,wds/imagenet1k
+mscoco_cuaxu    ,0.38692              ,                        ,en       ,                         ,                       ,0.16372              ,ft_clip ,ft_clip mscoco_cuaxu    , 0.16394              ,zeroshot_classification ,wds/imagenet1k
+mscoco_default  ,0.35888              ,                        ,en       ,                         ,                       ,0.15006              ,ft_clip ,ft_clip mscoco_default  , 0.15002000000000001  ,zeroshot_classification ,wds/imagenet1k
+concaps_cuaxu   ,0.48466269724301914  ,                        ,en       ,                         ,                       ,0.24559335023285975  ,ft_clip ,ft_clip concaps_cuaxu   , 0.24554196078431373  ,zeroshot_classification ,wds/imagenet_sketch
+concaps_default ,0.4835229617402582   ,                        ,en       ,                         ,                       ,0.2405038416946688   ,ft_clip ,ft_clip concaps_default , 0.2406207843137255   ,zeroshot_classification ,wds/imagenet_sketch
+mscoco_cuaxu    ,0.24891430368055964  ,                        ,en       ,                         ,                       ,0.10047357975200928  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.10048156862745097  ,zeroshot_classification ,wds/imagenet_sketch
+mscoco_default  ,0.21711961327595355  ,                        ,en       ,                         ,                       ,0.08270942639863232  ,ft_clip ,ft_clip mscoco_default  , 0.08262117647058824  ,zeroshot_classification ,wds/imagenet_sketch
+concaps_cuaxu   ,0.6295               ,                        ,en       ,                         ,                       ,0.3354               ,ft_clip ,ft_clip concaps_cuaxu   , 0.3358               ,zeroshot_classification ,wds/imagenetv2
+concaps_default ,0.6245               ,                        ,en       ,                         ,                       ,0.3285               ,ft_clip ,ft_clip concaps_default , 0.328                ,zeroshot_classification ,wds/imagenetv2
+mscoco_cuaxu    ,0.3576               ,                        ,en       ,                         ,                       ,0.1428               ,ft_clip ,ft_clip mscoco_cuaxu    , 0.1429               ,zeroshot_classification ,wds/imagenetv2
+mscoco_default  ,0.3255               ,                        ,en       ,                         ,                       ,0.1302               ,ft_clip ,ft_clip mscoco_default  , 0.1307               ,zeroshot_classification ,wds/imagenetv2
+concaps_cuaxu   ,0.5469               ,                        ,en       ,                         ,                       ,0.1309               ,ft_clip ,ft_clip concaps_cuaxu   , 0.11855894586648046  ,zeroshot_classification ,wds/mnist
+concaps_default ,0.5703               ,                        ,en       ,                         ,                       ,0.108                ,ft_clip ,ft_clip concaps_default , 0.10604953674966149  ,zeroshot_classification ,wds/mnist
+mscoco_cuaxu    ,0.5159               ,                        ,en       ,                         ,                       ,0.0985               ,ft_clip ,ft_clip mscoco_cuaxu    , 0.10057336268258281  ,zeroshot_classification ,wds/mnist
+mscoco_default  ,0.517                ,                        ,en       ,                         ,                       ,0.1918               ,ft_clip ,ft_clip mscoco_default  , 0.1941968732402369   ,zeroshot_classification ,wds/mnist
+concaps_cuaxu   ,                     ,     0.5559999942779541 ,en       ,     0.46485406160354614 ,                       ,                     ,ft_clip ,ft_clip concaps_cuaxu   ,                      ,zeroshot_retrieval      ,wds/mscoco_captions
+concaps_default ,                     ,     0.5609999895095825 ,en       ,     0.47892841696739197 ,                       ,                     ,ft_clip ,ft_clip concaps_default ,                      ,zeroshot_retrieval      ,wds/mscoco_captions
+mscoco_cuaxu    ,                     ,     0.7021999955177307 ,en       ,     0.6039184331893921  ,                       ,                     ,ft_clip ,ft_clip mscoco_cuaxu    ,                      ,zeroshot_retrieval      ,wds/mscoco_captions
+mscoco_default  ,                     ,     0.723800003528595  ,en       ,     0.6219912171363831  ,                       ,                     ,ft_clip ,ft_clip mscoco_default  ,                      ,zeroshot_retrieval      ,wds/mscoco_captions
+concaps_cuaxu   ,0.5473780553461829   ,                        ,en       ,                         ,                       ,0.30639603747173466  ,ft_clip ,ft_clip concaps_cuaxu   , 0.2940565941077875   ,zeroshot_classification ,wds/objectnet
+concaps_default ,0.5282114784106816   ,                        ,en       ,                         ,                       ,0.2803919457305912   ,ft_clip ,ft_clip concaps_default , 0.270049233924399    ,zeroshot_classification ,wds/objectnet
+mscoco_cuaxu    ,0.3846236674921934   ,                        ,en       ,                         ,                       ,0.18827393130181974  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.18071092175941     ,zeroshot_classification ,wds/objectnet
+mscoco_default  ,0.3833853774092818   ,                        ,en       ,                         ,                       ,0.16916119306557553  ,ft_clip ,ft_clip mscoco_default  , 0.16385457017117067  ,zeroshot_classification ,wds/objectnet
+concaps_cuaxu   ,nan                  ,                        ,en       ,                         ,                       ,0.527732015376167    ,ft_clip ,ft_clip concaps_cuaxu   , 0.527050402408662    ,zeroshot_classification ,wds/renderedsst2
+concaps_default ,nan                  ,                        ,en       ,                         ,                       ,0.5211422295442065   ,ft_clip ,ft_clip concaps_default , 0.5204316484280007   ,zeroshot_classification ,wds/renderedsst2
+mscoco_cuaxu    ,nan                  ,                        ,en       ,                         ,                       ,0.5035694673256452   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.5027557032018991   ,zeroshot_classification ,wds/renderedsst2
+mscoco_default  ,nan                  ,                        ,en       ,                         ,                       ,0.5013728720483251   ,ft_clip ,ft_clip mscoco_default  , 0.5005536737884315   ,zeroshot_classification ,wds/renderedsst2
+concaps_cuaxu   ,0.9985               ,                        ,en       ,                         ,                       ,0.954625             ,ft_clip ,ft_clip concaps_cuaxu   , 0.9546250000000001   ,zeroshot_classification ,wds/stl10
+concaps_default ,0.99725              ,                        ,en       ,                         ,                       ,0.945375             ,ft_clip ,ft_clip concaps_default , 0.94525              ,zeroshot_classification ,wds/stl10
+mscoco_cuaxu    ,0.9985               ,                        ,en       ,                         ,                       ,0.8765               ,ft_clip ,ft_clip mscoco_cuaxu    , 0.8764999999999998   ,zeroshot_classification ,wds/stl10
+mscoco_default  ,0.999                ,                        ,en       ,                         ,                       ,0.869875             ,ft_clip ,ft_clip mscoco_default  , 0.8696249999999999   ,zeroshot_classification ,wds/stl10
+concaps_cuaxu   ,0.8727954833845192   ,                        ,en       ,                         ,                       ,0.5610828107471909   ,ft_clip ,ft_clip concaps_cuaxu   , 0.5220404673539091   ,zeroshot_classification ,wds/sun397
+concaps_default ,0.8524651966824208   ,                        ,en       ,                         ,                       ,0.5330562554021001   ,ft_clip ,ft_clip concaps_default , 0.5008708829700189   ,zeroshot_classification ,wds/sun397
+mscoco_cuaxu    ,0.6577597145852107   ,                        ,en       ,                         ,                       ,0.3507916950181143   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.2760585220299809   ,zeroshot_classification ,wds/sun397
+mscoco_default  ,0.6399580705077514   ,                        ,en       ,                         ,                       ,0.3201261562793093   ,ft_clip ,ft_clip mscoco_default  , 0.2650940331760515   ,zeroshot_classification ,wds/sun397
+concaps_cuaxu   ,0.9151308760683761   ,                        ,en       ,                         ,                       ,0.7156784188034188   ,ft_clip ,ft_clip concaps_cuaxu   , 0.7629567361112602   ,zeroshot_classification ,wds/voc2007
+concaps_default ,0.9205395299145299   ,                        ,en       ,                         ,                       ,0.6886351495726496   ,ft_clip ,ft_clip concaps_default , 0.7400008200090572   ,zeroshot_classification ,wds/voc2007
+mscoco_cuaxu    ,0.9251469017094017   ,                        ,en       ,                         ,                       ,0.7228231837606838   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.7642854656306731   ,zeroshot_classification ,wds/voc2007
+mscoco_default  ,0.9312232905982906   ,                        ,en       ,                         ,                       ,0.7443242521367521   ,ft_clip ,ft_clip mscoco_default  , 0.7463759716371894   ,zeroshot_classification ,wds/voc2007
+concaps_cuaxu   ,                     ,                        ,en       ,                         ,    0.7625216841697693 ,                     ,ft_clip ,ft_clip concaps_cuaxu   ,                      ,zeroshot_classification ,wds/voc2007_multilabel
+concaps_default ,                     ,                        ,en       ,                         ,    0.758492112159729  ,                     ,ft_clip ,ft_clip concaps_default ,                      ,zeroshot_classification ,wds/voc2007_multilabel
+mscoco_cuaxu    ,                     ,                        ,en       ,                         ,    0.7784862518310547 ,                     ,ft_clip ,ft_clip mscoco_cuaxu    ,                      ,zeroshot_classification ,wds/voc2007_multilabel
+mscoco_default  ,                     ,                        ,en       ,                         ,    0.7064222097396851 ,                     ,ft_clip ,ft_clip mscoco_default  ,                      ,zeroshot_classification ,wds/voc2007_multilabel
+concaps_cuaxu   ,0.9117502054231718   ,                        ,en       ,                         ,                       ,0.7477403451109285   ,ft_clip ,ft_clip concaps_cuaxu   , 0.7232317268164414   ,zeroshot_classification ,wds/vtab/caltech101
+concaps_default ,0.9150369761709121   ,                        ,en       ,                         ,                       ,0.7599013968775677   ,ft_clip ,ft_clip concaps_default , 0.7349994242808716   ,zeroshot_classification ,wds/vtab/caltech101
+mscoco_cuaxu    ,0.8238290879211175   ,                        ,en       ,                         ,                       ,0.5321281840591618   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.4483720646307769   ,zeroshot_classification ,wds/vtab/caltech101
+mscoco_default  ,0.8350041084634346   ,                        ,en       ,                         ,                       ,0.5027115858668858   ,ft_clip ,ft_clip mscoco_default  , 0.40706818653847165  ,zeroshot_classification ,wds/vtab/caltech101
+concaps_cuaxu   ,0.8087               ,                        ,en       ,                         ,                       ,0.5387               ,ft_clip ,ft_clip concaps_cuaxu   , 0.5386000000000001   ,zeroshot_classification ,wds/vtab/cifar100
+concaps_default ,0.7672               ,                        ,en       ,                         ,                       ,0.4895               ,ft_clip ,ft_clip concaps_default , 0.4899               ,zeroshot_classification ,wds/vtab/cifar100
+mscoco_cuaxu    ,0.6165               ,                        ,en       ,                         ,                       ,0.3375               ,ft_clip ,ft_clip mscoco_cuaxu    , 0.3373999999999999   ,zeroshot_classification ,wds/vtab/cifar100
+mscoco_default  ,0.5672               ,                        ,en       ,                         ,                       ,0.3025               ,ft_clip ,ft_clip mscoco_default  , 0.3019               ,zeroshot_classification ,wds/vtab/cifar100
+concaps_cuaxu   ,0.9914               ,                        ,en       ,                         ,                       ,0.8538               ,ft_clip ,ft_clip concaps_cuaxu   , 0.8539999999999999   ,zeroshot_classification ,wds/vtab/cifar10
+concaps_default ,0.983                ,                        ,en       ,                         ,                       ,0.7992               ,ft_clip ,ft_clip concaps_default , 0.7997               ,zeroshot_classification ,wds/vtab/cifar10
+mscoco_cuaxu    ,0.9881               ,                        ,en       ,                         ,                       ,0.8112               ,ft_clip ,ft_clip mscoco_cuaxu    , 0.8113000000000001   ,zeroshot_classification ,wds/vtab/cifar10
+mscoco_default  ,0.9863               ,                        ,en       ,                         ,                       ,0.7943               ,ft_clip ,ft_clip mscoco_default  , 0.7933999999999999   ,zeroshot_classification ,wds/vtab/cifar10
+concaps_cuaxu   ,0.8723333333333333   ,                        ,en       ,                         ,                       ,0.22246666666666667  ,ft_clip ,ft_clip concaps_cuaxu   , 0.1658408390437986   ,zeroshot_classification ,wds/vtab/clevr_closest_object_distance
+concaps_default ,0.9096666666666666   ,                        ,en       ,                         ,                       ,0.1618               ,ft_clip ,ft_clip concaps_default , 0.15385734120379765  ,zeroshot_classification ,wds/vtab/clevr_closest_object_distance
+mscoco_cuaxu    ,0.918                ,                        ,en       ,                         ,                       ,0.20706666666666668  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.1586264296074911   ,zeroshot_classification ,wds/vtab/clevr_closest_object_distance
+mscoco_default  ,0.9149333333333334   ,                        ,en       ,                         ,                       ,0.1704               ,ft_clip ,ft_clip mscoco_default  , 0.14962696243032134  ,zeroshot_classification ,wds/vtab/clevr_closest_object_distance
+concaps_cuaxu   ,0.726                ,                        ,en       ,                         ,                       ,0.18193333333333334  ,ft_clip ,ft_clip concaps_cuaxu   , 0.18281401910038558  ,zeroshot_classification ,wds/vtab/clevr_count_all
+concaps_default ,0.6756666666666666   ,                        ,en       ,                         ,                       ,0.18493333333333334  ,ft_clip ,ft_clip concaps_default , 0.1844818522801231   ,zeroshot_classification ,wds/vtab/clevr_count_all
+mscoco_cuaxu    ,0.7027333333333333   ,                        ,en       ,                         ,                       ,0.17186666666666667  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.17082850115265275  ,zeroshot_classification ,wds/vtab/clevr_count_all
+mscoco_default  ,0.728                ,                        ,en       ,                         ,                       ,0.21546666666666667  ,ft_clip ,ft_clip mscoco_default  , 0.21404129619812495  ,zeroshot_classification ,wds/vtab/clevr_count_all
+concaps_cuaxu   ,1.0                  ,                        ,en       ,                         ,                       ,0.7092570892898993   ,ft_clip ,ft_clip concaps_cuaxu   , 0.20901296568769495  ,zeroshot_classification ,wds/vtab/diabetic_retinopathy
+concaps_default ,1.0                  ,                        ,en       ,                         ,                       ,0.735903445043356    ,ft_clip ,ft_clip concaps_default , 0.19998726236346848  ,zeroshot_classification ,wds/vtab/diabetic_retinopathy
+mscoco_cuaxu    ,1.0                  ,                        ,en       ,                         ,                       ,0.6741973283337239   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.21144989781631343  ,zeroshot_classification ,wds/vtab/diabetic_retinopathy
+mscoco_default  ,1.0                  ,                        ,en       ,                         ,                       ,0.7354112959925005   ,ft_clip ,ft_clip mscoco_default  , 0.19993836985427696  ,zeroshot_classification ,wds/vtab/diabetic_retinopathy
+concaps_cuaxu   ,0.8270068176819881   ,                        ,en       ,                         ,                       ,0.151440510226523    ,ft_clip ,ft_clip concaps_cuaxu   , 0.15369472224495792  ,zeroshot_classification ,wds/vtab/dmlab
+concaps_default ,0.8038706839674511   ,                        ,en       ,                         ,                       ,0.1278645260611392   ,ft_clip ,ft_clip concaps_default , 0.16033211091467717  ,zeroshot_classification ,wds/vtab/dmlab
+mscoco_cuaxu    ,0.8450406861667034   ,                        ,en       ,                         ,                       ,0.1785792830437651   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.17897748538797806  ,zeroshot_classification ,wds/vtab/dmlab
+mscoco_default  ,0.8336925445348582   ,                        ,en       ,                         ,                       ,0.14616230481636244  ,ft_clip ,ft_clip mscoco_default  , 0.1681660523183054   ,zeroshot_classification ,wds/vtab/dmlab
+concaps_cuaxu   ,0.12432183159722222  ,                        ,en       ,                         ,                       ,0.024169921875       ,ft_clip ,ft_clip concaps_cuaxu   , 0.024592963284307816 ,zeroshot_classification ,wds/vtab/dsprites_label_orientation
+concaps_default ,0.1115451388888889   ,                        ,en       ,                         ,                       ,0.019124348958333332 ,ft_clip ,ft_clip concaps_default , 0.019496993922379528 ,zeroshot_classification ,wds/vtab/dsprites_label_orientation
+mscoco_cuaxu    ,0.11751302083333333  ,                        ,en       ,                         ,                       ,0.017822265625       ,ft_clip ,ft_clip mscoco_cuaxu    , 0.017852863519821797 ,zeroshot_classification ,wds/vtab/dsprites_label_orientation
+mscoco_default  ,0.11664496527777778  ,                        ,en       ,                         ,                       ,0.023966471354166668 ,ft_clip ,ft_clip mscoco_default  , 0.02422681494757486  ,zeroshot_classification ,wds/vtab/dsprites_label_orientation
+concaps_cuaxu   ,0.15478515625        ,                        ,en       ,                         ,                       ,0.031439887152777776 ,ft_clip ,ft_clip concaps_cuaxu   , 0.031427810156939254 ,zeroshot_classification ,wds/vtab/dsprites_label_x_position
+concaps_default ,0.15409342447916666  ,                        ,en       ,                         ,                       ,0.030978732638888888 ,ft_clip ,ft_clip concaps_default , 0.03165346645761121  ,zeroshot_classification ,wds/vtab/dsprites_label_x_position
+mscoco_cuaxu    ,0.1509331597222222   ,                        ,en       ,                         ,                       ,0.028645833333333332 ,ft_clip ,ft_clip mscoco_cuaxu    , 0.028014558707107076 ,zeroshot_classification ,wds/vtab/dsprites_label_x_position
+mscoco_default  ,0.155517578125       ,                        ,en       ,                         ,                       ,0.030083550347222224 ,ft_clip ,ft_clip mscoco_default  , 0.030103748996293703 ,zeroshot_classification ,wds/vtab/dsprites_label_x_position
+concaps_cuaxu   ,0.1512993706597222   ,                        ,en       ,                         ,                       ,0.0313720703125      ,ft_clip ,ft_clip concaps_cuaxu   , 0.031022002077436113 ,zeroshot_classification ,wds/vtab/dsprites_label_y_position
+concaps_default ,0.15177408854166666  ,                        ,en       ,                         ,                       ,0.031168619791666668 ,ft_clip ,ft_clip concaps_default , 0.03089558634000887  ,zeroshot_classification ,wds/vtab/dsprites_label_y_position
+mscoco_cuaxu    ,0.1558295355902778   ,                        ,en       ,                         ,                       ,0.031426323784722224 ,ft_clip ,ft_clip mscoco_cuaxu    , 0.031583680476485736 ,zeroshot_classification ,wds/vtab/dsprites_label_y_position
+mscoco_default  ,0.1559380425347222   ,                        ,en       ,                         ,                       ,0.030734592013888888 ,ft_clip ,ft_clip mscoco_default  , 0.03088464881345361  ,zeroshot_classification ,wds/vtab/dsprites_label_y_position
+concaps_cuaxu   ,0.6095744680851064   ,                        ,en       ,                         ,                       ,0.28882978723404257  ,ft_clip ,ft_clip concaps_cuaxu   , 0.2877659574468085   ,zeroshot_classification ,wds/vtab/dtd
+concaps_default ,0.6313829787234042   ,                        ,en       ,                         ,                       ,0.3047872340425532   ,ft_clip ,ft_clip concaps_default , 0.30691489361702123  ,zeroshot_classification ,wds/vtab/dtd
+mscoco_cuaxu    ,0.28191489361702127  ,                        ,en       ,                         ,                       ,0.09574468085106383  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.09627659574468087  ,zeroshot_classification ,wds/vtab/dtd
+mscoco_default  ,0.28191489361702127  ,                        ,en       ,                         ,                       ,0.08670212765957447  ,ft_clip ,ft_clip mscoco_default  , 0.0872340425531915   ,zeroshot_classification ,wds/vtab/dtd
+concaps_cuaxu   ,0.8629629629629629   ,                        ,en       ,                         ,                       ,0.4325925925925926   ,ft_clip ,ft_clip concaps_cuaxu   , 0.43212557228276116  ,zeroshot_classification ,wds/vtab/eurosat
+concaps_default ,0.8644444444444445   ,                        ,en       ,                         ,                       ,0.3459259259259259   ,ft_clip ,ft_clip concaps_default , 0.35052428970418104  ,zeroshot_classification ,wds/vtab/eurosat
+mscoco_cuaxu    ,0.6887037037037037   ,                        ,en       ,                         ,                       ,0.28314814814814815  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.2661070337230388   ,zeroshot_classification ,wds/vtab/eurosat
+mscoco_default  ,0.7001851851851851   ,                        ,en       ,                         ,                       ,0.19648148148148148  ,ft_clip ,ft_clip mscoco_default  , 0.1942730992327178   ,zeroshot_classification ,wds/vtab/eurosat
+concaps_cuaxu   ,0.5124410473247683   ,                        ,en       ,                         ,                       ,0.23987640266710034  ,ft_clip ,ft_clip concaps_cuaxu   , 0.23382023552252681  ,zeroshot_classification ,wds/vtab/flowers
+concaps_default ,0.5332574402341844   ,                        ,en       ,                         ,                       ,0.25776549032362983  ,ft_clip ,ft_clip concaps_default , 0.24654195846606208  ,zeroshot_classification ,wds/vtab/flowers
+mscoco_cuaxu    ,0.15140673280208164  ,                        ,en       ,                         ,                       ,0.05610668401366076  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.037362638332903035 ,zeroshot_classification ,wds/vtab/flowers
+mscoco_default  ,0.16588063099691006  ,                        ,en       ,                         ,                       ,0.050902585786306714 ,ft_clip ,ft_clip mscoco_default  , 0.0384203788712994   ,zeroshot_classification ,wds/vtab/flowers
+concaps_cuaxu   ,nan                  ,                        ,en       ,                         ,                       ,0.24613220815752462  ,ft_clip ,ft_clip concaps_cuaxu   , 0.3490205380336524   ,zeroshot_classification ,wds/vtab/kitti_closest_vehicle_distance
+concaps_default ,nan                  ,                        ,en       ,                         ,                       ,0.21940928270042195  ,ft_clip ,ft_clip concaps_default , 0.2946136566459019   ,zeroshot_classification ,wds/vtab/kitti_closest_vehicle_distance
+mscoco_cuaxu    ,nan                  ,                        ,en       ,                         ,                       ,0.39662447257383965  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.48863005985121716  ,zeroshot_classification ,wds/vtab/kitti_closest_vehicle_distance
+mscoco_default  ,nan                  ,                        ,en       ,                         ,                       ,0.42053445850914206  ,ft_clip ,ft_clip mscoco_default  , 0.5014207400579231   ,zeroshot_classification ,wds/vtab/kitti_closest_vehicle_distance
+concaps_cuaxu   ,nan                  ,                        ,en       ,                         ,                       ,0.52252197265625     ,ft_clip ,ft_clip concaps_cuaxu   , 0.5224608913085746   ,zeroshot_classification ,wds/vtab/pcam
+concaps_default ,nan                  ,                        ,en       ,                         ,                       ,0.500152587890625    ,ft_clip ,ft_clip concaps_default , 0.49993899090964555  ,zeroshot_classification ,wds/vtab/pcam
+mscoco_cuaxu    ,nan                  ,                        ,en       ,                         ,                       ,0.485626220703125    ,ft_clip ,ft_clip mscoco_cuaxu    , 0.48547283294859833  ,zeroshot_classification ,wds/vtab/pcam
+mscoco_default  ,nan                  ,                        ,en       ,                         ,                       ,0.497955322265625    ,ft_clip ,ft_clip mscoco_default  , 0.49774274188799544  ,zeroshot_classification ,wds/vtab/pcam
+concaps_cuaxu   ,0.6355955301171982   ,                        ,en       ,                         ,                       ,0.24938675388389206  ,ft_clip ,ft_clip concaps_cuaxu   , 0.24804582859662208  ,zeroshot_classification ,wds/vtab/pets
+concaps_default ,0.6857454347233579   ,                        ,en       ,                         ,                       ,0.2747342600163532   ,ft_clip ,ft_clip concaps_default , 0.2738179461329004   ,zeroshot_classification ,wds/vtab/pets
+mscoco_cuaxu    ,0.37748705369310437  ,                        ,en       ,                         ,                       ,0.08013082583810302  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.07909993969317825  ,zeroshot_classification ,wds/vtab/pets
+mscoco_default  ,0.3586808394657945   ,                        ,en       ,                         ,                       ,0.09375851730716817  ,ft_clip ,ft_clip mscoco_default  , 0.09409285650817314  ,zeroshot_classification ,wds/vtab/pets
+concaps_cuaxu   ,0.756031746031746    ,                        ,en       ,                         ,                       ,0.4141269841269841   ,ft_clip ,ft_clip concaps_cuaxu   , 0.4188293153985442   ,zeroshot_classification ,wds/vtab/resisc45
+concaps_default ,0.7792063492063492   ,                        ,en       ,                         ,                       ,0.4384126984126984   ,ft_clip ,ft_clip concaps_default , 0.4435786203870395   ,zeroshot_classification ,wds/vtab/resisc45
+mscoco_cuaxu    ,0.6460317460317461   ,                        ,en       ,                         ,                       ,0.2949206349206349   ,ft_clip ,ft_clip mscoco_cuaxu    , 0.29859761892197234  ,zeroshot_classification ,wds/vtab/resisc45
+mscoco_default  ,0.6288888888888889   ,                        ,en       ,                         ,                       ,0.28174603174603174  ,ft_clip ,ft_clip mscoco_default  , 0.2844836384607234   ,zeroshot_classification ,wds/vtab/resisc45
+concaps_cuaxu   ,0.27242798353909464  ,                        ,en       ,                         ,                       ,0.051440329218107    ,ft_clip ,ft_clip concaps_cuaxu   , 0.05229658075533691  ,zeroshot_classification ,wds/vtab/smallnorb_label_azimuth
+concaps_default ,0.29218106995884774  ,                        ,en       ,                         ,                       ,0.059094650205761316 ,ft_clip ,ft_clip concaps_default , 0.05824480963653914  ,zeroshot_classification ,wds/vtab/smallnorb_label_azimuth
+mscoco_cuaxu    ,0.2908641975308642   ,                        ,en       ,                         ,                       ,0.05860082304526749  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.05836922816531193  ,zeroshot_classification ,wds/vtab/smallnorb_label_azimuth
+mscoco_default  ,0.2823045267489712   ,                        ,en       ,                         ,                       ,0.056707818930041155 ,ft_clip ,ft_clip mscoco_default  , 0.05701489559267595  ,zeroshot_classification ,wds/vtab/smallnorb_label_azimuth
+concaps_cuaxu   ,0.5535802469135802   ,                        ,en       ,                         ,                       ,0.11522633744855967  ,ft_clip ,ft_clip concaps_cuaxu   , 0.11721377843302244  ,zeroshot_classification ,wds/vtab/smallnorb_label_elevation
+concaps_default ,0.5466666666666666   ,                        ,en       ,                         ,                       ,0.10567901234567902  ,ft_clip ,ft_clip concaps_default , 0.10749606427736523  ,zeroshot_classification ,wds/vtab/smallnorb_label_elevation
+mscoco_cuaxu    ,0.5690534979423868   ,                        ,en       ,                         ,                       ,0.12189300411522634  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.1213928112002414   ,zeroshot_classification ,wds/vtab/smallnorb_label_elevation
+mscoco_default  ,0.5667489711934156   ,                        ,en       ,                         ,                       ,0.1097119341563786   ,ft_clip ,ft_clip mscoco_default  , 0.11053753893392021  ,zeroshot_classification ,wds/vtab/smallnorb_label_elevation
+concaps_cuaxu   ,0.5291564228641672   ,                        ,en       ,                         ,                       ,0.07125845113706208  ,ft_clip ,ft_clip concaps_cuaxu   , 0.10104192069259663  ,zeroshot_classification ,wds/vtab/svhn
+concaps_default ,0.5984557467732022   ,                        ,en       ,                         ,                       ,0.11213122311001844  ,ft_clip ,ft_clip concaps_default , 0.11597016345733871  ,zeroshot_classification ,wds/vtab/svhn
+mscoco_cuaxu    ,0.5665334972341733   ,                        ,en       ,                         ,                       ,0.08881376767055932  ,ft_clip ,ft_clip mscoco_cuaxu    , 0.10661058349503949  ,zeroshot_classification ,wds/vtab/svhn
+mscoco_default  ,0.4977335586969883   ,                        ,en       ,                         ,                       ,0.09058082360172096  ,ft_clip ,ft_clip mscoco_default  , 0.10548707630115825  ,zeroshot_classification ,wds/vtab/svhn

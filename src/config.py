@@ -33,7 +33,7 @@ selected_clip_model = ClipModels.FINETUNED_TEMP
     1. Training CLIP
 '''
 
-config_cuda_device = 'cuda'
+config_cuda_device = 'cuda:0'
 
 training_hyperparameters = {
 

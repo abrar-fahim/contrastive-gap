@@ -1,0 +1,13 @@
+wds/imagenet1k
+wds/imagenetv2
+wds/imagenet_sketch
+wds/imagenet-a
+wds/imagenet-r
+wds/imagenet-o
+wds/objectnet
+wds/voc2007
+wds/sun397
+wds/vtab/caltech101
+wds/vtab/cifar10
+wds/vtab/cifar100
+wds/vtab/pets

@@ -556,9 +556,9 @@ class Evaluator():
 
 
 
-        # draw lines between embeddings
-        for i in range(encoder1_embeddings.shape[0]):
-            plt.plot([all_embeddings_pca[i, 0], all_embeddings_pca[i + encoder1_embeddings.shape[0], 0]], [all_embeddings_pca[i, 1], all_embeddings_pca[i + encoder1_embeddings.shape[0], 1]], color='black', alpha=0.5)
+        # # draw lines between embeddings
+        # for i in range(encoder1_embeddings.shape[0]):
+        #     plt.plot([all_embeddings_pca[i, 0], all_embeddings_pca[i + encoder1_embeddings.shape[0], 0]], [all_embeddings_pca[i, 1], all_embeddings_pca[i + encoder1_embeddings.shape[0], 1]], color='black', alpha=0.5)
 
         # fix x and y limits
         plt.xlim(-0.5, 0.5)
