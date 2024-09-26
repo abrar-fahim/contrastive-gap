@@ -1,9 +1,0 @@
-ft_clip,mscoco_default_64d_s24
-ft_clip,mscoco_cua_64d_s24
-ft_clip,mscoco_cuaxu_64d_s24
-ft_clip,mscoco_default_64d_s44
-ft_clip,mscoco_cua_64d_s44
-ft_clip,mscoco_cuaxu_64d_s44
-ft_clip,mscoco_default_64d_s42
-ft_clip,mscoco_cua_64d_s42
-ft_clip,mscoco_cuaxu_64d_s42

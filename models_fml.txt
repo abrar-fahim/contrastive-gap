@@ -1,1 +1,0 @@
-ft_clip,mscoco_cuaxu_32d_s42
